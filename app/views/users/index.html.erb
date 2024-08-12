@@ -1,0 +1,5 @@
+<% @users.each do |user|%>
+  <%= user.first_name %>
+<% end %>
+
+<%= button_to "logout", destroy_user_session_path, method: :delete  %>

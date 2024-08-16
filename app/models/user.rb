@@ -6,4 +6,5 @@ class User < ApplicationRecord
 
   has_many :department_users
   has_many :departments, through: :department_users
+  has_many :salaries
 end

@@ -1,4 +1,3 @@
 class Position < ApplicationRecord
-  belongs_to :department, optional: true
-  has_many :salaries
+  belongs_to :department
 end

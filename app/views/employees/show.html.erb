@@ -1,0 +1,10 @@
+<%= @employee.last_name %>
+<%= @employee.first_name %>
+<%= @employee.patronic_name %>
+
+<%= link_to 'Edit employee', edit_employee_path(@employee.id) %>
+<%= link_to 'Back to employees', employees_path %>
+<%= link_to "Destroy", employee_path(@employee.id), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %>

@@ -1,0 +1,47 @@
+<%= form_with model: @employee do |f| %>
+  <div>
+    <%= f.label :last_name %><br>
+    <%= f.text_field :last_name %>
+    <% if @employee.errors.has_key?(:last_name) %>
+      <% @employee.errors[:last_name].each do |error| %>
+        <p><%= error %></p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div>
+    <%= f.label :first_name %><br>
+    <%= f.text_field :first_name %>
+    <% if @employee.errors.has_key?(:first_name) %>
+      <% @employee.errors[:first_name].each do |error| %>
+        <p><%= error %></p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div>
+    <%= f.label :patronic_name %><br>
+    <%= f.text_field :patronic_name %>
+    <% if @employee.errors.has_key?(:patronic_name) %>
+      <% @employee.errors[:patronic_name].each do |error| %>
+        <p><%= error %></p>
+      <% end %>
+    <% end %>
+  </div>
+
+
+
+  <div>
+    <%= f.label :id_code %><br>
+    <%= f.text_field :id_code %>
+    <% if @employee.errors.has_key?(:id_code) %>
+      <% @employee.errors[:id_code].each do |error| %>
+        <p><%= error %></p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div><br>
+    <%= f.submit 'Save record' %>
+  </div>
+<% end %>

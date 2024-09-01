@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_30_114947) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_01_175538) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,7 +40,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_30_114947) do
   end
 
   create_table "employees", force: :cascade do |t|
-    t.integer "id_code", null: false
+    t.bigint "id_code", null: false
     t.string "first_name", null: false
     t.string "patronic_name"
     t.string "last_name", null: false
@@ -81,9 +81,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_30_114947) do
   end
 
   add_foreign_key "account_books", "employees"
-  add_foreign_key "department_employees", "departments"
-  add_foreign_key "department_employees", "employees"
-  add_foreign_key "department_employees", "positions"
+  add_foreign_key "department_employees", "departments", on_delete: :cascade
+  add_foreign_key "department_employees", "employees", on_delete: :cascade
+  add_foreign_key "department_employees", "positions", on_delete: :cascade
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"

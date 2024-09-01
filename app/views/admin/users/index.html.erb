@@ -1,0 +1,13 @@
+<h2>Manage users</h2>
+<div class="row mt-4">
+  <% @users.each do |user| %>
+    <% unless user == current_user %>
+      <div class="col-5 border-bottom">
+        <%= user.email %>
+      </div>
+      <div class="col-5 border-bottom">
+        <%= button_to 'Delete', admin_user_path(user), method: :delete, class: 'btn btn-danger mb-3' %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

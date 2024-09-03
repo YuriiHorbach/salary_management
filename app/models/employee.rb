@@ -8,4 +8,5 @@ class Employee < ApplicationRecord
   validates :first_name, presence: true
   validates :patronic_name, presence: true
   validates :last_name, presence: true
+  validates :total_salary, numericality: { greater_than_or_equal_to: 0 }
 end

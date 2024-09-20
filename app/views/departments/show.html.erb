@@ -1,0 +1,28 @@
+<div class="">
+  <div class="">
+    <p>Department: <%= @department.name %></p>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <td>Id code</td>
+        <td>P I B</td>
+        <td>Position</td>
+        <td>Salary</td>
+      </tr>
+    </thead>
+    <tbody>
+      <% @employees.each do |employee| %>
+        <% employee.department_employees.where(department: @department).each do |dept_emp| %>
+          <% salary = employee.salaries.find_by(position_id: dept_emp.position_id) %>
+          <tr>
+            <td><%= employee.id_code %></td>
+            <td><%= employee.last_name %> <%= employee.first_name %> <%= employee.patronic_name %></td>
+            <td><%= dept_emp.position.position_name %></td>
+            <td><%= salary&.amount || 'N/A' %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -7,7 +7,9 @@ Rails.application.routes.draw do
 
   resources :users, only: %i[index destroy]
 
-  resources :departments
+  resources :departments do
+    resources :salaries, only: %i[index edit update create]
+  end
 
-  # get '/home_pages/', to: 'home_pages#index'
+  get '/home_pages/', to: 'home_pages#index'
 end

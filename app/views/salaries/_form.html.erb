@@ -1,0 +1,7 @@
+<%= turbo_frame_tag "#{employee.id}_#{position_data[:position].id}_form" do %>
+  <%= form_with(model: [@department, employee.salaries.find_by(position: position_data[:position])], url: department_salary_path(@department, employee.salaries.find_by(position: position_data[:position])), method: :patch, data: { turbo_frame: "#{employee.id}_#{position_data[:position].id}_form" }, remote: true) do |form| %>
+    <%= hidden_field_tag 'salary[employee_id]', employee.id %>
+    <%= hidden_field_tag 'salary[position_id]', position_data[:position].id %>
+    <%= text_field_tag 'salary[amount]', employee.salaries.find_by(position: position_data[:position])&.amount, placeholder: 'Введіть зарплату', data: { controller: 'salary', action: 'input->salary#updateSalary blur->salary#updateSalary change->salary#updateSalary' } %>
+  <% end %>
+<% end %>

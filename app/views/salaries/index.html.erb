@@ -1,0 +1,37 @@
+<!-- app/views/salaries/index.html.erb -->
+<h1>Список працівників для департаменту: <%= @department.name %></h1>
+
+<% if @employees_by_department&.any? %>
+<table>
+  <thead>
+    <tr>
+      <th>Ім'я</th>
+      <th>Позиція</th>
+      <th>Зарплата</th>
+      <th>Додати зарплату</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @employee_position_salaries.each do |employee_data| %>
+      <% employee = employee_data[:employee] %>
+      <% employee_data[:positions].each do |position_data| %>
+        <tr>
+          <td><%= employee.first_name %></td>
+          <td><%= position_data[:position].position_name %></td>
+          <td>
+            <%= turbo_frame_tag "#{employee.id}_#{position_data[:position].id}_salary" do %>
+              <%= position_data[:salary] %>
+            <% end %>
+          </td>
+          <td>
+            <%= render "form", department: @department, employee: employee, position_data: position_data %>
+          </td>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>
+<% else %>
+  <p> There is no employments in this department yet</p>
+<% end %>
+<p><%= link_to 'Back to departments', departments_path%></p>

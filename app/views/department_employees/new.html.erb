@@ -1,0 +1,36 @@
+<!-- app/views/department_employees/new.html.erb -->
+<h3>Add Employees to <%= @department.name %></h3>
+
+<%= form_with(url: department_employees_path, method: :post, local: true) do |form| %>
+  <%= hidden_field_tag :department_id, @department.id %>
+
+  <table class="min-w-full table-auto border-collapse border border-gray-200">
+    <thead>
+    <tr>
+      <th class="px-4 py-2 border border-gray-300">ID</th>
+      <th class="px-4 py-2 border border-gray-300">Last name</th>
+      <th class="px-4 py-2 border border-gray-300">First name</th>
+      <th class="px-4 py-2 border border-gray-300">Patronic name</th>
+      <th class="px-4 py-2 border border-gray-300">Add</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% @employees.each do |employee| %>
+      <tr>
+        <td class="px-4 py-2 border border-gray-300">
+          <%= employee.id %>
+
+        </td>
+        <td class="px-4 py-2 border border-gray-300"><%= employee.last_name %></td>
+        <td class="px-4 py-2 border border-gray-300"><%= employee.first_name %></td>
+        <td class="px-4 py-2 border border-gray-300"><%= employee.patronic_name %></td>
+        <td class="px-4 py-2 border border-gray-300"> <%= check_box_tag "employee_ids[]", employee.id, false, id: "employee_#{employee.id}" %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+
+  <div class="mt-2">
+    <%= form.submit "Add Employees", class: "mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>
+  </div>
+<% end %>

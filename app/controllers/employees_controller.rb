@@ -1,6 +1,7 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
-  before_action :employee, only: %i[edit update destroy]
+  # before_action :employee, only: %i[edit update destroy]
+  before_action :set_employee, only: %i[edit update destroy]
 
   def index
     @employees = Employee.all
@@ -45,7 +46,7 @@ class EmployeesController < ApplicationController
 
   private
 
-  def employee
+  def set_employee
     @employee = Employee.find(params[:id])
   end
 

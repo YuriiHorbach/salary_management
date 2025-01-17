@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_14_185133) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_16_172141) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,7 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_14_185133) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "department_id"
-    t.bigint "position_id", null: false
+    t.datetime "paid_on", null: false
     t.index ["department_id"], name: "index_salaries_on_department_id"
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
   end
@@ -87,5 +87,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_14_185133) do
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"
-  add_foreign_key "salaries", "positions"
 end

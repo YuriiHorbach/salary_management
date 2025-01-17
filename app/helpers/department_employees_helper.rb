@@ -1,0 +1,2 @@
+module DepartmentEmployeesHelper
+end

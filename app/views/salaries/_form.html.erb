@@ -1,7 +1,20 @@
-<%= turbo_frame_tag "#{employee.id}_#{position_data[:position].id}_form" do %>
-  <%= form_with(model: [@department, employee.salaries.find_by(position: position_data[:position])], url: department_salary_path(@department, employee.salaries.find_by(position: position_data[:position])), method: :patch, data: { turbo_frame: "#{employee.id}_#{position_data[:position].id}_form" }, remote: true) do |form| %>
-    <%= hidden_field_tag 'salary[employee_id]', employee.id %>
-    <%= hidden_field_tag 'salary[position_id]', position_data[:position].id %>
-    <%= text_field_tag 'salary[amount]', employee.salaries.find_by(position: position_data[:position])&.amount, placeholder: 'Введіть зарплату', data: { controller: 'salary', action: 'input->salary#updateSalary blur->salary#updateSalary change->salary#updateSalary' } %>
+<div class="space-y-4">
+  <%= form_with model: [employee, salary_record], local: true, class: "space-y-4" do |form| %>
+    <div>
+      <%= form.label :amount, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.number_field :amount, step: 0.01, class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+    </div>
+
+    <div>
+      <%= form.label :paid_on, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.date_field :paid_on, class: "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+    </div>
+
+
+    <div class="flex justify-end">
+      <%= form.submit "Save Salary Record", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
+    </div>
   <% end %>
-<% end %>
+</div>
+
+<%= link_to 'Back', employee_salaries_path(@employee), class: 'mt-4 inline-block text-blue-500 hover:underline' %>

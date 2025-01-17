@@ -4,7 +4,7 @@
 
 <ul>
   <% @employees.each do |employee| %>
-    <li><%= link_to employee.first_name, employee_path(employee.id) %></li>
+    <li><%= link_to "#{employee.id_code} #{employee.last_name} #{employee.first_name} #{employee.patronic_name}", employee_path(employee.id) %></li>
   <% end %>
 </ul>
 

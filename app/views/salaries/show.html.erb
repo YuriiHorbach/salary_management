@@ -1,0 +1,23 @@
+<h1 class="text-2xl font-bold mb-4">Salary Record Details</h1>
+<div class="bg-white shadow rounded-lg p-6 space-y-4">
+  <div>
+    <strong class="text-gray-700">Salary:</strong>
+    <span><%= number_to_currency(@salary_record&.salary) %></span>
+    <span><%= number_to_currency(@salary_record&.salary) %></span>
+  </div>
+  <div>
+    <strong class="text-gray-700">Paid On:</strong>
+    <span><%= @salary_record&.paid_on %></span>
+  </div>
+  <div>
+    <strong class="text-gray-700">Notes:</strong>
+    <p class="text-gray-600"><%= @salary_record&.notes %></p>
+  </div>
+</div>
+
+<div class="mt-4">
+  <% if @salary_record %>
+    <%= link_to 'Edit', edit_employee_salary_path(@employee, @salary_record), class: 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600' %>
+  <% end %>
+  <%= link_to 'Back', employee_salaries_path(@employee), class: 'ml-2 text-blue-500 hover:underline' %>
+</div>

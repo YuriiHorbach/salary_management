@@ -1,56 +1,59 @@
 # app/controllers/salaries_controller.rb
 class SalariesController < ApplicationController
-  before_action :set_department
-  before_action :set_salary, only: %i[edit update]
+  # before_action :set_department
+  before_action :set_employee
+  before_action :set_salary, only: %i[show edit update destroy]
 
   def index
-    @employees = Employee.includes(:departments, :positions, :salaries)
-    @department = Department.find(params[:department_id])
-    @employees_by_department = @department.employees.includes(:positions, salaries: :position).distinct
+    @salary_records = @employee.salaries
+  end
 
-    @employee_position_salaries = @employees_by_department.map do |employee|
-      employee_data = {
-        employee:,
-        positions: employee.positions.map do |position|
-          salary = employee.salaries.find { |s| s.position_id == position.id }
-          {
-            position:,
-            salary: salary&.amount || 'Немає даних'
-          }
-        end
-      }
-      employee_data
+  def show
+  end
+
+  def new
+    @salary_record = @employee.salaries.new
+  end
+
+  def create
+    @salary_record = @employee.salaries.new(salary_params)
+    if @salary_record.save
+      redirect_to employee_salaries_path(@employee), notice: 'Salary record created successfully.'
+    else
+      render :new
     end
   end
 
+  def edit; end
+
   def update
-    if @salary.update(salary_params)
-      respond_to do |format|
-        format.html { redirect_to department_salaries_path(@department) }
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            "#{dom_id(@salary.employee)}_#{dom_id(@salary.position)}_salary",
-            partial: 'salaries/salary_amount',
-            locals: { salary: @salary }
-          )
-        end
-      end
+    if @salary_record.update(salary_params)
+      redirect_to employee_salaries_path(@employee), notice: 'Salary record updated successfully.'
     else
       render :edit
     end
   end
 
+  def destroy
+    @salary_record.destroy
+    redirect_to employee_salaries_path(@employee), notice: 'Salary record deleted successfully.'
+  end
+
   private
+
+  def set_employee
+    @employee = Employee.find(params[:employee_id])
+  end
 
   def set_department
     @department = Department.find(params[:department_id])
   end
 
   def set_salary
-    @salary = Salary.find(params[:id])
+    @salary_record = @employee.salaries.find(params[:id])
   end
 
   def salary_params
-    params.require(:salary).permit(:amount, :employee_id, :position_id, :department_id)
+    params.require(:salary).permit(:amount, :paid_on, :employee_id, :department_id)
   end
 end

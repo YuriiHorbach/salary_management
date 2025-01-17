@@ -1,12 +1,1 @@
-<%= form_with(model: [@department, @salary], local: true) do |form| %>
-  <div>
-    <%= form.label :amount, 'Сума зарплати' %>
-    <%= form.text_field :amount %>
-  </div>
-
-  <div>
-    <%= form.submit 'Оновити зарплату' %>
-  </div>
-<% end %>
-
-<%= link_to 'Назад', department_salaries_path(@department) %>
+<%= render "form", employee: @employee, salary_record: @salary_record %>

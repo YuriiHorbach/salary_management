@@ -1,6 +1,5 @@
 class Salary < ApplicationRecord
   belongs_to :employee
-  belongs_to :position
 
   after_save :update_employee_total_salary
   after_destroy :update_employee_total_salary

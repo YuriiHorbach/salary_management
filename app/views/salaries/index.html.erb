@@ -1,37 +1,25 @@
-<!-- app/views/salaries/index.html.erb -->
-<h1>Список працівників для департаменту: <%= @department.name %></h1>
+<h1 class="text-2xl font-bold mb-4">Salary Records for <%=  "#{@employee.last_name} #{@employee.first_name} #{@employee.patronic_name}" %></h1>
 
-<% if @employees_by_department&.any? %>
-<table>
+<table class="min-w-full border-collapse border border-gray-300 shadow-sm">
   <thead>
-    <tr>
-      <th>Ім'я</th>
-      <th>Позиція</th>
-      <th>Зарплата</th>
-      <th>Додати зарплату</th>
-    </tr>
+  <tr class="bg-gray-100">
+    <th class="border border-gray-300 p-2 text-left">Salary</th>
+    <th class="border border-gray-300 p-2 text-left">Paid On</th>
+    <th class="border border-gray-300 p-2">Actions</th>
+  </tr>
   </thead>
   <tbody>
-    <% @employee_position_salaries.each do |employee_data| %>
-      <% employee = employee_data[:employee] %>
-      <% employee_data[:positions].each do |position_data| %>
-        <tr>
-          <td><%= employee.first_name %></td>
-          <td><%= position_data[:position].position_name %></td>
-          <td>
-            <%= turbo_frame_tag "#{employee.id}_#{position_data[:position].id}_salary" do %>
-              <%= position_data[:salary] %>
-            <% end %>
-          </td>
-          <td>
-            <%= render "form", department: @department, employee: employee, position_data: position_data %>
-          </td>
-        </tr>
-      <% end %>
-    <% end %>
+  <% @salary_records.each do |salary| %>
+    <tr class="hover:bg-gray-50">
+      <td class="border border-gray-300 p-2"><%= number_to_currency(salary.amount) %></td>
+      <td class="border border-gray-300 p-2"><%= salary.paid_on %></td>
+      <td class="border border-gray-300 p-2 flex gap-2">
+        <%= link_to 'Edit', edit_employee_salary_path(@employee.id, salary.id), class: 'text-blue-500 hover:underline' %>
+        <%= button_to 'Delete', employee_salary_path(@employee.id, salary.id), method: :delete, data: { confirm: 'Are you sure?' }, class: 'text-red-500 hover:underline' %>
+      </td>
+    </tr>
+  <% end %>
   </tbody>
 </table>
-<% else %>
-  <p> There is no employments in this department yet</p>
-<% end %>
-<p><%= link_to 'Back to departments', departments_path%></p>
+
+<%= link_to 'New Salary Record', new_employee_salary_path(@employee), class: 'mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600' %>

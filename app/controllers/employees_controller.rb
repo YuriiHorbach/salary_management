@@ -23,7 +23,7 @@ class EmployeesController < ApplicationController
     @employee = Employee.new(employee_params)
 
     if @employee.save
-      redirect_to employees_path
+
     else
       render :new, status: :unprocessable_entity
     end

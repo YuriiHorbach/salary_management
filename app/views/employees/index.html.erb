@@ -1,15 +1,12 @@
 <p>
-  <%= link_to 'Add a new employee', new_employee_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' %>
+  <%= link_to 'Add a new employee', new_employee_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800', data: { turbo_frame: dom_id(Employee.new) } %>
 </p>
 
-<ul class="mt-5 mb-5">
-  <% @employees.each do |employee| %>
-    <li><%= link_to "#{employee.id_code} #{employee.last_name} #{employee.first_name} #{employee.patronic_name}", employee_path(employee.id) %></li>
-  <% end %>
-</ul>
-
-<%= turbo_frame_tag Employee.new %>
-
+<div class="m-5">
+  <%= render partial: 'table_header' %>
+  <%= turbo_frame_tag "new_employee" %>
+  <%= render partial: 'employee', collection: @employees, as: :employee %>
+</div>
 
 <p>
   <%= link_to 'Home Page', home_pages_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' %>

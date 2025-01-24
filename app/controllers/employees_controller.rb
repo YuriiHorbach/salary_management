@@ -23,25 +23,37 @@ class EmployeesController < ApplicationController
     @employee = Employee.new(employee_params)
 
     if @employee.save
-
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to employees_path, notice: 'Employee created successfully!' }
+      end
     else
       render :new, status: :unprocessable_entity
     end
   end
 
-  def edit; end
+  def edit
+
+  end
 
   def update
     if @employee.update(employee_params)
-      redirect_to employees_path
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to employees_path, notice: "Employee updated successfully!" }
+      end
     else
-      render :new, status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
     @employee.destroy
-    redirect_to employees_path, status: :see_other
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to employees_path, notice: 'Employee deleted successfully!' }
+    end
   end
 
   private

@@ -1,8 +1,11 @@
-<%= @employee.last_name %>
-<%= @employee.first_name %>
-<%= @employee.patronic_name %>
-
-<%= link_to 'Edit employee', edit_employee_path(@employee.id) %>
-<%= link_to 'Back to employees', employees_path %>
-<%= link_to "Destroy", employee_path(@employee.id), data: {
-                    turbo_method: :delete} %>
+<%= turbo_frame_tag dom_id(@employee) do %>
+<div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+  <div class="px-2 py-2"><%= @employee.id_code %></div>
+  <div class="px-2 py-2"><%= @employee.last_name %></div>
+  <div class="px-2 py-2"><%= @employee.first_name %></div>
+  <div class="px-2 py-2"><%= @employee.patronic_name %></div>
+  <div class="px-2 py-2 flex space-x-2">
+    <%= link_to "Edit", edit_employee_path(@employee), class: "px-3 py-1 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800", data: { turbo_frame: dom_id(@employee) } %>
+  </div>
+</div>
+<% end %>

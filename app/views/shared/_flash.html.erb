@@ -1,0 +1,6 @@
+<% flash.each do |k, v| %>
+  <%= tag.div v,
+              class: "p-4 mb-4 text-sm text-#{k == 'notice' ? 'blue' : 'red'}-700 bg-#{k == 'notice' ? 'blue' : 'red'}-100 rounded-lg",
+              role: 'alert',
+              data: { controller: 'flash' } %>
+<% end %>

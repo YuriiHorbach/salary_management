@@ -2,7 +2,7 @@ class Employee < ApplicationRecord
   has_many :department_employees
   has_many :departments, through: :department_employees
   has_many :positions, through: :department_employees
-  has_many :salaries
+  has_many :salaries, dependent: :destroy
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true

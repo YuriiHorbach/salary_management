@@ -1,47 +1,45 @@
-<%= form_with model: @employee do |f| %>
-  <div>
-    <%= f.label :last_name %><br>
-    <%= f.text_field :last_name %>
-    <% if @employee.errors.has_key?(:last_name) %>
-      <% @employee.errors[:last_name].each do |error| %>
-        <p><%= error %></p>
-      <% end %>
-    <% end %>
-  </div>
+<%= turbo_frame_tag dom_id(@employee) do %>
+  <%= form_with model: @employee, local: false, class:'m-5 max-w-sm mx-auto border-4 p-3  rounded-lg' do |form| %>
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :id_code %>
+      </div>
+      <div class="">
+        <%= form.text_field :id_code, autofocus: true, class:"p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
 
-  <div>
-    <%= f.label :first_name %><br>
-    <%= f.text_field :first_name %>
-    <% if @employee.errors.has_key?(:first_name) %>
-      <% @employee.errors[:first_name].each do |error| %>
-        <p><%= error %></p>
-      <% end %>
-    <% end %>
-  </div>
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :last_name %>
+      </div>
+      <div class="">
+        <%= form.text_field :last_name, autofocus: true, class:"p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
 
-  <div>
-    <%= f.label :patronic_name %><br>
-    <%= f.text_field :patronic_name %>
-    <% if @employee.errors.has_key?(:patronic_name) %>
-      <% @employee.errors[:patronic_name].each do |error| %>
-        <p><%= error %></p>
-      <% end %>
-    <% end %>
-  </div>
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          <%= form.label :first_name %>
+      </div>
+      <div class="">
+        <%= form.text_field :first_name, autofocus: true, class:"p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
 
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :patronic_name %>
 
+      </div>
+      <div class="">
+        <%= form.text_field :patronic_name, autofocus: true, class:"p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
 
-  <div>
-    <%= f.label :id_code %><br>
-    <%= f.text_field :id_code %>
-    <% if @employee.errors.has_key?(:id_code) %>
-      <% @employee.errors[:id_code].each do |error| %>
-        <p><%= error %></p>
-      <% end %>
-    <% end %>
-  </div>
-
-  <div><br>
-    <%= f.submit 'Save record' %>
-  </div>
+    <div class="mt-3">
+      <%= form.submit "Submit", class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" %>
+      <%= link_to "Cancel", employees_path, class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" %>
+    </div>
+  <% end %>
 <% end %>

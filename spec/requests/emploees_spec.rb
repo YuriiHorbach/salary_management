@@ -51,19 +51,18 @@ RSpec.describe 'Employees', type: :request do
 
   describe 'Employee /create' do
     context 'when authorized' do
-      it 'renders a successful response' do
-        user = create :user
+      it 'creates a new employee and responds with turbo stream' do
+        user = create(:user)
         sign_in(user)
 
         expect do
-          post employees_path, params: { employee: attributes_for(:employee,
-                                                                  id_code: 1_111_111_111,
-                                                                  first_name: 'John',
-                                                                  patronic_name: 'Testovich',
-                                                                  last_name: 'Brown') }
+          post employees_path,
+               params: { employee: attributes_for(:employee) },
+               headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
         end.to change(Employee, :count).by(1)
 
-        expect(response).to redirect_to(employees_path)
+        expect(response.content_type).to include 'text/vnd.turbo-stream.html'
+        expect(response).to have_http_status(:ok)
       end
     end
 
@@ -114,17 +113,19 @@ RSpec.describe 'Employees', type: :request do
   end
 
   describe 'DELETE /destroy' do
-    context 'when user is authorized' do
-      it 'deletes a employee' do
+    context 'when authorized' do
+      it 'deletes an employee and responds with turbo stream' do
         user = create(:user)
-        employee = create(:employee, id_code: 1_111_111_111,
-                                     first_name: 'John',
-                                     patronic_name: 'Testovich',
-                                     last_name: 'Brown')
+        employee = create(:employee)
         sign_in(user)
 
-        expect { delete employee_path(employee.id) }.to change(Employee, :count).by(-1)
-        expect(response).to redirect_to(employees_path)
+        expect do
+          delete employee_path(employee),
+                 headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+        end.to change(Employee, :count).by(-1)
+
+        expect(response.content_type).to include 'text/vnd.turbo-stream.html'
+        expect(response).to have_http_status(:ok)
       end
     end
 

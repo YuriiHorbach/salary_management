@@ -1,0 +1,8 @@
+<%= turbo_frame_tag dom_id(department) do %>
+  <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <%= link_to department.name, department_path(department), data: { turbo: false }, class: "hover:underline text-gray-600 font-semibold" %>
+    <div class="flex justify-between items-center mt-4">
+      <%= link_to 'Edit', edit_department_path(department), class: "mx-2 text-blue-600 hover:text-blue-800" %>
+    </div>
+  </div>
+<% end %>

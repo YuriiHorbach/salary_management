@@ -3,7 +3,6 @@
 </p>
 
 <div class="m-5">
-  <%= render partial: 'table_header' %>
   <%= turbo_frame_tag "new_employee" %>
   <%= render partial: 'employee', collection: @employees, as: :employee %>
 </div>

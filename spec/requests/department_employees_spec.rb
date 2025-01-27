@@ -21,9 +21,6 @@ RSpec.describe "DepartmentEmployees", type: :request do
         end.to change { department.employees.count }.by(2)
 
         expect(response).to redirect_to(department_path(department.id))
-        # expect(response).to redirect_to(department_path(department))
-        # follow_redirect!
-        # expect(response.body).to include('Employees were successfully added to the department.')
       end
 
       it 'does not add employees if no employee_ids are provided' do
@@ -31,8 +28,6 @@ RSpec.describe "DepartmentEmployees", type: :request do
 
         expect(department.employees.count).to eq(0)
         expect(response).to redirect_to(department_path(department))
-        # follow_redirect!
-        # expect(response.body).to include('No employees selected.')
       end
     end
 
@@ -45,4 +40,3 @@ RSpec.describe "DepartmentEmployees", type: :request do
     end
   end
 end
-

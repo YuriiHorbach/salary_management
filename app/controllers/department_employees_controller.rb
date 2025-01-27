@@ -20,10 +20,28 @@ class DepartmentEmployeesController < ApplicationController
       flash[:alert] = 'No employees selected.'
     end
 
-    redirect_to @department # Redirect back to the department's show page
+    redirect_to @department
   end
 
+  def destroy
+    department_employee = DepartmentEmployee.find_by(department_id: params[:department_id], employee_id: params[:id])
+
+    if department_employee
+      department_employee.destroy
+      flash[:notice] = 'Employee was successfully removed from the department.'
+    else
+      flash[:alert] = 'Employee not found in the department.'
+    end
+
+    redirect_to department_path(params[:department_id])
+  end
+
+
   private
+
+  def department_employee_params
+    params.require(:department_employee).permit(employee_ids: [])
+  end
 
   def set_department
     @department = Department.find(params[:department_id])

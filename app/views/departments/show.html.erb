@@ -1,6 +1,5 @@
 <h1><%= @department.name %></h1>
 
-
 <table class="min-w-full table-auto border-collapse border border-gray-200">
   <thead>
   <tr>
@@ -13,10 +12,6 @@
   </thead>
   <% @department&.employees&.each do |employee| %>
     <tr>
-      <td class="px-4 py-2 border border-gray-300">
-        <%= employee.id %>
-
-      </td>
       <td class="px-4 py-2 border border-gray-300"><%= employee.id_code %></td>
       <td class="px-4 py-2 border border-gray-300"><%= employee.last_name %></td>
       <td class="px-4 py-2 border border-gray-300"><%= employee.first_name %></td>
@@ -26,9 +21,7 @@
         <%= link_to "show salaries",employee_salaries_path(employee.id) %>
       </td>
     </tr>
-
   <% end %>
-
 </table>
 <br>
 <%= link_to 'Add Employees', new_department_employee_path(department_id: @department.id), class: "mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"%>

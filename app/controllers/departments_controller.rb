@@ -1,6 +1,5 @@
 class DepartmentsController < ApplicationController
   before_action :authenticate_user!
-  # before_action :set_department, only: %i[show update_salary]
   before_action :set_department, only: %i[edit update show]
 
   def index
@@ -21,7 +20,10 @@ class DepartmentsController < ApplicationController
   def create
     @department = Department.new(department_params)
     if @department.save
-      redirect_to @department, notice: 'Listing was successfully created.'
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to employees_path, notice: 'Listing was successfully created.' }
+      end
     else
       render :new, status: :unprocessable_entity
     end
@@ -29,7 +31,10 @@ class DepartmentsController < ApplicationController
 
   def update
     if @department.update(department_params)
-      redirect_to @department, notice: 'Department was successfully updated.'
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to employees_path, notice: 'Department updated successfully!' }
+      end
     else
       render :edit, status: :unprocessable_entity
     end
@@ -39,7 +44,6 @@ class DepartmentsController < ApplicationController
 
   def set_department
     @department = Department.find(params[:id])
-    # @department = Department.includes(:employees).find(params[:id])
   end
 
   def department_params

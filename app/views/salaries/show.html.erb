@@ -1,19 +1,21 @@
 <h1 class="text-2xl font-bold mb-4">Salary Record Details</h1>
-<div class="bg-white shadow rounded-lg p-6 space-y-4">
-  <div>
-    <strong class="text-gray-700">Salary:</strong>
-    <span><%= number_to_currency(@salary_record&.salary) %></span>
-    <span><%= number_to_currency(@salary_record&.salary) %></span>
+<%= turbo_frame_tag dom_id(@salary) do %>
+  <div class="bg-white shadow rounded-lg p-6 space-y-4">
+    <div>
+      <strong class="text-gray-700">Salary:</strong>
+      <span><%= @salary_record&.salary %></span>
+      <span><%= @salary_record&.salary %></span>
+    </div>
+    <div>
+      <strong class="text-gray-700">Paid On:</strong>
+      <span><%= @salary_record&.paid_on %></span>
+    </div>
+    <div>
+      <strong class="text-gray-700">Notes:</strong>
+      <p class="text-gray-600"><%= @salary_record&.notes %></p>
+    </div>
   </div>
-  <div>
-    <strong class="text-gray-700">Paid On:</strong>
-    <span><%= @salary_record&.paid_on %></span>
-  </div>
-  <div>
-    <strong class="text-gray-700">Notes:</strong>
-    <p class="text-gray-600"><%= @salary_record&.notes %></p>
-  </div>
-</div>
+<% end %>
 
 <div class="mt-4">
   <% if @salary_record %>

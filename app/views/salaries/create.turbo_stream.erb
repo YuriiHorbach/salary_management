@@ -1,0 +1,3 @@
+<%= turbo_stream.update Salary.new, '' %>
+<%= turbo_stream.after Salary.new, render(@salary) %>
+<%= prepend_flash %>

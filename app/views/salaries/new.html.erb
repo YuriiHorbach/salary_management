@@ -1,2 +1,5 @@
-<h1>New Salary Record for <%= "#{@employee.last_name} #{@employee.first_name} #{@employee.patronic_name}" %></h1>
+<h1>New Salary Record for </h1>
+<p>
+  <%= "#{@employee.last_name} #{@employee.first_name} #{@employee.patronic_name}" %>
+</p>
 <%= render "form", employee: @employee, salary_record: @salary_record %>

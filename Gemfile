@@ -66,6 +66,8 @@ group :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'capybara'
   gem 'database_cleaner'
+  gem 'shoulda-matchers'
+  gem 'ostruct'
 end
 
 group :development do
@@ -80,3 +82,4 @@ group :development do
 end
 
 gem 'devise'
+gem 'ransack'

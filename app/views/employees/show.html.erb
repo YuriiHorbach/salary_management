@@ -9,3 +9,118 @@
     </div>
   </div>
 <% end %>
+
+<div class="m-5">
+  <%= search_form_for @q, url: employee_path(@employee), method: :get, html: {class: 'mb-4 flex flex-wrap gap-2 items-end'} do |f| %>
+    <div>
+      <%= f.label :amount_eq, 'Сума' %>
+      <%= f.search_field :amount_eq, class: 'border rounded px-2 py-1' %>
+    </div>
+    <div class="relative">
+    <%= f.label :paid_on_eq, 'Дата виплати' %>
+    <%= f.date_field :paid_on_eq, class: 'border rounded px-2 py-1 pr-6', id: 'paid_on_search' %>
+    <button type="button"
+            onclick="document.getElementById('paid_on_search').value=''; this.form.submit();"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+            style="background: none; border: none;">
+      &times;
+    </button>
+    </div>
+    <div>
+      <%= f.label :department_name_cont, 'Підрозділ' %>
+      <%= f.search_field :department_name_cont, class: 'border rounded px-2 py-1' %>
+    </div>
+    <div>
+      <%= f.submit 'Пошук', class: 'bg-blue-500 text-white px-3 py-1 rounded' %>
+    </div>
+  <% end %>
+</div>
+
+<div class="m-5">
+  <h2 class="mt-8 mb-2 text-lg font-bold">Зарплати співробітника по підрозділах</h2>
+  <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border">
+    <thead class="bg-gray-200 dark:bg-gray-700">
+      <tr>
+        <th class="px-2 py-1">
+          <%= sort_link(@q, :department_name, 'Підрозділ') %>
+        </th>
+        <th class="px-2 py-1">
+          <%= sort_link(@q, :amount, 'Сума') %>
+        </th>
+        <th class="px-2 py-1">
+          <%= sort_link(@q, :paid_on, 'Дата виплати') %>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @employee_salaries.each do |department, salaries| %>
+        <% salaries.each do |salary| %>
+          <tr class="border-b border-gray-100 dark:border-gray-700">
+            <td class="px-2 py-1"><%= department&.name || 'Без підрозділу' %></td>
+            <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
+            <td class="px-2 py-1"><%= salary.paid_on&.strftime('%d-%m-%Y') %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="m-5">
+  <%= form_with url: employee_path(@employee), method: :get, local: true, class: 'mb-4 flex flex-wrap gap-2 items-end' do %>
+    <div class="relative">
+      <%= label_tag :month, 'Місяць (YYYY-MM)' %>
+      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', placeholder: '2025-07', id: 'month_search' %>
+      <button type="button"
+              onclick="document.getElementById('month_search').value=''; this.form.submit();"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+              style="background: none; border: none;">
+        &times;
+      </button>
+    </div>
+    <div>
+      <%= label_tag :year, 'Рік' %>
+      <%= number_field_tag :year, params[:year], class: 'border rounded px-2 py-1', min: 1900, max: 2100 %>
+    </div>
+    <div>
+      <%= submit_tag 'Пошук', class: 'bg-blue-500 text-white px-3 py-1 rounded' %>
+    </div>
+  <% end %>
+</div>
+
+<div class="m-5">
+  <h2 class="mt-8 mb-2 text-lg font-bold">Загальна зарплата по місяцях</h2>
+  <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border mb-8">
+    <thead class="bg-gray-200 dark:bg-gray-700">
+      <tr>
+        <th class="px-2 py-1">
+          <%= link_to 'Місяць', employee_path(@employee, params.permit(:year, :month).merge(sort: 'month', direction: params[:direction] == 'asc' ? 'desc' : 'asc')), class: 'underline' %>
+        </th>
+        <th class="px-2 py-1">
+          <%= link_to 'Сума', employee_path(@employee, params.permit(:year, :month).merge(sort: 'total', direction: params[:direction] == 'asc' ? 'desc' : 'asc')), class: 'underline' %>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <% filtered = @monthly_totals.to_a
+        filtered.select! { |m, _| m.include?(params[:month]) } if params[:month].present?
+        filtered.select! { |m, _| m.starts_with?(params[:year]) } if params[:year].present?
+        if params[:sort] == 'month'
+          filtered.sort_by! { |m, _| m }
+          filtered.reverse! if params[:direction] == 'desc'
+        elsif params[:sort] == 'total'
+          filtered.sort_by! { |_, t| t }
+          filtered.reverse! if params[:direction] == 'desc'
+        else
+          filtered.sort_by! { |m, _| m }.reverse!
+        end
+      %>
+      <% filtered.each do |month, total| %>
+        <tr class="border-b border-gray-100 dark:border-gray-700">
+          <td class="px-2 py-1"><%= month %></td>
+          <td class="px-2 py-1"><%= number_to_currency(total) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

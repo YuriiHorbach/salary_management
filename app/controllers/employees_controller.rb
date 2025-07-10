@@ -4,11 +4,22 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: %i[edit update destroy]
 
   def index
-    @employees = Employee.all
+    # @employees = Employee.all
+    @q = Employee.ransack(params[:q])
+    @employees = @q.result(distinct: true)
   end
 
-  def show
+  def show # rubocop:disable Metrics/AbcSize
     @employee = Employee.find_by(id: params[:id])
+    @q = @employee.salaries.ransack(params[:q])
+    @employee_salaries = @q.result.includes(:department).group_by(&:department)
+    @monthly_totals = @q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }.transform_values { |sals| sals.sum(&:amount) }
+    # Ruby-фільтрація по місяцю/року
+    if params[:month].present?
+      month_param = params[:month].rjust(2, '0')
+      @monthly_totals.select! { |m, _| m.split('-').last == month_param }
+    end
+    @monthly_totals.select! { |m, _| m.split('-').first == params[:year] } if params[:year].present?
     return unless @employee.nil?
 
     flash[:alert] = 'Співробітника не знайдено.'

@@ -9,7 +9,7 @@
       </div>
       <div class="col-span-3">
         <%= form.label :paid_on, class: "block text-sm font-medium text-gray-700" %>
-        <%= form.date_field :paid_on, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+        <%= form.date_select :paid_on, discard_day: true, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
       </div>
     </div>
   </div>

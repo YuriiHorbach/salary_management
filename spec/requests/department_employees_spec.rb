@@ -9,7 +9,7 @@ RSpec.describe "DepartmentEmployees", type: :request do
   describe 'POST /department_employees' do
     context 'when authorized' do
       before do
-        sign_in user
+        sign_in user, scope: :user
       end
 
       it 'successfully adds employees to the department' do

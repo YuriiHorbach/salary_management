@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-RSpec.describe "DepartmentEmployees", type: :request do
+RSpec.describe 'DepartmentEmployees', type: :request do
   let(:user) { create(:user) }
   let(:employee1) { create(:employee) }
   let(:employee2) { create(:employee) }

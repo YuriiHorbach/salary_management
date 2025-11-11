@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
   # before_action :employee, only: %i[edit update destroy]
@@ -13,7 +15,9 @@ class EmployeesController < ApplicationController
     @employee = Employee.find_by(id: params[:id])
     @q = @employee.salaries.ransack(params[:q])
     @employee_salaries = @q.result.includes(:department).group_by(&:department)
-    @monthly_totals = @q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }.transform_values { |sals| sals.sum(&:amount) }
+    @monthly_totals = @q.result.group_by do |s|
+      s.paid_on.strftime('%Y-%m')
+    end.transform_values { |sals| sals.sum(&:amount) }
     # Ruby-фільтрація по місяцю/року
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')
@@ -43,15 +47,13 @@ class EmployeesController < ApplicationController
     end
   end
 
-  def edit
-
-  end
+  def edit; end
 
   def update
     if @employee.update(employee_params)
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to employees_path, notice: "Employee updated successfully!" }
+        format.html { redirect_to employees_path, notice: 'Employee updated successfully!' }
       end
     else
       render :edit, status: :unprocessable_entity

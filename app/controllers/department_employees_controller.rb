@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # app/controllers/department_employees_controller.rb
 class DepartmentEmployeesController < ApplicationController
   before_action :authenticate_user!
@@ -35,7 +37,6 @@ class DepartmentEmployeesController < ApplicationController
 
     redirect_to department_path(params[:department_id])
   end
-
 
   private
 

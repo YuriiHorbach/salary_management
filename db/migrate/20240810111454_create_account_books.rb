@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateAccountBooks < ActiveRecord::Migration[7.1]
   def change
     create_table :account_books do |t|

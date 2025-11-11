@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DepartmentsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_department, only: %i[edit update show]
@@ -10,12 +12,9 @@ class DepartmentsController < ApplicationController
     @department = Department.new
   end
 
-  def show
-  end
+  def show; end
 
-  def edit
-
-  end
+  def edit; end
 
   def create
     @department = Department.new(department_params)

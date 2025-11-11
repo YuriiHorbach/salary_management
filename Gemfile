@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 ruby '3.4.3'
@@ -66,8 +68,8 @@ group :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'capybara'
   gem 'database_cleaner'
-  gem 'shoulda-matchers'
   gem 'ostruct'
+  gem 'shoulda-matchers'
 end
 
 group :development do
@@ -82,4 +84,5 @@ group :development do
 end
 
 gem 'devise'
+gem 'money-rails'
 gem 'ransack'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :employee do
     id_code { Faker::Number.unique.number(digits: 10) }

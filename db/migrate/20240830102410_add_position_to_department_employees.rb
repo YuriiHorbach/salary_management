@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddPositionToDepartmentEmployees < ActiveRecord::Migration[7.1]
   def change
     add_column :department_employees, :position_id, :bigint

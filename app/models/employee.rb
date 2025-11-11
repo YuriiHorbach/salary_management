@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Employee < ApplicationRecord
   has_many :department_employees
   has_many :departments, through: :department_employees
@@ -10,7 +12,7 @@ class Employee < ApplicationRecord
   validates :last_name, presence: true
   validates :total_salary, numericality: { greater_than_or_equal_to: 0 }
 
-  def self.ransackable_attributes(auth_object = nil)
+  def self.ransackable_attributes(_auth_object = nil)
     %w[created_at first_name id id_code id_value last_name patronic_name total_salary updated_at]
   end
 end

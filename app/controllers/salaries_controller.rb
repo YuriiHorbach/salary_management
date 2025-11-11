@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # app/controllers/salaries_controller.rb
 class SalariesController < ApplicationController
   # before_action :set_department
@@ -44,7 +46,7 @@ class SalariesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to employee_salaries_path(@employee), notice: 'Salary deleted successfully.'}
+      format.html { redirect_to employee_salaries_path(@employee), notice: 'Salary deleted successfully.' }
     end
   end
 

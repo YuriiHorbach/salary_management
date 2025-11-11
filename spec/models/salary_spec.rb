@@ -1,9 +1,13 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Salary, type: :model do
   let(:employee) { create(:employee) }
   let(:department) { create(:department) }
-  let(:salary) { create(:salary, employee: employee, department: department, amount: 1000, paid_on: Date.new(2025, 5, 15)) }
+  let(:salary) do
+    create(:salary, employee: employee, department: department, amount: 1000, paid_on: Date.new(2025, 5, 15))
+  end
 
   describe 'associations' do
     it { should belong_to(:employee) }
@@ -19,9 +23,9 @@ RSpec.describe Salary, type: :model do
 
     it 'updates employee total_salary after destroy' do
       salary
-      expect {
+      expect do
         salary.destroy
-      }.to change { employee.reload.total_salary }.by(-1000)
+      end.to change { employee.reload.total_salary }.by(-1000)
     end
   end
 

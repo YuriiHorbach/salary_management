@@ -90,7 +90,6 @@ RSpec.configure do |config|
     $VERBOSE = nil
   end
   config.after(:suite) do
-    # Важливо: відновлюємо стан $VERBOSE після виконання тестів
     $VERBOSE = true
   end
 end

@@ -2,7 +2,6 @@ require 'rails_helper'
 
 RSpec.describe SalaryReportService, type: :service do
   describe '#call' do
-    # --- CONTEXT 1: HAPPY PATH AND GROSS FORMULA CHECK ---
     context 'when providing full data for summation' do
       let!(:salary_1) do
         create(:salary, amount: 5000, net_amount_cents: 400_000, income_tax_cents: 90_000, military_tax_cents: 10_000)
@@ -12,12 +11,10 @@ RSpec.describe SalaryReportService, type: :service do
                         military_tax_cents: 20_000)
       end
 
-      # We intentionally take all records here as this is the primary data setup context
       let(:records) { Salary.all }
 
       subject(:report) { described_class.new(records).call }
 
-      # Expected values calculation:
       let(:expected_gross) { 1_500_000 } # (5000 + 10000) * 100
       let(:expected_net) { 1_200_000 }
       let(:expected_pdfo) { 270_000 }
@@ -40,7 +37,6 @@ RSpec.describe SalaryReportService, type: :service do
       end
     end
 
-    # --- CONTEXT 2: ZERO VALUES IN RECORDS ---
     context 'when tax fields in records are zero' do
       # Setup: Create a record with non-zero Gross but zero tax/net amounts
       let!(:salary_zero) do
@@ -51,12 +47,10 @@ RSpec.describe SalaryReportService, type: :service do
                military_tax_cents: 0)
       end
 
-      # Isolate the zero-tax record for testing
       let(:records) { Salary.where(amount: 3000) }
 
       subject(:report) { described_class.new(records).call }
 
-      # Expected values
       let(:expected_gross) { 300_000 } # 3000 * 100
       let(:expected_net) { 300_000 }
       let(:expected_zero) { 0 }
@@ -78,7 +72,6 @@ RSpec.describe SalaryReportService, type: :service do
       end
     end
 
-    # --- CONTEXT 3: EMPTY COLLECTION ---
     context 'when the record collection is empty' do
       let(:records) { Salary.none } # Empty ActiveRecord::Relation
       subject(:report) { described_class.new(records).call }

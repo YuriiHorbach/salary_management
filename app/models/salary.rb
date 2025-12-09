@@ -14,12 +14,28 @@ class Salary < ApplicationRecord
   before_validation :set_department_from_employee_departments
   after_commit :enqueue_tax_calculation, on: :create
 
+  scope :by_month, lambda { |month = nil|
+    month.present? ? where('EXTRACT(MONTH FROM paid_on) = ?', month.to_i) : all
+  }
+
+  scope :by_year, lambda { |year = nil|
+    year.present? ? where('EXTRACT(YEAR FROM paid_on) = ?', year.to_i) : all
+  }
+
+  scope :by_department, lambda { |department = nil|
+    department.present? ? where('department_id = ?', department.to_i) : all
+  }
+
   def self.ransackable_attributes(*)
     %w[amount created_at department_id employee_id id paid_on updated_at]
   end
 
   def self.ransackable_associations(*)
     %w[department employee]
+  end
+
+  def self.ransackable_scopes(*)
+    %i[by_month by_year by_department]
   end
 
   def month

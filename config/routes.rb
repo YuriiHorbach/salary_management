@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   end
 
   resources :departments, except: [:destroy]
+  resources :reports, only: [:index]
 
   get '/home_pages/', to: 'home_pages#index'
 end

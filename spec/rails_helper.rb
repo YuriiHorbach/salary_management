@@ -85,4 +85,11 @@ RSpec.configure do |config|
       example.run
     end
   end
+
+  config.before(:suite) do
+    $VERBOSE = nil
+  end
+  config.after(:suite) do
+    $VERBOSE = true
+  end
 end

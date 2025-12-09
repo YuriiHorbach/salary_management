@@ -21,8 +21,8 @@ RSpec.describe ReportsController, type: :controller do
         create(:salary,
                department: department_a,
                amount: 1000,
-               net_amount_cents: 80000,
-               income_tax_cents: 18000,
+               net_amount_cents: 80_000,
+               income_tax_cents: 18_000,
                military_tax_cents: 2000)
       end
 
@@ -47,7 +47,7 @@ RSpec.describe ReportsController, type: :controller do
 
         expect(report_data.keys).to include('Marketing')
 
-        expect(report_data['Marketing'][:net]).to eq(80000)
+        expect(report_data['Marketing'][:net]).to eq(80_000)
       end
     end
 
@@ -56,11 +56,11 @@ RSpec.describe ReportsController, type: :controller do
 
       let!(:salary_dev) do
         create(:salary, department: department_b, paid_on: '2025-01-15', amount: 5000,
-               net_amount_cents: 400000)
+                        net_amount_cents: 400_000)
       end
       let!(:salary_marketing) do
         create(:salary, department: department_a, paid_on: '2025-02-15', amount: 2000,
-               net_amount_cents: 150000)
+                        net_amount_cents: 150_000)
       end
 
       it 'filters by department ID correctly' do
@@ -71,7 +71,7 @@ RSpec.describe ReportsController, type: :controller do
         expect(report_data.keys).to contain_exactly('Marketing')
 
         total_records = assigns(:total_records)
-        expect(total_records[:net]).to eq(150000)
+        expect(total_records[:net]).to eq(150_000)
       end
 
       it 'filters by month and year correctly' do
@@ -82,7 +82,7 @@ RSpec.describe ReportsController, type: :controller do
         expect(report_data.keys).to contain_exactly('Development')
 
         total_records = assigns(:total_records)
-        expect(total_records[:gross]).to eq(500000)
+        expect(total_records[:gross]).to eq(500_000)
       end
     end
   end

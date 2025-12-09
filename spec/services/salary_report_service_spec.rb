@@ -5,10 +5,11 @@ RSpec.describe SalaryReportService, type: :service do
     # --- CONTEXT 1: HAPPY PATH AND GROSS FORMULA CHECK ---
     context 'when providing full data for summation' do
       let!(:salary_1) do
-        create(:salary, amount: 5000, net_amount_cents: 400000, income_tax_cents: 90000, military_tax_cents: 10000)
+        create(:salary, amount: 5000, net_amount_cents: 400_000, income_tax_cents: 90_000, military_tax_cents: 10_000)
       end
       let!(:salary_2) do
-        create(:salary, amount: 10000, net_amount_cents: 800000, income_tax_cents: 180000, military_tax_cents: 20000)
+        create(:salary, amount: 10_000, net_amount_cents: 800_000, income_tax_cents: 180_000,
+                        military_tax_cents: 20_000)
       end
 
       # We intentionally take all records here as this is the primary data setup context
@@ -45,7 +46,7 @@ RSpec.describe SalaryReportService, type: :service do
       let!(:salary_zero) do
         create(:salary,
                amount: 3000,
-               net_amount_cents: 300000,
+               net_amount_cents: 300_000,
                income_tax_cents: 0,
                military_tax_cents: 0)
       end

@@ -15,15 +15,11 @@ class ReportsController < ApplicationController
     @total_records = SalaryReportService.new(salaries).call
 
     @monthly_department_salaries = build_report_data(salaries)
-    # render :salary_by_department unless params[:action] == 'index'
   end
 
   private
 
   def build_report_data(salaries_relation)
-    # Зверніть увагу: прибрано * 100 для колонок, що вже містять 'cents',
-    # залишено * 100 лише для колонки 'amount'.
-
     gross = salaries_relation
             .joins(:department)
             .group('departments.name')
@@ -48,7 +44,6 @@ class ReportsController < ApplicationController
                    .pluck('departments.name', Arel.sql('SUM(salaries.military_tax_cents)')) # Виправлено: military_tax_cents (без * 100)
                    .to_h
 
-    # Комбінуємо всі чотири хеші в один, де ключ — назва відділу
     report_data = {}
     gross.each do |department_name, gross_total|
       report_data[department_name] = {

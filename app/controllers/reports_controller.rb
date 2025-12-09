@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReportsController < ApplicationController
   before_action :authenticate_user!
 
@@ -15,8 +17,6 @@ class ReportsController < ApplicationController
     @monthly_department_salaries = build_report_data(salaries)
     # render :salary_by_department unless params[:action] == 'index'
   end
-
-  private
 
   private
 

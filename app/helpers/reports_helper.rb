@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ReportsHelper
   START_YEAR = 2000
 

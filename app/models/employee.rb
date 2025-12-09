@@ -10,9 +10,13 @@ class Employee < ApplicationRecord
   validates :first_name, presence: true
   validates :patronic_name, presence: true
   validates :last_name, presence: true
-  validates :total_salary, numericality: { greater_than_or_equal_to: 0 }
+  # validates :total_salary, numericality: { greater_than_or_equal_to: 0 }
 
   def self.ransackable_attributes(_auth_object = nil)
     %w[created_at first_name id id_code id_value last_name patronic_name total_salary updated_at]
+  end
+
+  def total_salary
+    salaries.sum(:amount)
   end
 end

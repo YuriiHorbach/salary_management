@@ -13,8 +13,9 @@
     <div id="menu" class="hidden lg:flex space-x-4">
       <%= link_to 'Departments', departments_path, class: 'hover:text-blue-200' %>
       <%= link_to 'Employees', employees_path, class: 'hover:text-blue-200' %>
+      <%= link_to 'Reports', reports_path, class: 'hover:text-blue-200' %>
       <% if user_signed_in? %>
-        <%= link_to 'Logout', destroy_user_session_path, method: :delete, class: 'hover:text-blue-200' %>
+        <%= link_to 'Logout', destroy_user_session_path, data: { turbo_method: :delete }, class: 'hover:text-blue-200' %>
       <% else %>
         <%= link_to 'Login', new_user_session_path, class: 'hover:text-blue-200' %>
       <% end %>

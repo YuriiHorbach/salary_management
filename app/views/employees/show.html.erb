@@ -27,8 +27,10 @@
     </button>
     </div>
     <div>
-      <%= f.label :department_name_cont, 'Підрозділ' %>
-      <%= f.search_field :department_name_cont, class: 'border rounded px-2 py-1' %>
+      <%= f.label :department, 'Підрозділ' %>
+      <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:q, :department_id_eq)),
+          { include_blank: 'Всі підрозділи' },
+          class: "select border border-gray-300 rounded-md px-4 w-auto" %>
     </div>
     <div>
       <%= f.submit 'Пошук', class: 'bg-blue-500 text-white px-3 py-1 rounded' %>
@@ -70,7 +72,7 @@
   <%= form_with url: employee_path(@employee), method: :get, local: true, class: 'mb-4 flex flex-wrap gap-2 items-end' do %>
     <div class="relative">
       <%= label_tag :month, 'Місяць (YYYY-MM)' %>
-      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', placeholder: '2025-07', id: 'month_search' %>
+      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', id: 'month_search' %>
       <button type="button"
               onclick="document.getElementById('month_search').value=''; this.form.submit();"
               class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"

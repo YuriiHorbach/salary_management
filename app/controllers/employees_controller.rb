@@ -14,6 +14,7 @@ class EmployeesController < ApplicationController
   def show # rubocop:disable Metrics/AbcSize
     @employee = Employee.find_by(id: params[:id])
     @q = @employee.salaries.ransack(params[:q])
+    @departments = Department.all
     @employee_salaries = @q.result.includes(:department).group_by(&:department)
     @monthly_totals = @q.result.group_by do |s|
       s.paid_on.strftime('%Y-%m')

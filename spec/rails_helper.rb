@@ -92,4 +92,5 @@ RSpec.configure do |config|
   config.after(:suite) do
     $VERBOSE = true
   end
+  config.include Devise::Test::IntegrationHelpers, type: :request
 end

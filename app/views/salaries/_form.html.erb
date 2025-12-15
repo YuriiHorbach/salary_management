@@ -1,6 +1,7 @@
 <%= turbo_frame_tag dom_id(@salary) do %>
   <div class="space-y-4">
     <%= form_with model: [@employee, @salary], local: true, class: 'm-5 mx-auto border-4 p-3 rounded-lg' do |form| %>
+    <%= form.hidden_field :department_id %>
   <div class="mb-5">
     <div class="grid grid-cols-6 gap-x-3">
       <div class="col-span-3">

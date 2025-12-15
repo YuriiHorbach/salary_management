@@ -4,6 +4,8 @@ class Salary < ApplicationRecord
   belongs_to :employee
   belongs_to :department, optional: true
 
+  validates :amount, presence: true
+
   # Monetize tax-related cents columns so we can work with Money objects in app code
   monetize :income_tax_cents, as: :income_tax, allow_nil: true
   monetize :military_tax_cents, as: :military_tax, allow_nil: true
@@ -11,7 +13,6 @@ class Salary < ApplicationRecord
 
   after_save :update_employee_total_salary
   after_destroy :update_employee_total_salary
-  before_validation :set_department_from_employee_departments
   after_commit :enqueue_tax_calculation, on: :create
 
   scope :by_month, lambda { |month = nil|
@@ -60,11 +61,5 @@ class Salary < ApplicationRecord
 
   def update_employee_total_salary
     employee.update(total_salary: employee.salaries.sum(:amount))
-  end
-
-  def set_department_from_employee_departments
-    return unless department_id.blank? && employee&.departments&.any?
-
-    self.department_id = employee.departments.first.id
   end
 end

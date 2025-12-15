@@ -13,7 +13,7 @@ class SalariesController < ApplicationController
   def show; end
 
   def new
-    @salary = @employee.salaries.new
+    @salary = @employee.salaries.new(department_id: params[:department_id])
   end
 
   def create
@@ -24,7 +24,7 @@ class SalariesController < ApplicationController
         format.html { redirect_to employee_salaries_path(@employee), notice: 'Salary created successfully.' }
       end
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 

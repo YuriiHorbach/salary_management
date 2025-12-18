@@ -6,7 +6,6 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: %i[edit update destroy]
 
   def index
-    # @employees = Employee.all
     @q = Employee.ransack(params[:q])
     @employees = @q.result(distinct: true)
   end
@@ -19,7 +18,7 @@ class EmployeesController < ApplicationController
     @monthly_totals = @q.result.group_by do |s|
       s.paid_on.strftime('%Y-%m')
     end.transform_values { |sals| sals.sum(&:amount) }
-    # Ruby-фільтрація по місяцю/року
+
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')
       @monthly_totals.select! { |m, _| m.split('-').last == month_param }

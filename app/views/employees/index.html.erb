@@ -3,32 +3,70 @@
     <%= link_to 'Add a new employee', new_employee_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800', data: { turbo_frame: dom_id(Employee.new) } %>
   </div>
 </p>
-<div class="m-5">
-  <div class="mb-6">
-    <%= search_form_for @q, url: employees_path, method: :get, class: "" do |f| %>
-      <div class="flex space-x-2">
-        <%= f.label :id_code_eq, "ID Code" %>
-        <%= f.search_field :id_code_eq, class: "border rounded p-1" %>
+<div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
+  <%= search_form_for @q, url: employees_path, method: :get do |f| %>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
-        <%= f.label :last_name_cont, "Last Name" %>
-        <%= f.search_field :last_name_cont, class: "border rounded p-1" %>
-
-        <%= f.label :first_name_cont, "First Name" %>
-        <%= f.search_field :first_name_cont, class: "border rounded p-1" %>
-
-        <%= f.submit "Search", class: "px-3 py-1 bg-blue-700 text-white rounded" %>
+      <div class="flex flex-col">
+        <%= f.label :id_code_eq, "ID Code", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.search_field :id_code_eq, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
-    <% end %>
-  </div>
+
+      <div class="flex flex-col">
+        <%= f.label :last_name_cont, "Прізвище", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.search_field :last_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
+      </div>
+
+      <div class="flex flex-col">
+        <%= f.label :first_name_cont, "Ім'я", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.search_field :first_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
+      </div>
+
+      <div class="flex flex-col">
+        <%= f.label :patronic_name_cont, "По батькові", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.search_field :patronic_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
+      </div>
+
+      <div class="flex flex-col">
+        <%= f.label :territory_info_cont, "Територія", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.search_field :territory_info_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
+      </div>
+
+      <div class="flex flex-col">
+        <%= f.label :children_count_gt, "Дітей >", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.number_field :children_count_gt, min: 0, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
+      </div>
+
+      <div class="flex flex-col">
+        <%= f.label :disability_group_eq, "Група", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.select :disability_group_eq, [["Всі", ""], ["0", 0], ["1", 1], ["2", 2], ["3", 3], ["4", 4]], {}, { class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" } %>
+      </div>
+
+      <div class="flex items-center space-x-2 h-10">
+        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
+          <%= f.check_box :chaes_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
+          <%= f.label :chaes_true, "ЧАЕС", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
+        </div>
+
+        <%= f.submit "Пошук 🔍", class: "flex-1 bg-blue-700 text-white font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+        <%= link_to "Reset", employees_path, class: "flex-1 bg-gray-700 text-white text-center font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+      </div>
+
+    </div>
+  <% end %>
 </div>
 <div class="m-5">
   <%= turbo_frame_tag "employees_list" do %>
-    <div class="grid grid-cols-6 gap-x-3 border-b border-gray-200 font-bold bg-gray-300 dark:bg-gray-700">
-      <div class="px-2 py-2"><%= sort_link(@q, :id_code, "ID") %></div>
-      <div class="px-2 py-2"><%= sort_link(@q, :last_name, "Last Name") %></div>
-      <div class="px-2 py-2"><%= sort_link(@q, :first_name, "First Name") %></div>
-      <div class="px-2 py-2"><%= sort_link(@q, :patronic_name, "Patronic Name") %></div>
-      <div class="px-2 py-2">Actions</div>
+    <div class="grid grid-cols-9 gap-x-3 bg-gray-100 border border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :id_code, "ID") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :last_name, "Last Name") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :first_name, "First Name") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :patronic_name, "Patronic Name") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :children_count, "Children") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :disability_group, "Disability Group") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :chaes, "CHAES") %></div>
+      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :territory_info, "Territory info") %></div>
+      <div class="px-2 py-2 border-r border-gray-200">Actions</div>
     </div>
 
     <%= render partial: 'employee', collection: @employees, as: :employee %>

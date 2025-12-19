@@ -37,6 +37,49 @@
       </div>
     </div>
 
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :children_count %>
+
+      </div>
+      <div class="">
+        <%= form.text_field :children_count, min: 0, autofocus: true, class:"p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :chaes, 'CHAES Rescue member' %>
+
+      </div>
+      <div>
+        <%= form.check_box :chaes, { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" }, "1", "0" %>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :disability_group, 'Special income sign' %>
+
+      </div>
+      <div>
+        <%= form.select :disability_group,
+                          [["Немає", 0], ["I група", 1], ["II група", 2], ["III група", 3], ["low income", 4]],
+                          {},
+                          { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :territory_info, "Бригада" %>
+
+      </div>
+      <div>
+        <%= form.text_field :territory_info, maxlength: 30, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+      </div>
+    </div>
+
     <div class="mt-3">
       <%= form.submit "Submit", class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" %>
       <%= link_to "Cancel", employees_path, class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" %>

@@ -6,7 +6,6 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: %i[edit update destroy]
 
   def index
-    # @employees = Employee.all
     @q = Employee.ransack(params[:q])
     @employees = @q.result(distinct: true)
   end
@@ -14,11 +13,12 @@ class EmployeesController < ApplicationController
   def show # rubocop:disable Metrics/AbcSize
     @employee = Employee.find_by(id: params[:id])
     @q = @employee.salaries.ransack(params[:q])
+    @departments = Department.all
     @employee_salaries = @q.result.includes(:department).group_by(&:department)
     @monthly_totals = @q.result.group_by do |s|
       s.paid_on.strftime('%Y-%m')
     end.transform_values { |sals| sals.sum(&:amount) }
-    # Ruby-фільтрація по місяцю/року
+
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')
       @monthly_totals.select! { |m, _| m.split('-').last == month_param }
@@ -76,6 +76,13 @@ class EmployeesController < ApplicationController
   end
 
   def employee_params
-    params.require(:employee).permit(:first_name, :last_name, :patronic_name, :id_code)
+    params.require(:employee).permit(:first_name,
+                                     :last_name,
+                                     :patronic_name,
+                                     :id_code,
+                                     :territory_info,
+                                     :chaes,
+                                     :disability_group,
+                                     :children_count)
   end
 end

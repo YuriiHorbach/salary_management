@@ -1,9 +1,17 @@
 <%= turbo_frame_tag dom_id(@employee) do %>
-  <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-    <div class="px-2 py-2"><%= @employee.id_code %></div>
-    <div class="px-2 py-2"><%= @employee.last_name %></div>
-    <div class="px-2 py-2"><%= @employee.first_name %></div>
-    <div class="px-2 py-2"><%= @employee.patronic_name %></div>
+  <div class="grid grid-cols-[8rem_1fr] gap-y-2 max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div class="w-32 font-semibold text-gray-500">ID code</div>
+    <div class="text-gray-900"><%= @employee.id_code %></div>
+
+    <div class="w-32 font-semibold text-gray-500">Last name</div>
+    <div class="text-gray-900"><%= @employee.last_name %></div>
+
+    <div class="w-32 font-semibold text-gray-500">First name</div>
+    <div class="text-gray-900"><%= @employee.first_name %></div>
+
+    <div class="w-32 font-semibold text-gray-500">Patronic name</div>
+    <div class="text-gray-900"><%= @employee.patronic_name %></div>
+
     <div class="px-2 py-2 flex space-x-2">
       <%= link_to "Edit", edit_employee_path(@employee), class: "px-3 py-1 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800", data: { turbo_frame: dom_id(@employee) } %>
     </div>
@@ -11,29 +19,29 @@
 <% end %>
 
 <div class="m-5">
-  <%= search_form_for @q, url: employee_path(@employee), method: :get, html: {class: 'mb-4 flex flex-wrap gap-2 items-end'} do |f| %>
-    <div>
-      <%= f.label :amount_eq, 'Сума' %>
-      <%= f.search_field :amount_eq, class: 'border rounded px-2 py-1' %>
-    </div>
-    <div class="relative">
-    <%= f.label :paid_on_eq, 'Дата виплати' %>
-    <%= f.date_field :paid_on_eq, class: 'border rounded px-2 py-1 pr-6', id: 'paid_on_search' %>
-    <button type="button"
-            onclick="document.getElementById('paid_on_search').value=''; this.form.submit();"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-            style="background: none; border: none;">
-      &times;
-    </button>
-    </div>
-    <div>
-      <%= f.label :department_name_cont, 'Підрозділ' %>
-      <%= f.search_field :department_name_cont, class: 'border rounded px-2 py-1' %>
-    </div>
-    <div>
-      <%= f.submit 'Пошук', class: 'bg-blue-500 text-white px-3 py-1 rounded' %>
-    </div>
-  <% end %>
+  <%= search_form_for @q, url: employee_path(@employee), method: :get, html: {class: 'mb-4 flex flex-wrap gap-4 items-end'} do |f| %>
+
+  <% input_classes = "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" %>
+
+  <div>
+    <%= f.label :amount_eq, 'Сума', class: "block text-sm font-medium mb-1" %>
+    <%= f.search_field :amount_eq, class: input_classes %>
+  </div>
+
+  <div>
+    <%= f.label :by_year, 'Рік', class: "block text-sm font-medium mb-1" %>
+    <%= f.select :by_year, options_for_select((2020..Date.today.year), params.dig(:q, :by_year)), { include_blank: 'Всі роки' }, class: input_classes %>
+  </div>
+
+  <div>
+    <%= f.label :department_id_eq, 'Підрозділ', class: "block text-sm font-medium mb-1" %>
+    <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:q, :department_id_eq)), { include_blank: 'Всі підрозділи' }, class: input_classes %>
+  </div>
+
+  <div>
+    <%= f.submit 'Пошук', class: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium' %>
+  </div>
+<% end %>
 </div>
 
 <div class="m-5">
@@ -70,7 +78,7 @@
   <%= form_with url: employee_path(@employee), method: :get, local: true, class: 'mb-4 flex flex-wrap gap-2 items-end' do %>
     <div class="relative">
       <%= label_tag :month, 'Місяць (YYYY-MM)' %>
-      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', placeholder: '2025-07', id: 'month_search' %>
+      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', id: 'month_search' %>
       <button type="button"
               onclick="document.getElementById('month_search').value=''; this.form.submit();"
               class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"

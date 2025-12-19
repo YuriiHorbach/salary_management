@@ -55,7 +55,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_18_202441) do
     t.string "last_name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.decimal "total_salary", default: "0.0"
     t.integer "children_count"
     t.integer "disability_group"
     t.boolean "chaes"

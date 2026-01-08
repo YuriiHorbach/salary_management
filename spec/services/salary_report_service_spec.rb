@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe SalaryReportService, type: :service do
   describe '#call' do
     context 'when providing full data for summation' do
-      let!(:salary_1) do
+      let!(:salary1) do
         create(:salary, amount: 5000, net_amount_cents: 400_000, income_tax_cents: 90_000, military_tax_cents: 10_000)
       end
-      let!(:salary_2) do
+      let!(:salary2) do
         create(:salary, amount: 10_000, net_amount_cents: 800_000, income_tax_cents: 180_000,
                         military_tax_cents: 20_000)
       end

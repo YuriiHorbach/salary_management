@@ -12,10 +12,11 @@ class Employee < ApplicationRecord
   validates :last_name, presence: true
 
   def self.ransackable_attributes(_auth_object = nil)
-    %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group chaes territory_info]
+    %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
+       chaes territory_info]
   end
 
-  def self.ransackable_associations(auth_object = nil)
+  def self.ransackable_associations(_auth_object = nil)
     %w[department_employees departments positions salaries]
   end
 

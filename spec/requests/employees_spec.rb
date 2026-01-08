@@ -21,11 +21,6 @@ RSpec.describe TaxCalculationJob, type: :job do
       expect(salary.military_tax_cents).to eq 500_000
     end
 
-    # Це тест, який дає крапку "."
-    it 'does something else' do
-      expect(true).to be true
-    end
-
     it 'enqueues job when salary is created' do
       expect do
         create(:salary, employee: employee)

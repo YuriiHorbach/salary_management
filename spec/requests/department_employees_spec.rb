@@ -19,7 +19,7 @@ RSpec.describe 'DepartmentEmployees', type: :request do
           post department_employees_path, params: {
             department_id: department.id,
             employee_ids: [employee1.id, employee2.id]
-          }
+          }, as: :turbo_stream
         end.to change { department.employees.count }.by(2)
 
         expect(response).to redirect_to(department_path(department.id))

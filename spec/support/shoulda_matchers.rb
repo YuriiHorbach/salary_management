@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'shoulda/matchers' # Явно підключаємо бібліотеку
+
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec

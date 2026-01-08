@@ -3,22 +3,17 @@
 require 'rails_helper'
 
 RSpec.describe TaxCalculationJob, type: :job do
-  include ActiveJob::TestHelper
-
   let(:employee) { create(:employee) }
   let!(:salary) { create(:salary, employee: employee, amount: 1_000.00, paid_on: Date.today) }
 
   describe '#perform' do
     it 'calculates taxes and updates salary record' do
-      # Запускаємо всі queued jobs в тесті синхронно (для зручності тестування)
       perform_enqueued_jobs do
         TaxCalculationJob.perform_later(salary.id)
       end
 
-      # Перезавантажуємо запис зі свожих даних з БД
       salary.reload
 
-      # Перевіряємо, що поля були заповнені
       expect(salary.income_tax_cents).to be_present
       expect(salary.military_tax_cents).to be_present
       expect(salary.net_amount_cents).to be_present

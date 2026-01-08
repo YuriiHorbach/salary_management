@@ -11,8 +11,6 @@ class Salary < ApplicationRecord
   monetize :military_tax_cents, as: :military_tax, allow_nil: true
   monetize :net_amount_cents, as: :net_amount, allow_nil: true
 
-  after_save :update_employee_total_salary
-  after_destroy :update_employee_total_salary
   after_commit :enqueue_tax_calculation, on: :create
 
   scope :by_month, lambda { |month = nil|

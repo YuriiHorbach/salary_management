@@ -44,6 +44,17 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
 
+  config.include ActiveJob::TestHelper
+
+  config.before(:each, type: :job) do
+    ActiveJob::Base.queue_adapter = :test
+  end
+
+  config.before(:each, type: :request) do
+    host! '127.0.0.1'
+    ActionController::Base.allow_forgery_protection = false
+  end
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   # config.fixture_path = "#{::Rails.root}/spec/fixtures"
 

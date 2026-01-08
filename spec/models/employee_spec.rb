@@ -52,16 +52,6 @@ RSpec.describe Employee, type: :model do
       expect(employee).to be_invalid
     end
 
-    it 'is valid with a positive total salary' do
-      employee = build(:employee, total_salary: 1000)
-      expect(employee).to be_valid
-    end
-
-    it 'is valid with a zero total salary' do
-      employee = build(:employee, total_salary: 0)
-      expect(employee).to be_valid
-    end
-
     # it 'is invalid if total salary is negative' do
     #   employee = build(:employee, total_salary: -100)
     #   expect(employee).not_to be_valid

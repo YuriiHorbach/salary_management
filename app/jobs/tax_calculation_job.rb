@@ -18,7 +18,8 @@ class TaxCalculationJob < ApplicationJob
         amount_cents: amount_cents,
         children_count: salary.employee.try(:children_count) || 0,
         disability_group: salary.employee.try(:disability_group) || 0,
-        chaes: salary.employee.try(:chaes) || false
+        chaes: salary.employee.try(:chaes) || false,
+        contract: salary.employee.try(:contract) || false
       )
 
       salary.update_columns(

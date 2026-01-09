@@ -80,4 +80,17 @@ RSpec.describe Employee, type: :model do
       expect(employee.total_salary).to eq(100_000)
     end
   end
+
+  describe "after change employee setup and save" do
+    let!(:employee) { create(:employee, children_count: 0) }
+    let!(:salary) { create(:salary, employee: employee, created_at: 1.hour.ago) }
+
+    it "automatically recalculate taxes after changing children amount" do
+      old_tax = salary.income_tax_cents
+      
+      employee.update!(children_count: 3)
+      
+      expect(salary.reload.income_tax_cents).not_to eq(old_tax)
+    end
+  end
 end

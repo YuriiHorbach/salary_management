@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# require 'rails_helper'
+require 'rails_helper'
 
 RSpec.describe TaxCalculator, type: :service do
   describe '.call' do
@@ -44,7 +44,7 @@ RSpec.describe TaxCalculator, type: :service do
     context 'employee with disability and small salary' do
       let(:amount_cents) { 100_000 } # 1000.00 UAH
 
-      it 'results in zero income tax, but military tax is calculated' do # <--- ЗМІНЕНО ОПИС
+      it 'results in zero income tax, but military tax is calculated' do
         res = described_class.call(amount_cents: amount_cents, disability_group: 1)
 
         # gross (1000 UAH) < invalidity PSP (1514 UAH) => income tax 0
@@ -55,6 +55,22 @@ RSpec.describe TaxCalculator, type: :service do
 
         # net amount: 100_000 - 0 (ПДФО) - 5_000 (ВЗ) = 95_000
         expect(res[:net_amount_cents]).to eq(amount_cents - 5_000)
+      end
+    end
+
+    context 'employee has contract' do
+      let(:amount_cents) { 100_000 } # 1000.00 UAH
+
+      it 'calculates 18% from salary' do
+        res = described_class.call(amount_cents: amount_cents, contract: true)
+
+        expect(res[:income_tax_cents]).to eq 18000
+      end
+
+      it 'calculates 18% from salary even if exists disability group' do
+        res = described_class.call(amount_cents: amount_cents, disability_group: 1, contract: true)
+
+        expect(res[:income_tax_cents]).to eq 18000
       end
     end
   end

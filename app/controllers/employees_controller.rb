@@ -82,6 +82,7 @@ class EmployeesController < ApplicationController
                                      :id_code,
                                      :territory_info,
                                      :chaes,
+                                     :contract,
                                      :disability_group,
                                      :children_count)
   end

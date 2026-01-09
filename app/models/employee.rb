@@ -11,9 +11,11 @@ class Employee < ApplicationRecord
   validates :patronic_name, presence: true
   validates :last_name, presence: true
 
+  after_save :recalculate_recent_salary
+
   def self.ransackable_attributes(_auth_object = nil)
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes territory_info]
+       chaes contract territory_info]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -22,5 +24,15 @@ class Employee < ApplicationRecord
 
   def total_salary
     salaries.sum(:amount)
+  end
+
+  private
+
+  def recalculate_recent_salary
+    latest_salary = salaries.last
+    
+    if latest_salary && latest_salary.created_at > 10.hours.ago
+      latest_salary.save
+    end
   end
 end

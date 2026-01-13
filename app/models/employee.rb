@@ -11,7 +11,6 @@ class Employee < ApplicationRecord
   validates :patronic_name, presence: true
   validates :last_name, presence: true
 
-
   after_save :recalculate_taxes_if_needed
 
   def self.ransackable_attributes(_auth_object = nil)
@@ -31,7 +30,7 @@ class Employee < ApplicationRecord
 
   def recalculate_taxes_if_needed
     return unless tax_affecting_attributes_changed?
-    
+
     RecalculateEmployeeTaxes.call(self)
   end
 

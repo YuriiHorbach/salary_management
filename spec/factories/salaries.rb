@@ -4,8 +4,8 @@ FactoryBot.define do
   factory :salary do
     association :employee
     association :department
-    
-    amount { 100_000 } 
+
+    amount { 100_000 }
     paid_on { Date.today }
 
     income_tax_cents { 0 }

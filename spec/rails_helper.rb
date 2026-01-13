@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 ENV['RAILS_ENV'] ||= 'test'
@@ -46,7 +47,7 @@ RSpec.configure do |config|
   end
 
   config.filter_rails_from_backtrace!
-  
+
   config.before(:suite) { $VERBOSE = nil }
   config.after(:suite) { $VERBOSE = true }
 end

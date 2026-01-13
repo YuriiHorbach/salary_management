@@ -29,19 +29,19 @@ class ReportsController < ApplicationController
     net = salaries_relation
           .joins(:department)
           .group('departments.name')
-          .pluck('departments.name', Arel.sql('SUM(salaries.net_amount_cents)')) 
+          .pluck('departments.name', Arel.sql('SUM(salaries.net_amount_cents)'))
           .to_h
 
     pdfo = salaries_relation
            .joins(:department)
            .group('departments.name')
-           .pluck('departments.name', Arel.sql('SUM(salaries.income_tax_cents)')) 
+           .pluck('departments.name', Arel.sql('SUM(salaries.income_tax_cents)'))
            .to_h
 
     military_tax = salaries_relation
                    .joins(:department)
                    .group('departments.name')
-                   .pluck('departments.name', Arel.sql('SUM(salaries.military_tax_cents)')) 
+                   .pluck('departments.name', Arel.sql('SUM(salaries.military_tax_cents)'))
                    .to_h
 
     report_data = {}

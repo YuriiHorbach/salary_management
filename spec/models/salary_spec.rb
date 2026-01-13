@@ -81,4 +81,3 @@ RSpec.describe Salary, type: :model do
     end
   end
 end
- 

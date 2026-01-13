@@ -11,29 +11,29 @@ RSpec.describe 'DepartmentEmployees', type: :request do
   let(:department) { create(:department) }
 
   describe 'POST /department_employees' do
-    context "when authorized" do
+    context 'when authorized' do
       before { sign_in user }
 
-      it "successfully adds employees to the department" do
-        post department_employees_path, params: { 
+      it 'successfully adds employees to the department' do
+        post department_employees_path, params: {
           department_id: department.id,
           employee_ids: [employee1.id, employee2.id]
         }
         expect(response).to redirect_to(department_path(department))
       end
 
-      it "removes employee from department" do
+      it 'removes employee from department' do
         department.employees << employee1
         delete remove_department_employee_path(department, employee1)
-        
+
         expect(department.employees.exists?(employee1.id)).to be_falsy
         expect(response).to redirect_to(department_path(department))
       end
     end
-  
-    context "when unauthorized" do
-      it "redirects to the login page" do
-        post department_employees_path, params: { 
+
+    context 'when unauthorized' do
+      it 'redirects to the login page' do
+        post department_employees_path, params: {
           department_id: department.id,
           employee_ids: [employee1.id]
         }

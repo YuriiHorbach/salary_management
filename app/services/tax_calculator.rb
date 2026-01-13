@@ -7,7 +7,7 @@ class TaxCalculator
   INCOME_TAX_RATE = BigDecimal('0.18') # 18%
   MILITARY_TAX_RATE = BigDecimal('0.05') # 5%
   GRAN_DOHID_UAH = BigDecimal('4240')    # граничний дохід для ПСП у грн
-  PSP_UAH = BigDecimal('1514')            # податкова соціальна пільга (звичайна)
+  PSP_UAH = BigDecimal('1514') # податкова соціальна пільга (звичайна)
 
   def self.call(**args)
     new(**args).call
@@ -21,7 +21,7 @@ class TaxCalculator
     @chaes = !chaes.nil? && chaes != false
     @disability_group = disability_group.to_i
     @contract = contract
-    
+
     @psp_uah = BigDecimal(psp_uah.to_s)
     @psp_invalidity_uah = psp_invalidity_uah ? BigDecimal(psp_invalidity_uah.to_s) : nil
     @gran_dohid_uah = BigDecimal(gran_dohid_uah.to_s)
@@ -42,7 +42,7 @@ class TaxCalculator
     psp_cents = to_cents(@psp_uah)
     psp_invalidity_cents = @psp_invalidity_uah ? to_cents(@psp_invalidity_uah) : nil
     gran_dohid_cents = to_cents(@gran_dohid_uah)
-    
+
     income_tax_cents = calculate_income_tax(gross_cents, psp_cents, psp_invalidity_cents, gran_dohid_cents)
 
     build_result(income_tax_cents, military_tax_cents, gross_cents)
@@ -54,14 +54,14 @@ class TaxCalculator
     if @children_count >= 2
       child_gran_cents = gran_dohid_cents * @children_count
       return (gross_cents * @income_rate).round if gross_cents > child_gran_cents
-      
+
       tax = ((gross_cents - (psp_cents * @children_count)) * @income_rate).round
       [tax, 0].max
 
     elsif @disability_group.positive? || @chaes
       psp_to_use = psp_invalidity_cents || psp_cents
       return (gross_cents * @income_rate).round if gross_cents >= gran_dohid_cents
-      
+
       tax = ((gross_cents - psp_to_use) * @income_rate).round
       [tax, 0].max
 

@@ -44,52 +44,52 @@ RSpec.describe Employee, type: :model do
     end
   end
 
-  describe "recalculates taxes on attribute change", truncation: true do
+  describe 'recalculates taxes on attribute change', truncation: true do
     let!(:employee) { create(:employee, children_count: 0, contract: false) }
     let!(:salary) { create(:salary, employee: employee, amount: 700_000, created_at: 5.minutes.ago) }
 
     it 'recalculates taxes when children_count changes' do
       res_old = TaxCalculator.call(
-        amount_cents: salary.amount.to_d, 
+        amount_cents: salary.amount.to_d,
         children_count: 0,
         contract: false
       )
       old_tax = res_old[:income_tax_cents]
-      
+
       employee.update!(children_count: 3)
 
       res_new = TaxCalculator.call(
-        amount_cents: salary.amount.to_d, 
+        amount_cents: salary.amount.to_d,
         children_count: 3,
         contract: false
       )
       new_tax = res_new[:income_tax_cents]
-    
+
       expect(new_tax).to be < old_tax
     end
 
     it 'actually updates salary record' do
       TaxCalculationJob.perform_now(salary.id)
       old_tax = salary.reload.income_tax_cents
-      
+
       employee.update!(children_count: 3)
-      
+
       TaxCalculationJob.perform_now(salary.id)
-    
+
       salary.reload
-      
+
       expect(salary.income_tax_cents).to be < old_tax
-      expect(salary.income_tax_cents).to eq(44244)
+      expect(salary.income_tax_cents).to eq(44_244)
     end
-  
+
     it 'does NOT recalculate taxes when non-tax-affecting attribute changes' do
       TaxCalculationJob.perform_now(salary.id)
       old_tax = salary.reload.income_tax_cents
-  
+
       perform_enqueued_jobs do
-        employee.update!(first_name: "NewName")
+        employee.update!(first_name: 'NewName')
       end
-  
+
       expect(salary.reload.income_tax_cents).to eq(old_tax)
     end
   end

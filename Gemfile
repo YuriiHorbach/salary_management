@@ -2,10 +2,10 @@
 
 source 'https://rubygems.org'
 
-ruby '3.4.3' 
+ruby '3.4.3'
 
 # Use the latest stable version of Rails
-gem 'rails', '~> 8.0' 
+gem 'rails', '~> 8.0'
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'sprockets-rails'
@@ -69,8 +69,8 @@ group :test do
   gem 'capybara'
   gem 'database_cleaner'
   gem 'ostruct'
-  gem 'shoulda-matchers'
   gem 'rspec-rails'
+  gem 'shoulda-matchers'
 end
 
 group :development do

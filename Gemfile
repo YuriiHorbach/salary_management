@@ -2,10 +2,10 @@
 
 source 'https://rubygems.org'
 
-ruby '3.4.3'
+ruby '3.4.3' # Update to Ruby 4
 
-# Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem 'rails', '~> 8.0', '>= 8.0.2'
+# Use the latest stable version of Rails
+gem 'rails', '~> 8.0' # Update to Rails 8
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'sprockets-rails'
@@ -70,6 +70,7 @@ group :test do
   gem 'database_cleaner'
   gem 'ostruct'
   gem 'shoulda-matchers'
+  gem 'rspec-rails'
 end
 
 group :development do

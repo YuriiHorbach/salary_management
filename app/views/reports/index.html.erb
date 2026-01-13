@@ -32,7 +32,7 @@
 <hr>
 
 <%= turbo_frame_tag "report_results" do %>
-  <h2>Результати звіту</h2>
+  <h2 class="mt-4 mb-2 text-xl font-semibold">Результати звіту</h2>
 
   <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
     <table class="min-w-full divide-y divide-gray-200">
@@ -64,23 +64,23 @@
                 <%= department_name %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.new(department_totals[:gross])) %>
+                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:gross], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.new(department_totals[:net])) %>
+                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:net], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.new(department_totals[:pdfo])) %>
+                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:pdfo], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.new(department_totals[:military_tax])) %>
+                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:military_tax], "UAH")) %>
               </td>
             </tr>
           <% end %>
         <% else %>
           <tr>
             <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-              Data for requested period was not found.
+              Даних за вибраний період не знайдено.
             </td>
           </tr>
         <% end %>
@@ -92,37 +92,23 @@
             Загальний підсумок
           </th>
 
-          <!-- Підсумок: Брутто -->
-          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
-            <div class="w-full text-right">
-              <%= humanized_money_with_symbol(Money.new(@total_records[:gross])) %>
-            </div>
+          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:gross], "UAH")) %>
           </td>
 
-          <!-- Підсумок: Чиста зп -->
-          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
-            <div class="w-full text-right">
-              <%= humanized_money_with_symbol(Money.new(@total_records[:net])) %>
-            </div>
+          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:net], "UAH")) %>
           </td>
 
-          <!-- ПДФО -->
-          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
-            <div class="w-full text-right">
-              <%= humanized_money_with_symbol(Money.new(@total_records[:pdfo])) %>
-            </div>
+          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:pdfo], "UAH")) %>
           </td>
 
-          <!-- Військовий збір -->
-          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
-            <div class="w-full text-right">
-              <%= humanized_money_with_symbol(Money.new(@total_records[:military_tax])) %>
-            </div>
+          <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
+            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:military_tax], "UAH")) %>
           </td>
-
         </tr>
       </tfoot>
     </table>
   </div>
 <% end %>
-

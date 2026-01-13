@@ -11,8 +11,7 @@ class Salary < ApplicationRecord
   monetize :military_tax_cents, as: :military_tax, allow_nil: true
   monetize :net_amount_cents, as: :net_amount, allow_nil: true
 
-  before_save :calculate_taxes
-  after_commit :enqueue_tax_calculation, on: :create
+  after_commit :enqueue_tax_calculation, on: [:create, :update]
 
   scope :by_month, lambda { |month = nil|
     month.present? ? where('EXTRACT(MONTH FROM paid_on) = ?', month.to_i) : all
@@ -60,19 +59,5 @@ class Salary < ApplicationRecord
 
   def update_employee_total_salary
     employee.update(total_salary: employee.salaries.sum(:amount))
-  end
-
-  def calculate_taxes
-    result = TaxCalculator.call(
-      amount_cents: self.amount,
-      children_count: self.children_count,
-      chaes: self.chaes,
-      disability_group: self.disability_group,
-      contract: self.contract
-    )
-
-    self.income_tax_cents = result[:income_tax_cents]
-    self.military_tax_cents = result[:military_tax_cents]
-    self.net_salary_cents = result[:net_amount_cents]
   end
 end

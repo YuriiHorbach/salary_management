@@ -6,6 +6,6 @@ FactoryBot.define do
     first_name { Faker::Name.first_name }
     patronic_name { 'Testovich' }
     last_name { Faker::Name.last_name }
-    # total_salary { 1000 }
+    contract { false }
   end
 end

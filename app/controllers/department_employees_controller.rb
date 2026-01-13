@@ -11,7 +11,6 @@ class DepartmentEmployeesController < ApplicationController
 
   def create
     employee_ids = params[:employee_ids]
-
     if employee_ids&.any?
       employees = Employee.where(id: employee_ids)
       employees.each do |employee|

@@ -34,7 +34,6 @@ class TaxCalculator
 
     gross_cents = @amount_cents
     military_tax_cents = (gross_cents * @military_rate).round
-
     if @contract
       income_tax_cents = (gross_cents * @income_rate).round
       return build_result(income_tax_cents, military_tax_cents, gross_cents)

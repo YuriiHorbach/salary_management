@@ -29,22 +29,6 @@ class Employee < ApplicationRecord
 
   private
 
-  # def recalculate_recent_salary
-  #   latest_salary = salaries.reload.last
-  #   if latest_salary && latest_salary.created_at > 10.hours.ago
-  #     latest_salary.employee = self
-  #     latest_salary.save
-  #   end
-  # end
-
-  # def recalculate_recent_salary
-  #   latest_salary = salaries.order(created_at: :desc).first
-  #   return unless latest_salary
-  #   return unless latest_salary.created_at > 10.hours.ago
-  
-  #   TaxCalculationJob.perform_later(latest_salary.id)
-  # end
-
   def recalculate_taxes_if_needed
     return unless tax_affecting_attributes_changed?
     

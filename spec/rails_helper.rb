@@ -19,10 +19,8 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  # Спочатку кажемо RSpec автоматично визначати тип тесту за папкою
   config.infer_spec_type_from_file_location!
 
-  # Тепер підключаємо хелпери для конкретного типу
   config.include Rails.application.routes.url_helpers, type: :request
   config.include Devise::Test::IntegrationHelpers, type: :request
 

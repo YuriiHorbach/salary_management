@@ -2,10 +2,10 @@
 
 source 'https://rubygems.org'
 
-ruby '3.4.3' # Update to Ruby 4
+ruby '3.4.3' 
 
 # Use the latest stable version of Rails
-gem 'rails', '~> 8.0' # Update to Rails 8
+gem 'rails', '~> 8.0' 
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem 'sprockets-rails'

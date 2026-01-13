@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_18_202441) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_08_214353) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_18_202441) do
     t.integer "disability_group"
     t.boolean "chaes"
     t.string "territory_info", default: "", null: false
+    t.boolean "contract", default: false
   end
 
   create_table "folders", force: :cascade do |t|

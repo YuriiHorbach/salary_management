@@ -48,6 +48,11 @@
           <%= f.label :chaes_true, "ЧАЕС", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
 
+        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
+          <%= f.check_box :contract_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
+          <%= f.label :contract_true, "Contract", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
+        </div>
+
         <%= f.submit "Пошук 🔍", class: "flex-1 bg-blue-700 text-white font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
         <%= link_to "Reset", employees_path, class: "flex-1 bg-gray-700 text-white text-center font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
       </div>
@@ -55,24 +60,28 @@
     </div>
   <% end %>
 </div>
-<div class="m-5">
+<div class="m-5 overflow-x-auto"> <%# Дозволить скрол, якщо екран зовсім маленький %>
   <%= turbo_frame_tag "employees_list" do %>
-    <div class="grid grid-cols-9 gap-x-3 bg-gray-100 border border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :id_code, "ID") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :last_name, "Last Name") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :first_name, "First Name") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :patronic_name, "Patronic Name") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :children_count, "Children") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :disability_group, "Disability Group") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :chaes, "CHAES") %></div>
-      <div class="px-2 py-2 border-r border-gray-200"><%= sort_link(@q, :territory_info, "Territory info") %></div>
-      <div class="px-2 py-2 border-r border-gray-200">Actions</div>
+    <%# Встановлюємо чіткі пропорції для 8 колонок %>
+    <% grid_layout = "grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;" %>
+
+    <div class="grid bg-gray-100 border border-gray-200 font-bold text-xs uppercase text-gray-700 items-center" style="<%= grid_layout %>">
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :id_code, "ID") %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :last_name, "ПІБ") %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :children_count, "Діти") %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, "Гр.") %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center">ЧАЕС</div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center">Контр.</div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center">Територія</div>
+      <div class="px-2 py-3 text-center">Дії</div>
     </div>
 
-    <%= render partial: 'employee', collection: @employees, as: :employee %>
+    <div class="divide-y divide-gray-200 border-x border-b border-gray-200">
+      <%= render partial: 'employee', collection: @employees, as: :employee %>
+    </div>
   <% end %>
 </div>
 
-<p>
-  <%= link_to 'Home Page', home_pages_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' %>
-</p>
+<div class="m-5">
+  <%= link_to '← Home Page', home_pages_path, class: 'text-gray-600 hover:text-blue-700 font-medium text-sm' %>
+</div>

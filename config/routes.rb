@@ -9,7 +9,8 @@ Rails.application.routes.draw do
   end
 
   resources :users, only: %i[index destroy]
-  resources :department_employees, only: %i[new create destroy]
+
+  resources :department_employees, only: %i[new create]
 
   resources :departments do
     resources :employees, only: [] do
@@ -17,7 +18,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :departments, except: [:destroy]
   resources :reports, only: [:index]
 
   get '/home_pages/', to: 'home_pages#index'

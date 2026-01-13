@@ -58,6 +58,16 @@
     </div>
 
     <div class="mb-5">
+    <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+      <%= form.label :contract, 'Contract' %>
+
+    </div>
+    <div>
+      <%= form.check_box :contract, { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" }, "1", "0" %>
+    </div>
+  </div>
+
+    <div class="mb-5">
       <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
         <%= form.label :disability_group, 'Special income sign' %>
 

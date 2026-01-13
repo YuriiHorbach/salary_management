@@ -23,25 +23,25 @@ class ReportsController < ApplicationController
     gross = salaries_relation
             .joins(:department)
             .group('departments.name')
-            .pluck('departments.name', Arel.sql('SUM(salaries.amount * 100)')) # Правильно: amount * 100
+            .pluck('departments.name', Arel.sql('SUM(salaries.amount * 100)'))
             .to_h
 
     net = salaries_relation
           .joins(:department)
           .group('departments.name')
-          .pluck('departments.name', Arel.sql('SUM(salaries.net_amount_cents)')) # Виправлено: net_amount_cents (без * 100)
+          .pluck('departments.name', Arel.sql('SUM(salaries.net_amount_cents)'))
           .to_h
 
     pdfo = salaries_relation
            .joins(:department)
            .group('departments.name')
-           .pluck('departments.name', Arel.sql('SUM(salaries.income_tax_cents)')) # Виправлено: income_tax_cents (без * 100)
+           .pluck('departments.name', Arel.sql('SUM(salaries.income_tax_cents)'))
            .to_h
 
     military_tax = salaries_relation
                    .joins(:department)
                    .group('departments.name')
-                   .pluck('departments.name', Arel.sql('SUM(salaries.military_tax_cents)')) # Виправлено: military_tax_cents (без * 100)
+                   .pluck('departments.name', Arel.sql('SUM(salaries.military_tax_cents)'))
                    .to_h
 
     report_data = {}

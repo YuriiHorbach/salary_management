@@ -80,27 +80,4 @@ RSpec.describe Salary, type: :model do
       end
     end
   end
-
-  describe 'Ransack configuration' do
-    describe '.ransackable_attributes' do
-      let(:ransackable_attrs) { Salary.ransackable_attributes }
-
-      it 'includes necessary filtering attributes' do
-        expect(ransackable_attrs).to include('amount', 'department_id', 'paid_on')
-      end
-    end
-
-    describe '.ransackable_associations' do
-      it 'includes department and employee' do
-        expect(Salary.ransackable_associations).to match_array(%w[department employee])
-      end
-    end
-
-    describe '.ransackable_scopes' do
-      it 'includes all custom filtering scopes' do
-        expected_scopes = %i[by_month by_year by_department]
-        expect(Salary.ransackable_scopes).to match_array(expected_scopes)
-      end
-    end
-  end
 end

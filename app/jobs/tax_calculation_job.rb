@@ -7,18 +7,17 @@ class TaxCalculationJob < ApplicationJob
     salary = Salary.find_by(id: salary_id)
     return unless salary
 
+    salary.employee.reload
+
     salary.with_lock do
-      amount_cents = if salary.respond_to?(:amount_cents) && salary.amount_cents.present?
-                       salary.amount_cents.to_i
-                     else
-                       (salary.amount.to_d * 100).to_i
-                     end
+      amount_cents = salary.amount.to_i
 
       res = TaxCalculator.call(
         amount_cents: amount_cents,
         children_count: salary.employee.try(:children_count) || 0,
         disability_group: salary.employee.try(:disability_group) || 0,
-        chaes: salary.employee.try(:chaes) || false
+        chaes: salary.employee.try(:chaes) || false,
+        contract: salary.employee.try(:contract) || false
       )
 
       salary.update_columns(
@@ -29,7 +28,7 @@ class TaxCalculationJob < ApplicationJob
       )
     end
   rescue StandardError => e
-    Rails.logger.error("TaxCalculationJob(#{salary_id}) failed: #{e.class} #{e.message}\n#{e.backtrace.first(8).join("\n")}")
+    Rails.logger.error("TaxCalculationJob(#{salary_id}) failed: #{e.message}")
     raise
   end
 end

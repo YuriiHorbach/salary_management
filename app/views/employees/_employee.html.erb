@@ -1,27 +1,50 @@
 <%= turbo_frame_tag dom_id(employee) do %>
-  <div class="grid grid-cols-9 gap-x-3 border border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-    <div class="px-2 py-2 border-r border-gray-200"><%= employee.id_code %></div>
-    <div class="px-2 py-2 border-r border-gray-200 whitespace-normal break-words"><%= employee.last_name %></div>
-    <div class="px-2 py-2 border-r border-gray-200 whitespace-normal break-words"><%= employee.first_name %></div>
-    <div class="px-2 py-2 border-r border-gray-200 whitespace-normal break-words"><%= employee.patronic_name %></div>
-    <div class="px-2 py-2 border-r border-gray-200 text-right"><%= employee.children_count %></div>
-    <div class="px-2 py-2 border-r border-gray-200 text-right"><%= employee.disability_group %></div>
-    <div class="px-2 py-2 border-r border-gray-200 text-right"><%= employee.chaes %></div>
-    <div class="px-2 py-2 border-r border-gray-200"><%= employee.territory_info %></div>
-    <div class="px-2 py-2 border-r border-gray-200 flex flex-col space-y-1 items-stretch">
+  <div class="grid hover:bg-gray-50 dark:hover:bg-gray-800 items-center border-b border-gray-200" 
+       style="grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;">
+    
+    <%# 1. ID %>
+    <div class="px-2 py-2 border-r border-gray-200 text-sm truncate"><%= employee.id_code %></div>
+    
+    <%# 2. ПІБ %>
+    <div class="px-2 py-5 border-r border-gray-200 text-sm leading-tight">
+      <div class="font-bold text-gray-800"><%= employee.last_name %></div>
+      <div class="text-[11px] text-gray-500"><%= employee.first_name %> <%= employee.patronic_name %></div>
+    </div>
+    
+    <%# 3. Діти %>
+    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm"><%= employee.children_count %></div>
+    
+    <%# 4. Група інвалідності %>
+    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm"><%= employee.disability_group %></div>
+    
+    <%# 5. ЧАЕС %>
+    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm">
+      <%= employee.chaes ? "✅" : "—" %>
+    </div>
+    
+    <%# 6. Контракт %>
+    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm">
+      <%= employee.contract ? "✅" : "—" %>
+    </div>
+    
+    <%# 7. Територія %>
+    <div class="px-2 py-2 border-r border-gray-200 text-[11px] text-gray-600 truncate" title="<%= employee.territory_info %>">
+      <%= employee.territory_info %>
+    </div>
+    
+    <%# 8. Дії (Actions) %>
+    <div class="px-2 py-2 flex flex-col space-y-1 items-stretch">
+      <%= link_to "Show", employee_path(employee),
+            class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-green-700 rounded hover:bg-green-800",
+            data: { turbo: :false } %>
 
-  <%= link_to "Show", employee_path(employee),
-        class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-green-700 rounded hover:bg-green-800 focus:outline-none dark:bg-green-600 dark:hover:bg-green-700",
-        data: { turbo: :false } %>
+      <%= link_to "Edit", edit_employee_path(employee),
+            class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-blue-700 rounded hover:bg-blue-800",
+            data: { turbo_frame: dom_id(employee) } %>
 
-  <%= link_to "Edit", edit_employee_path(employee),
-        class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-blue-700 rounded hover:bg-blue-800 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700",
-        data: { turbo_frame: dom_id(employee) } %>
-
-  <%= link_to 'Delete', employee_path(employee),
-        class: 'px-2 py-0.5 text-[10px] font-medium text-center text-white bg-red-700 rounded hover:bg-red-800 focus:outline-none dark:bg-red-600 dark:hover:bg-red-700',
-        data: { turbo_method: :delete } %>
-</div>
+      <%= link_to 'Delete', employee_path(employee),
+            class: 'px-2 py-0.5 text-[10px] font-medium text-center text-white bg-red-700 rounded hover:bg-red-800',
+            data: { turbo_method: :delete, turbo_confirm: 'Ви впевнені?' } %>
+    </div>
   </div>
 <% end %>
-

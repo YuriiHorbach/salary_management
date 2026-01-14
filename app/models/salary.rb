@@ -4,9 +4,12 @@ class Salary < ApplicationRecord
   belongs_to :employee
   belongs_to :department, optional: true
 
-  validates :amount, presence: true
+  monetize :amount_cents, as: :amount
+  validates :amount_cents, presence: true
+  validates :income_tax_cents, :military_tax_cents, :net_amount_cents,
+            numericality: { greater_than_or_equal_to: 0 },
+            allow_nil: true
 
-  # Monetize tax-related cents columns so we can work with Money objects in app code
   monetize :income_tax_cents, as: :income_tax, allow_nil: true
   monetize :military_tax_cents, as: :military_tax, allow_nil: true
   monetize :net_amount_cents, as: :net_amount, allow_nil: true
@@ -26,7 +29,7 @@ class Salary < ApplicationRecord
   }
 
   def self.ransackable_attributes(*)
-    %w[amount created_at department_id employee_id id paid_on updated_at]
+    %w[amount_cents created_at department_id employee_id id paid_on updated_at]
   end
 
   def self.ransackable_associations(*)
@@ -46,9 +49,11 @@ class Salary < ApplicationRecord
   end
 
   def self.monthly_sum_for_employee(employee_id)
-    where(employee_id: employee_id)
-      .group('EXTRACT(YEAR FROM paid_on)', 'EXTRACT(MONTH FROM paid_on)')
-      .sum(:amount)
+    sums = where(employee_id: employee_id)
+           .group('EXTRACT(YEAR FROM paid_on)', 'EXTRACT(MONTH FROM paid_on)')
+           .sum(:amount_cents)
+
+    sums.transform_values { |value| value / 100.0 }
   end
 
   def enqueue_tax_calculation
@@ -58,6 +63,6 @@ class Salary < ApplicationRecord
   private
 
   def update_employee_total_salary
-    employee.update(total_salary: employee.salaries.sum(:amount))
+    employee.update(total_salary: employee.salaries.sum(:amount_cents) / 100.0)
   end
 end

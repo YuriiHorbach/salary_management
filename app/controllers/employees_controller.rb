@@ -17,7 +17,7 @@ class EmployeesController < ApplicationController
     @employee_salaries = @q.result.includes(:department).group_by(&:department)
     @monthly_totals = @q.result.group_by do |s|
       s.paid_on.strftime('%Y-%m')
-    end.transform_values { |sals| sals.sum(&:amount) }
+    end.transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

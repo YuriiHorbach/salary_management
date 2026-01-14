@@ -6,17 +6,17 @@ RSpec.describe Salary, type: :model do
   let(:employee) { create(:employee) }
   let(:department) { create(:department, name: 'Test Dept') }
   let(:salary) do
-    create(:salary, employee: employee, department: department, amount: 1000, paid_on: Date.new(2025, 5, 15))
+    create(:salary, employee: employee, department: department, amount_cents: 1000, paid_on: Date.new(2025, 5, 15))
   end
 
   let!(:salary_jan_dev) do
-    create(:salary, department: department, paid_on: Date.new(2025, 1, 1), amount: 100)
+    create(:salary, department: department, paid_on: Date.new(2025, 1, 1), amount_cents: 100)
   end
   let!(:salary_feb_other) do
-    create(:salary, department: create(:department, name: 'Other'), paid_on: Date.new(2025, 2, 1), amount: 200)
+    create(:salary, department: create(:department, name: 'Other'), paid_on: Date.new(2025, 2, 1), amount_cents: 200)
   end
   let!(:salary_2024) do
-    create(:salary, department: department, paid_on: Date.new(2024, 5, 1), amount: 300)
+    create(:salary, department: department, paid_on: Date.new(2024, 5, 1), amount_cents: 300)
   end
 
   describe 'associations' do
@@ -38,10 +38,10 @@ RSpec.describe Salary, type: :model do
 
   describe '.monthly_sum_for_employee' do
     it 'returns sum of salaries grouped by year and month' do
-      create(:salary, employee: employee, amount: 200, paid_on: Date.new(2025, 5, 1))
-      create(:salary, employee: employee, amount: 300, paid_on: Date.new(2025, 6, 1))
+      create(:salary, employee: employee, amount_cents: 200, paid_on: Date.new(2025, 5, 1))
+      create(:salary, employee: employee, amount_cents: 300, paid_on: Date.new(2025, 6, 1))
       result = Salary.monthly_sum_for_employee(employee.id)
-      expect(result.values.sum).to eq(employee.salaries.sum(:amount))
+      expect(result.values.sum).to eq(employee.salaries.sum(:amount_cents) / 100.0)
     end
   end
 

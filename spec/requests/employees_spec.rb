@@ -7,7 +7,7 @@ RSpec.describe 'Employees update', type: :request do
 
   let(:user) { create(:user) }
   let(:employee) { create(:employee, children_count: 0) }
-  let!(:salary) { create(:salary, employee: employee, amount: 300_000) }
+  let!(:salary) { create(:salary, employee: employee, amount_cents: 300_000) }
 
   before do
     sign_in user

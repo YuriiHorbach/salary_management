@@ -23,7 +23,7 @@ class Employee < ApplicationRecord
   end
 
   def total_salary
-    salaries.sum(:amount)
+    salaries.sum(:amount_cents) / 100.0
   end
 
   private

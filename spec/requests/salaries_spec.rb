@@ -11,7 +11,7 @@ RSpec.describe 'Salaries', type: :request do
 
   let(:valid_attributes) do
     {
-      amount: 5000,
+      amount_cents: 5000,
       paid_on: '2025-10-01',
       department_id: department.id
     }

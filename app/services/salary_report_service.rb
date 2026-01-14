@@ -5,10 +5,10 @@ class SalaryReportService
 
   def call
     {
-      gross: (@records.sum(:amount) * 100).to_i,
-      net: @records.sum(:net_amount_cents),
-      pdfo: @records.sum(:income_tax_cents),
-      military_tax: @records.sum(:military_tax_cents)
+      gross: @records.sum('salaries.amount_cents'),
+      income_tax: @records.sum('salaries.income_tax_cents'),
+      military_tax: @records.sum('salaries.military_tax_cents'),
+      net: @records.sum('salaries.net_amount_cents')
     }
   end
 end

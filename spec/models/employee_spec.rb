@@ -37,20 +37,20 @@ RSpec.describe Employee, type: :model do
     end
 
     it 'returns sum of salaries' do
-      create(:salary, employee: employee, amount: 100_000)
-      create(:salary, employee: employee, amount: 200_000)
+      create(:salary, employee: employee, amount_cents: 100_000)
+      create(:salary, employee: employee, amount_cents: 200_000)
 
-      expect(employee.total_salary).to eq(300_000)
+      expect(employee.total_salary).to eq(3000)
     end
   end
 
   describe 'recalculates taxes on attribute change', truncation: true do
     let!(:employee) { create(:employee, children_count: 0, contract: false) }
-    let!(:salary) { create(:salary, employee: employee, amount: 700_000, created_at: 5.minutes.ago) }
+    let!(:salary) { create(:salary, employee: employee, amount_cents: 700_000, created_at: 5.minutes.ago) }
 
     it 'recalculates taxes when children_count changes' do
       res_old = TaxCalculator.call(
-        amount_cents: salary.amount.to_d,
+        amount_cents: salary.amount_cents,
         children_count: 0,
         contract: false
       )
@@ -59,7 +59,7 @@ RSpec.describe Employee, type: :model do
       employee.update!(children_count: 3)
 
       res_new = TaxCalculator.call(
-        amount_cents: salary.amount.to_d,
+        amount_cents: salary.amount_cents,
         children_count: 3,
         contract: false
       )

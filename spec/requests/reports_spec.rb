@@ -17,7 +17,7 @@ RSpec.describe 'Reports', type: :request do
       it 'renders the report with correct total amounts' do
         create(:salary,
                department: department_a,
-               amount: 10_000,
+               amount_cents: 100_000_0,
                income_tax_cents: 180_000,
                military_tax_cents: 15_000,
                net_amount_cents: 805_000)
@@ -34,14 +34,14 @@ RSpec.describe 'Reports', type: :request do
 
     context 'filtering' do
       it 'filters by department correctly' do
-        create(:salary, department: department_b, amount: 5_000, paid_on: '2025-01-15')
-        create(:salary, department: department_a, amount: 2_000, paid_on: '2025-02-15')
+        create(:salary, department: department_b, amount_cents: 500_000, paid_on: '2025-01-15')
+        create(:salary, department: department_a, amount_cents: 200_000, paid_on: '2025-02-15')
 
         get reports_path, params: { q: { by_department: department_a.id } }
 
         expect(response.body).to include('Marketing')
         expect(response.body).to include('2,000')
-        expect(response.body).not_to include('5,000') # Перевіряємо, що суми іншого відділу немає
+        expect(response.body).not_to include('5,000')
       end
     end
   end

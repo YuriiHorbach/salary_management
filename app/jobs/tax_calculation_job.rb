@@ -10,7 +10,7 @@ class TaxCalculationJob < ApplicationJob
     salary.employee.reload
 
     salary.with_lock do
-      amount_cents = salary.amount.to_i
+      amount_cents = salary.amount_cents
 
       res = TaxCalculator.call(
         amount_cents: amount_cents,

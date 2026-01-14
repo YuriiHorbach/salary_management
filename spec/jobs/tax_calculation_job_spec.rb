@@ -19,7 +19,7 @@ RSpec.describe TaxCalculationJob, type: :job do
     create(
       :salary,
       employee: employee,
-      amount: 100_000,
+      amount_cents: 100_000 * 100,
       paid_on: Date.today
     )
   end
@@ -36,13 +36,9 @@ RSpec.describe TaxCalculationJob, type: :job do
 
       salary.reload
 
-      expect(salary.income_tax_cents).to be_present
-      expect(salary.military_tax_cents).to be_present
-      expect(salary.net_amount_cents).to be_present
-
-      expect(salary.income_tax_cents).to eq(0)
-      expect(salary.military_tax_cents).to eq(5_000)
-      expect(salary.net_amount_cents).to eq(95_000)
+      expect(salary.income_tax_cents).to eq(18_000_00)
+      expect(salary.military_tax_cents).to eq(5_000_00)
+      expect(salary.net_amount_cents).to eq(77_000_00)
     end
 
     it 'does not crash if salary does not exist' do
@@ -55,7 +51,7 @@ RSpec.describe TaxCalculationJob, type: :job do
 
     it 'is enqueued when salary is created' do
       expect do
-        create(:salary, employee: employee, amount: 500.0)
+        create(:salary, employee: employee, amount_cents: 500_00)
       end.to have_enqueued_job(described_class)
     end
   end

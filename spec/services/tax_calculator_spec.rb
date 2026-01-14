@@ -51,14 +51,14 @@ RSpec.describe TaxCalculator, type: :service do
         expect(res[:income_tax_cents]).to eq 144_000
       end
 
-      it 'calculates full tax for contract regardless of disability' do 
+      it 'calculates full tax for contract regardless of disability' do
         res = described_class.call(amount_cents: 500_000, disability_group: 2, contract: true)
         expect(res[:income_tax_cents]).to eq 90_000
       end
 
       it 'applies PSP when contract is explicitly false' do
         res = described_class.call(amount_cents: 700_000, children_count: 3, contract: false)
-        expect(res[:income_tax_cents]).to eq 44244
+        expect(res[:income_tax_cents]).to eq 44_244
       end
     end
   end

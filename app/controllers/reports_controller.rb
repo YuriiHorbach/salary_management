@@ -23,7 +23,7 @@ class ReportsController < ApplicationController
     gross = salaries_relation
             .joins(:department)
             .group('departments.name')
-            .pluck('departments.name', Arel.sql('SUM(salaries.amount * 100)'))
+            .pluck('departments.name', Arel.sql('SUM(salaries.amount_cents)'))
             .to_h
 
     net = salaries_relation

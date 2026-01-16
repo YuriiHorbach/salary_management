@@ -1,4 +1,4 @@
-<h1>💰 Зведений звіт по зарплатах (по відділах)</h1>
+<h1>Зведений звіт по зарплатах (по відділах)</h1>
 
 <div class="filter-form flex mb-4 mt-4">
   <%= search_form_for @q, url: reports_path, method: :get, class: "flex space-x-3 flex-auto", data: { turbo_frame: "report_results" } do |f| %>
@@ -101,7 +101,7 @@
           </td>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:pdfo], "UAH")) %>
+            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:income_tax], "UAH")) %>
           </td>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_08_214353) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_14_213344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -78,7 +78,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_08_214353) do
   end
 
   create_table "salaries", force: :cascade do |t|
-    t.decimal "amount"
     t.bigint "employee_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -88,6 +87,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_08_214353) do
     t.integer "military_tax_cents", default: 0, null: false
     t.integer "net_amount_cents", default: 0, null: false
     t.datetime "taxes_calculated_at"
+    t.integer "amount_cents", default: 0, null: false
     t.index ["department_id"], name: "index_salaries_on_department_id"
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
   end

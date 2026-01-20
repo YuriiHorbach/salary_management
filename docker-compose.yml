@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/my_app_development
+      DATABASE_URL: postgresql://postgres:password@db:5432/salary_management_development
     depends_on:
       - db
 

@@ -9,4 +9,13 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+User.destroy_all
+Employee.destroy_all
+
 User.create!(email: 'admin@example.com', password: 'password')
+
+employee = Employee.find_or_create_by!(id_code: "1234567890") do |e|
+  e.first_name = "Ivan"
+  e.last_name = "Sirko"
+  e.patronic_name = "Ivanovych"
+end

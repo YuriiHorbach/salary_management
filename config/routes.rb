@@ -18,6 +18,10 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :employees do
+    resources :sick_leaves
+  end
+
   resources :reports, only: [:index]
 
   get '/home_pages/', to: 'home_pages#index'

@@ -1,0 +1,9 @@
+
+<%= form_with(model: [@employee, @sick_day]) do |f|%>
+  <div class="">
+    <%= f.label :period %>
+    <%= f.month_field :period %>
+  </div>
+
+  <%= f.submit %>
+<% end %>

@@ -5,6 +5,7 @@ services:
       - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: salary_management_development
     ports:
       - "5433:5432"
 

@@ -5,6 +5,7 @@ class Employee < ApplicationRecord
   has_many :departments, through: :department_employees
   has_many :positions, through: :department_employees
   has_many :salaries, dependent: :destroy
+  has_many :sick_days, class_name: 'SickDay', dependent: :destroy
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true

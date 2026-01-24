@@ -92,14 +92,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_164528) do
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
   end
 
-  create_table "sick_leaves", force: :cascade do |t|
+  create_table "sick_days", force: :cascade do |t|
     t.bigint "employee_id", null: false
     t.integer "pfu_amount", default: 0, null: false
     t.integer "enterprise_amount", default: 0, null: false
     t.string "period", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["employee_id"], name: "index_sick_leaves_on_employee_id"
+    t.index ["employee_id"], name: "index_sick_days_on_employee_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -122,5 +122,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_164528) do
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"
-  add_foreign_key "sick_leaves", "employees"
+  add_foreign_key "sick_days", "employees"
 end

@@ -1,0 +1,57 @@
+<div class="m-5">
+  <nav class="mb-4">
+    <%= link_to "← Назад до працівника", employee_path(@employee), class: "text-blue-600 hover:underline text-sm" %>
+  </nav>
+
+  <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">
+    Новий лікарняний: <%= @employee.last_name %> <%= @employee.first_name %>
+  </h2>
+
+  <%= form_with(model: [@employee, @sick_day], local: true, class: "max-w-xl space-y-6") do |f| %>
+    <% input_classes = "mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" %>
+
+    <%# Блок періоду %>
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+      <div class="w-1/2">
+        <%= f.label :period, 'Місяць виплати (Year-Month)', class: "block text-sm font-semibold text-gray-700" %>
+        <%= f.month_field :period, 
+                          class: input_classes, 
+                          value: Date.today.strftime("%Y-%m") %>
+        <p class="text-[10px] text-gray-400 mt-1">Виберіть місяць, у якому нараховано лікарняний</p>
+      </div>
+    </div>
+
+    <%# Блок сум %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <%= f.label :pfu_amount, 'За рахунок ПФУ (грн)', class: "block text-sm font-semibold text-gray-700" %>
+        <div class="relative mt-1">
+          </div>
+          <%= f.number_field :pfu_amount, 
+                             step: 0.01, 
+                             class: "#{input_classes} pl-7", 
+                             placeholder: "0.00" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :enterprise_amount, 'За рахунок підприємства (грн)', class: "block text-sm font-semibold text-gray-700" %>
+        <div class="relative mt-1">
+          <%= f.number_field :enterprise_amount, 
+                             step: 0.01, 
+                             class: "#{input_classes} pl-7", 
+                             placeholder: "0.00" %>
+        </div>
+      </div>
+    </div>
+
+    <%# Кнопки дії %>
+    <div class="mt-10 pt-6 border-t border-gray-200 flex items-center gap-6">
+      <%= f.submit 'ЗБЕРЕГТИ ЛІКАРНЯНИЙ',
+          class: "bg-gray-700 text-white text-center font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+      
+      <%= link_to "Скасувати", employee_path(@employee), 
+          class: "text-sm text-gray-400 hover:text-gray-600 transition duration-150 font-medium" %>
+    </div>
+  <% end %>
+</div>

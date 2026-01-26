@@ -1,19 +1,23 @@
 class SickDaysController < ApplicationController
-  before_action :set_employee, only:[:index, :new, :create]
+  before_action :set_employee, only: [:index, :new, :create]
 
   def index 
-    @sick_days = @employee.sick_days
+    @sick_days = @employee.sick_days.order(period: :desc)
   end
 
   def new 
-    @sick_day = SickDay.new(params[:employee_id])
+    @sick_day = @employee.sick_days.build
   end
 
   def create 
     @sick_day = @employee.sick_days.build(sick_day_params)
 
+    if params[:sick_day][:period].present?
+      @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01")
+    end
+
     if @sick_day.save 
-      redirect_to :root 
+      redirect_to new_employee_sick_day_path(@employee), notice: 'Лікарняний успішно додано. Ви можете додати ще один.'
     else 
       render :new, status: :unprocessable_entity
     end

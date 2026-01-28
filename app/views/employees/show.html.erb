@@ -135,29 +135,26 @@
 
 <div class="m-5">
   <h2 class="mt-8 mb-2 text-lg font-bold text-gray-800">🏥 Лікарняні</h2>
-  
+
   <div class="overflow-x-auto border rounded-lg shadow-sm">
     <table class="min-w-full text-left text-sm font-light text-surface dark:text-white">
       <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
         <tr>
           <th class="px-4 py-2">📅 Період</th>
-          <th class="px-4 py-2">🏦 ПФУ</th>
-          <th class="px-4 py-2">🏢 Підприємство</th>
           <th class="px-4 py-2 font-bold">💰 Разом</th>
           <th class="px-4 py-2 text-red-600">📉 ПДФО (18%)</th>
-          <th class="px-4 py-2 text-red-600">🛡️ ВЗ (1.5%)</th>
+          <th class="px-4 py-2 text-red-600">🛡️ ВЗ (5%)</th>
         </tr>
       </thead>
       <tbody>
-        <% if @sick_days.any? %>
-          <% @sick_days.each do |sd| %>
-            <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-              <td class="px-4 py-2"><%= sd.period %></td>
-              <td class="px-4 py-2"><%= number_to_currency(sd.pfu_amount) %></td>
-              <td class="px-4 py-2"><%= number_to_currency(sd.enterprise_amount) %></td>
-              <td class="px-4 py-2 font-bold"><%= number_to_currency(sd.total_amount) %></td>
-              <td class="px-4 py-2 text-red-500"><%= number_to_currency(sd.pdfo_amount) %></td>
-              <td class="px-4 py-2 text-red-500"><%= number_to_currency(sd.military_amount) %></td>
+        <% if @sick_days_summaries.any? %>
+          <% @sick_days_summaries.each do |period, data| %>
+          <%byebug%>
+            <tr class="border-b">
+              <td class="px-4 py-2"><%= period&.strftime("%Y-%m") %></td>
+              <td class="px-4 py-2"><%= number_to_currency(data[:total]) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(data[:pdfo]) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(data[:military]) %></td>
             </tr>
           <% end %>
         <% else %>
@@ -172,7 +169,11 @@
   </div>
 
   <div class="mt-4">
-    <%= link_to '➕ Додати лікарняний', new_employee_sick_day_path(@employee), 
+    <%= link_to 'Переглянути всі лікарняні', employee_sick_days_path(@employee),
+                class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+  </div>
+  <div class="mt-4">
+    <%= link_to '➕ Додати лікарняний', new_employee_sick_day_path(@employee),
                 class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
   </div>
 </div>

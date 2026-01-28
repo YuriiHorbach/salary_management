@@ -27,6 +27,16 @@ class Employee < ApplicationRecord
     salaries.sum(:amount_cents) / 100.0
   end
 
+  def sick_days_summaries
+    sick_days.group_by(&:period).transform_values do |days|
+      {
+        total: days.map(&:total_amount).sum,
+        pdfo: days.map(&:pdfo_amount).sum,
+        military: days.map(&:military_amount).sum
+      }
+    end
+  end
+
   private
 
   def recalculate_taxes_if_needed

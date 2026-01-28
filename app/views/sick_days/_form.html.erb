@@ -1,0 +1,34 @@
+<%= form_with(model: [@employee, sick_day], data: { turbo_frame: "_top" }, class: "contents") do |f| %>
+  <% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm" %>
+
+  <td class="px-4 py-2">
+    <%= f.month_field :period,
+        class: input_classes,
+        value: f.object.period&.strftime("%Y-%m") %>
+  </td>
+
+  <td class="px-4 py-2">
+    <% if f.object.pfu_amount.to_f > 0 || f.object.new_record? %>
+      <%= f.number_field :pfu_amount, step: 0.01, class: "#{input_classes} text-right" %>
+    <% else %>
+      <%= f.hidden_field :pfu_amount %> <%# приховане поле, щоб не затерти нуль %>
+    <% end %>
+  </td>
+
+  <td class="px-4 py-2">
+    <% if f.object.enterprise_amount.to_f > 0 || f.object.new_record? %>
+      <%= f.number_field :enterprise_amount, step: 0.01, class: "#{input_classes} text-right" %>
+    <% else %>
+      <%= f.hidden_field :enterprise_amount %>
+    <% end %>
+  </td>
+
+  <td class="px-4 py-2 text-right font-medium text-gray-400">
+    <%= number_to_currency(f.object.total_amount) %>
+  </td>
+
+  <td class="px-4 py-2 text-center flex items-center justify-center gap-2">
+    <%= f.submit "✅", class: "cursor-pointer hover:scale-125 transition text-lg" %>
+    <%= link_to "❌", employee_sick_days_path(@employee), class: "hover:scale-125 transition text-lg" %>
+  </td>
+<% end %>

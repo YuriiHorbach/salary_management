@@ -1,0 +1,10 @@
+<h2> Edit employee sick day </h2>
+
+<%= turbo_frame_tag dom_id(@sick_day) do %>
+  <tr class="bg-yellow-50">
+    <td colspan="5" class="p-4">
+      <%= render 'form', employee: @employee, sick_day: @sick_day %>
+      <%= link_to "Скасувати", employee_sick_days_path(@employee), class: "text-sm text-red-500" %>
+    </td>
+  </tr>
+<% end %>

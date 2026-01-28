@@ -4,6 +4,11 @@ class SickDay < ApplicationRecord
 
   belongs_to :employee
 
+  attribute :period, :date
+
+  monetize :pfu_amount_cents
+  monetize :enterprise_amount_cents
+
   validates :period, presence: true
   validates :pfu_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :enterprise_amount, numericality: { greater_than_or_equal_to: 0 }
@@ -13,10 +18,10 @@ class SickDay < ApplicationRecord
   end
 
   def pdfo_amount
-    (total_amount * PDFO_RATE).round
+    (total_amount * PDFO_RATE).round(half_up: true)
   end
 
   def military_amount
-    (total_amount * MILITARY_RATE).round
+    (total_amount * MILITARY_RATE).round(half_up: true)
   end
 end

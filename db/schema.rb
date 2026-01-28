@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_164528) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_28_155806) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -94,8 +94,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_164528) do
 
   create_table "sick_days", force: :cascade do |t|
     t.bigint "employee_id", null: false
-    t.integer "pfu_amount", default: 0, null: false
-    t.integer "enterprise_amount", default: 0, null: false
+    t.integer "pfu_amount_cents", default: 0, null: false
+    t.integer "enterprise_amount_cents", default: 0, null: false
     t.string "period", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

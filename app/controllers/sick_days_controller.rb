@@ -1,35 +1,49 @@
 class SickDaysController < ApplicationController
-  before_action :set_employee, only: [:index, :new, :create]
-
-  def index 
+  before_action :set_employee, only: %i[index new create edit update]
+  def index
     @sick_days = @employee.sick_days.order(period: :desc)
+
+    @sick_days_summaries = @employee.sick_days_summaries
   end
 
-  def new 
+  def new
     @sick_day = @employee.sick_days.build
   end
 
-  def create 
+  def create
     @sick_day = @employee.sick_days.build(sick_day_params)
 
-    if params[:sick_day][:period].present?
-      @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01")
-    end
+    @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01") if params[:sick_day][:period].present?
 
-    if @sick_day.save 
+    if @sick_day.save
       redirect_to new_employee_sick_day_path(@employee), notice: 'Лікарняний успішно додано. Ви можете додати ще один.'
-    else 
+    else
       render :new, status: :unprocessable_entity
     end
   end
 
-  private 
+  def edit
+    @sick_day = @employee.sick_days.find(params[:id])
+  end
 
-  def set_employee 
+  def update
+    @sick_day = @employee.sick_days.find(params[:id])
+    @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01") if params[:sick_day][:period].present?
+
+    if @sick_day.update(sick_day_params.except(:period))
+      redirect_to employee_sick_days_path(@employee), notice: 'Оновлено!', status: :see_other
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def set_employee
     @employee = Employee.find(params[:employee_id])
   end
 
-  def sick_day_params 
+  def sick_day_params
     params.require(:sick_day).permit(:period, :pfu_amount, :enterprise_amount)
   end
 end

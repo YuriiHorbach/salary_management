@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe SickDay, type: :model do
-
   let(:sick_day) { build(:sick_day) }
 
   describe 'validations' do
@@ -56,7 +57,7 @@ RSpec.describe SickDay, type: :model do
     end
 
     it 'defaults amounts to 0' do
-      sick_day = SickDay.new #not use build(:sick_day) cause it will create non empty factory object
+      sick_day = SickDay.new # not use build(:sick_day) cause it will create non empty factory object
 
       expect(sick_day.pfu_amount).to eq(0)
       expect(sick_day.enterprise_amount).to eq(0)

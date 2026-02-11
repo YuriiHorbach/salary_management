@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SickDay < ApplicationRecord
   PDFO_RATE = 0.18
   MILITARY_RATE = 0.05

@@ -149,7 +149,6 @@
       <tbody>
         <% if @sick_days_summaries.any? %>
           <% @sick_days_summaries.each do |period, data| %>
-          <%byebug%>
             <tr class="border-b">
               <td class="px-4 py-2"><%= period&.strftime("%Y-%m") %></td>
               <td class="px-4 py-2"><%= number_to_currency(data[:total]) %></td>

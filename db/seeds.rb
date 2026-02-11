@@ -14,8 +14,8 @@ Employee.destroy_all
 
 User.create!(email: 'admin@example.com', password: 'password')
 
-employee = Employee.find_or_create_by!(id_code: "1234567890") do |e|
-  e.first_name = "Ivan"
-  e.last_name = "Sirko"
-  e.patronic_name = "Ivanovych"
+Employee.find_or_create_by!(id_code: '1234567890') do |e|
+  e.first_name = 'Ivan'
+  e.last_name = 'Sirko'
+  e.patronic_name = 'Ivanovych'
 end

@@ -4,8 +4,8 @@ require 'rails_helper'
 
 RSpec.describe DepartmentEmployee, type: :model do
   describe 'validations' do
-		let(:employee) { create(:employee) }
-		let(:department) { create(:department) }
+    let(:employee) { create(:employee) }
+    let(:department) { create(:department) }
 
     it 'do not allow add the same employee to one department' do
       create(:department_employee, employee: employee, department: department)
@@ -18,7 +18,7 @@ RSpec.describe DepartmentEmployee, type: :model do
 
     it 'allows adding the same employee to a different department' do
       create(:department_employee, employee: employee, department: department)
-      
+
       other_department = create(:department)
       new_assignment = build(:department_employee, employee: employee, department: other_department)
 
@@ -27,7 +27,7 @@ RSpec.describe DepartmentEmployee, type: :model do
 
     it 'allows adding different employees to the same department' do
       create(:department_employee, employee: employee, department: department)
-      
+
       new_employee = create(:employee)
       new_assignment = build(:department_employee, employee: new_employee, department: department)
 

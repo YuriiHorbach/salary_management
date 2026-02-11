@@ -1,0 +1,11 @@
+<div id="summary_<%= period.strftime("%Y-%m") %>" class="grid grid-cols-5 bg-blue-50 dark:bg-blue-900/30 font-bold items-center py-3 border-t-2 border-blue-200">
+  <div class="px-4 text-blue-800 dark:text-blue-300 text-sm">
+    РАЗОМ ЗА <%= period&.strftime("%B %Y") %>:
+  </div>
+  <div class="px-4 text-right text-blue-800"><%= summary_amount_for(summaries, period, :pfu) %></div>
+  <div class="px-4 text-right text-blue-800"><%= summary_amount_for(summaries, period, :enterprise) %></div>
+  <div class="px-4 text-right text-blue-900 dark:text-blue-100 text-lg underline decoration-double">
+    <%= summary_amount_for(summaries, period, :total) %>
+  </div>
+  <div></div>
+</div>

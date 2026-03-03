@@ -1,0 +1,23 @@
+image: ruby:3.4.3
+
+services:
+  - postgres:16-alpine
+
+variables:
+  POSTGRES_DB: salary_management_test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: "postgresql://postgres:password@postgres:5432/salary_management_test"
+  RAILS_ENV: test
+
+stages:
+  - test
+
+test_job:
+  stage: test
+  script:
+    - bundle install
+    - bin/rails db:prepare
+    - bundle exec rails assets:precompile RAILS_ENV=test
+    - bundle exec rspec

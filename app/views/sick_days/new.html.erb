@@ -1,0 +1,11 @@
+<div class="m-5">
+  <nav class="mb-4">
+    <%= link_to "← Назад до працівника", employee_path(@employee), class: "text-blue-600 hover:underline text-sm" %>
+  </nav>
+
+  <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">
+    Новий лікарняний: <%= @employee.last_name %> <%= @employee.first_name %>
+  </h2>
+
+  <%= render 'form', employee: @employee, sick_day: @sick_day %>
+</div>

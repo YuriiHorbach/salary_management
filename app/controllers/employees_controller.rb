@@ -2,7 +2,6 @@
 
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
-  # before_action :employee, only: %i[edit update destroy]
   before_action :set_employee, only: %i[edit update destroy]
 
   def index
@@ -10,24 +9,17 @@ class EmployeesController < ApplicationController
     @employees = @q.result(distinct: true)
   end
 
-  def show # rubocop:disable Metrics/AbcSize
+  def show
     @employee = Employee.find_by(id: params[:id])
+    return redirect_to employees_path, alert: 'Співробітника не знайдено.' if @employee.nil?
+
     @q = @employee.salaries.ransack(params[:q])
     @departments = Department.all
     @employee_salaries = @q.result.includes(:department).group_by(&:department)
-    @monthly_totals = @q.result.group_by do |s|
-      s.paid_on.strftime('%Y-%m')
-    end.transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
-    if params[:month].present?
-      month_param = params[:month].rjust(2, '0')
-      @monthly_totals.select! { |m, _| m.split('-').last == month_param }
-    end
-    @monthly_totals.select! { |m, _| m.split('-').first == params[:year] } if params[:year].present?
-    return unless @employee.nil?
+    prepare_monthly_totals
 
-    flash[:alert] = 'Співробітника не знайдено.'
-    redirect_to employees_path
+    @sick_days_summaries = @employee.sick_days_summaries
   end
 
   def new
@@ -85,5 +77,17 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count)
+  end
+
+  def prepare_monthly_totals
+    @monthly_totals = @q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
+                               .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+
+    if params[:month].present?
+      month_param = params[:month].rjust(2, '0')
+      @monthly_totals.select! { |m, _| m.split('-').last == month_param }
+    end
+
+    @monthly_totals.select! { |m, _| m.split('-').first == params[:year] } if params[:year].present?
   end
 end

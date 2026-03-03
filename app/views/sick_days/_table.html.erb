@@ -1,0 +1,44 @@
+<div class="shadow-md rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+  <div class="grid grid-cols-5 bg-gray-100 dark:bg-gray-800 font-bold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700">
+    <div class="px-4 py-3">Період</div>
+    <div class="px-4 py-3 text-right">ФСС (ПФУ)</div>
+    <div class="px-4 py-3 text-right">Підприємство</div>
+    <div class="px-4 py-3 text-right">Разом</div>
+    <div class="px-4 py-3 text-center">Дії</div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+    <% @sick_days.group_by(&:period).each do |period, days| %>
+      <% days.each do |sd| %>
+        <%# Контейнер для Turbo Frame %>
+        <%= turbo_frame_tag dom_id(sd) do %>
+          <div class="grid grid-cols-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors py-2">
+            <div class="px-4 text-sm text-gray-500"><%= sd.period&.strftime("%B %Y") %></div>
+            <div class="px-4 text-right"><%= number_to_currency(sd.pfu_amount) %></div>
+            <div class="px-4 text-right"><%= number_to_currency(sd.enterprise_amount) %></div>
+            <div class="px-4 text-right font-medium"><%= number_to_currency(sd.total_amount) %></div>
+            <div class="px-4 text-center">
+              <%= link_to "✏️", edit_employee_sick_day_path(@employee, sd),
+                  class: "hover:scale-110 transition-transform p-1" %>
+              <%= button_to "❌", employee_sick_day_path(@employee, sd),
+                  method: :delete,
+                  form_class: "inline",
+                  data: { turbo_confirm: "Are you sure?" } %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+
+      <div id="summary_<%= period.strftime("%Y-%m") %>" class="grid grid-cols-5 bg-blue-50 dark:bg-blue-900/30 font-bold items-center py-3 border-t-2 border-blue-200">
+        <div class="px-4 text-blue-800 dark:text-blue-300 text-sm">
+          РАЗОМ ЗА <%= period&.strftime("%B %Y") %>:
+        </div>
+        <div class="px-4 text-right text-blue-800"><%= summary_amount_for(@sick_days_summaries, period, :pfu) %></div>
+        <div class="px-4 text-right text-blue-800"><%= summary_amount_for(@sick_days_summaries, period, :enterprise) %></div>
+        <div class="px-4 text-right text-blue-900 dark:text-blue-100 text-lg underline decoration-double">
+          <%= summary_amount_for(@sick_days_summaries, period, :total) %>
+        </div>
+        <div></div> </div>
+    <% end %>
+  </div>
+</div>

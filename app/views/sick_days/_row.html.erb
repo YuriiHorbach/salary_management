@@ -1,0 +1,11 @@
+<%= turbo_frame_tag dom_id(sd) do %>
+  <div class="grid grid-cols-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors py-2">
+    <div class="px-4 text-sm text-gray-500"><%= sd.period&.strftime("%B %Y") %></div>
+    <div class="px-4 text-right"><%= number_to_currency(sd.pfu_amount) %></div>
+    <div class="px-4 text-right"><%= number_to_currency(sd.enterprise_amount) %></div>
+    <div class="px-4 text-right font-medium"><%= number_to_currency(sd.total_amount) %></div>
+    <div class="px-4 text-center">
+      <%= link_to "✏️", edit_employee_sick_day_path(@employee, sd), class: "hover:scale-110 inline-block p-1" %>
+    </div>
+  </div>
+<% end %>

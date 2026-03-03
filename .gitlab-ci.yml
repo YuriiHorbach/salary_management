@@ -19,4 +19,4 @@ test_job:
   script:
     - bundle install
     - bin/rails db:prepare
-    - bin/rails test
+    - bundle exec rspec

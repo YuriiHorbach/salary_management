@@ -101,11 +101,12 @@
   <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border mb-8">
     <thead class="bg-gray-200 dark:bg-gray-700">
       <tr>
+        <% direction = @permitted_params[:direction] == 'asc' ? 'desc' : 'asc' %>
         <th class="px-2 py-1">
-          <%= link_to 'Місяць', employee_path(@employee, params.permit(:year, :month).merge(sort: 'month', direction: params[:direction] == 'asc' ? 'desc' : 'asc')), class: 'underline' %>
+          <%= link_to 'Місяць', employee_path(@employee, @permitted_params.slice(:year, :month).merge(sort: 'month', direction: direction)), class: 'underline' %>
         </th>
         <th class="px-2 py-1">
-          <%= link_to 'Сума', employee_path(@employee, params.permit(:year, :month).merge(sort: 'total', direction: params[:direction] == 'asc' ? 'desc' : 'asc')), class: 'underline' %>
+          <%= link_to 'Сума', employee_path(@employee, @permitted_params.slice(:year, :month).merge(sort: 'total', direction: direction)), class: 'underline' %>
         </th>
       </tr>
     </thead>

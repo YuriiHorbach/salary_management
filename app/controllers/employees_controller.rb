@@ -13,6 +13,8 @@ class EmployeesController < ApplicationController
     @employee = Employee.find_by(id: params[:id])
     return redirect_to employees_path, alert: 'Співробітника не знайдено.' if @employee.nil?
 
+    @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
+
     @q = @employee.salaries.ransack(params[:q])
     @departments = Department.all
     @employee_salaries = @q.result.includes(:department).group_by(&:department)

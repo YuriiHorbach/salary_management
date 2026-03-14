@@ -1,0 +1,5 @@
+<% @vacations.each do |vacation| %>
+  <div class="">
+    <%= vacation.employee&.full_name %> - <%= vacation.vacation_amount.format %>
+  </div>
+<% end %>

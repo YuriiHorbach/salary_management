@@ -177,3 +177,47 @@
                 class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
   </div>
 </div>
+
+<div class="m-5">
+  <h2 class="mt-8 mb-2 text-lg font-bold text-gray-800">🏖️ Відпускні</h2>
+
+  <div class="overflow-x-auto border rounded-lg shadow-sm">
+    <table class="min-w-full text-left text-sm font-light text-surface dark:text-white">
+      <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
+        <tr>
+          <th class="px-4 py-2">📅 Період</th>
+          <th class="px-4 py-2 font-bold">💰 Разом</th>
+          <th class="px-4 py-2 text-red-600">📉 ПДФО (18%)</th>
+          <th class="px-4 py-2 text-red-600">🛡️ ВЗ (5%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @sick_days_summaries.any? %>
+          <% @sick_days_summaries.each do |period, data| %>
+            <tr class="border-b">
+              <td class="px-4 py-2"><%= period&.strftime("%Y-%m") %></td>
+              <td class="px-4 py-2"><%= number_to_currency(data[:total]) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(data[:pdfo]) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(data[:military]) %></td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">
+              Лікарняних для цього співробітника поки немає.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4">
+    <%= link_to 'Переглянути всі лікарняні', employee_sick_days_path(@employee),
+                class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+  </div>
+  <div class="mt-4">
+    <%= link_to '➕ Додати лікарняний', new_employee_sick_day_path(@employee),
+                class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+  </div>
+</div>

@@ -1,5 +1,11 @@
 <% @vacations.each do |vacation| %>
   <div class="">
-    <%= vacation.employee&.full_name %> - <%= vacation.vacation_amount.format %>
+    <%= vacation.employee&.full_name %>
+  </div>
+  <div class="">
+    <%= vacation.period.strftime('%B')  %>
+  </div>
+  <div class="">
+    <%= vacation.vacation_amount.format %>
   </div>
 <% end %>

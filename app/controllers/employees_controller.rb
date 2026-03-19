@@ -21,7 +21,10 @@ class EmployeesController < ApplicationController
 
     prepare_monthly_totals
 
-    @sick_days_summaries = @employee.sick_days_summaries
+    # @sick_days_summaries = @employee.sick_days_summaries
+    @sick_days_summaries = @employee.addition_income_summaries(sick_days)
+    # @vacations_summaries = @employee.sick_days_summaries
+    @vacations_summaries = @employee.addition_income_summaries(vacations)
   end
 
   def new
@@ -83,7 +86,7 @@ class EmployeesController < ApplicationController
 
   def prepare_monthly_totals
     @monthly_totals = @q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
-                               .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+                        .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

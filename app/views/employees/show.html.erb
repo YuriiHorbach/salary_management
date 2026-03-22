@@ -24,6 +24,7 @@
   <% input_classes = "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" %>
 
   <div>
+    <%# Changed to search_field for amount_cents_eq to correctly target salaries %>
     <%= f.label :amount_cents_eq, 'Сума', class: "block text-sm font-medium mb-1" %>
     <%= f.search_field :amount_cents_eq, class: input_classes %>
   </div>

@@ -1,49 +1,11 @@
-<%= form_with(model: [@employee, vacation],
-    data: { turbo_frame: dom_id(sick_day) },
-    class: "grid grid-cols-5 items-center bg-yellow-50 dark:bg-yellow-900/20 py-2 border-b-2 border-yellow-200") do |f| %>
+<div class="m-5">
+  <nav class="mb-4">
+    <%= link_to "← Назад до працівника", employee_path(@employee), class: "text-blue-600 hover:underline text-sm" %>
+  </nav>
 
-  <% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white" %>
+  <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">
+    Нова відпустка: <%= @employee.last_name %> <%= @employee.first_name %>
+  </h2>
 
-  <div class="px-4">
-    <p>Select month</p>
-    <%= f.month_field :period,
-        class: input_classes,
-        value: f.object.period&.strftime("%Y-%m") %>
-  </div>
-
-  <div class="px-4">
-    <p>PFU</p>
-    <% if f.object.pfu_amount.to_f > 0 || f.object.new_record? %>
-      <%= f.number_field :pfu_amount, step: 0.01, class: "#{input_classes} text-right" %>
-    <% else %>
-      <%= f.hidden_field :pfu_amount %>
-      <span class="text-gray-400 text-sm">0.00</span>
-    <% end %>
-  </div>
-
-  <div class="px-4">
-    <p>Enterprise</p>
-    <% if f.object.enterprise_amount.to_f > 0 || f.object.new_record? %>
-      <%= f.number_field :enterprise_amount, step: 0.01, class: "#{input_classes} text-right" %>
-    <% else %>
-      <%= f.hidden_field :enterprise_amount %>
-      <span class="text-gray-400 text-sm">0.00</span>
-    <% end %>
-  </div>
-
-  <div class="px-4 text-right font-medium text-gray-400">
-    —
-  </div>
-
-  <div class="px-4 text-center flex items-center justify-center gap-4">
-    <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: "Зберегти" do %>
-      ✅
-    <% end %>
-
-    <%= link_to employee_sick_days_path(@employee),
-        class: "hover:scale-125 transition text-lg",
-        title: "Скасувати" do %>
-      ❌
-    <% end %>
-  </div>
-<% end %>
+  <%= render 'form', employee: @employee, vacation: @vacation %>
+</div>

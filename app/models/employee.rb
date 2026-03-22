@@ -6,7 +6,7 @@ class Employee < ApplicationRecord
   has_many :positions, through: :department_employees
   has_many :salaries, dependent: :destroy
   has_many :sick_days, class_name: 'SickDay', dependent: :destroy
-  has_many :vacations, dependent: :destroy
+  has_many :vacations, dependent: :destroy # Added association for vacations
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true
@@ -21,7 +21,7 @@ class Employee < ApplicationRecord
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[department_employees departments positions salaries]
+    %w[department_employees departments positions salaries sick_days vacations] # Added vacations
   end
 
   def total_salary

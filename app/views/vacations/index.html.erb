@@ -1,11 +1,19 @@
-<% @vacations.each do |vacation| %>
-  <div class="">
-    <%= vacation.employee&.full_name %>
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-6">
+    Відпускні для <%= @employee.last_name %> <%= @employee.first_name %>
+  </h1>
+
+  <div class="mb-8">
+    <%= link_to "Додати нову відпустку", new_employee_vacation_path(@employee),
+        class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+
+    <%= link_to "Назад до профілю", employee_path(@employee),
+        class: "ml-4 text-gray-600 hover:text-gray-900 underline" %>
   </div>
-  <div class="">
-    <%= vacation.period.strftime('%B')  %>
-  </div>
-  <div class="">
-    <%= vacation.vacation_amount.format %>
-  </div>
-<% end %>
+
+  <% if @vacations.any? %>
+    <%= render 'table' %>
+  <% else %>
+    <p class="text-gray-500 italic">Записів про відпускні поки що немає.</p>
+  <% end %>
+</div>

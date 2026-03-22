@@ -7,7 +7,11 @@ class VacationsController < ApplicationController
   before_action :set_vacation, only: %i[edit update destroy]
 
   def index
-    @vacations = @employee.vacations.order(period: :desc)
+    @q = @employee.vacations.ransack(params[:q])
+
+    @vacations = @q.result(distinct: true).order(period: :desc)
+
+    @total_vacation_amount = @vacations.sum(:vacation_amount_cents)
   end
 
   def new
@@ -18,13 +22,9 @@ class VacationsController < ApplicationController
     @vacation = @employee.vacations.build(vacation_params)
 
     if @vacation.save
-      # Calculate and store taxes for the vacation
       tax_calculation_result = TaxCalculator.call(
         amount_cents: @vacation.vacation_amount_cents,
-        children_count: @employee.children_count,
-        chaes: @employee.chaes,
-        disability_group: @employee.disability_group,
-        contract: @employee.contract
+        simple: true
       )
       @vacation.update(
         income_tax_cents: tax_calculation_result[:income_tax_cents],

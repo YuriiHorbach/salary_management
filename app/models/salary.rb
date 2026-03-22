@@ -29,7 +29,6 @@ class Salary < ApplicationRecord
   }
 
   def self.ransackable_attributes(*)
-    # This file already correctly defines amount_cents and other relevant attributes.
     %w[amount_cents created_at department_id employee_id id paid_on updated_at]
   end
 

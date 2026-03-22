@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_03_224252) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_22_094719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -120,6 +120,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_224252) do
     t.date "period", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "income_tax_cents"
+    t.integer "military_tax_cents"
+    t.integer "net_amount_cents"
     t.index ["employee_id"], name: "index_vacations_on_employee_id"
   end
 

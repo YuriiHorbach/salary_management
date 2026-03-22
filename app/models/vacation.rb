@@ -11,6 +11,14 @@ class Vacation < ApplicationRecord
   validates :period, presence: true
   validates :vacation_amount, numericality: { greater_than_or_equal_to: 0 }
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[period vacation_amount_cents income_tax_cents military_tax_cents net_amount_cents created_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ['employee']
+  end
+
   def pdfo_amount
     (vacation_amount * PDFO_RATE).round(half_up: true)
   end

@@ -8,4 +8,6 @@
   </h2>
 
   <%= render 'form', employee: @employee, vacation: @vacation %>
+
+  <%= link_to "Видалити", employee_vacation_path(@employee, @vacation), data: { turbo_method: :delete, turbo_confirm: "Ви впевнені?" }, class: "text-red-600 hover:text-red-900 ml-4" %>
 </div>

@@ -15,16 +15,20 @@ class EmployeesController < ApplicationController
 
     @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
 
-    @q = @employee.salaries.ransack(params[:q])
+    @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
+
+    @salary_q = @employee.salaries.ransack(params[:salary_q], search_key: :salary_q) # використовуй :salary_q з params
+    @employee_salaries = @salary_q.result.includes(:department).group_by(&:department)
+
     @departments = Department.all
-    @employee_salaries = @q.result.includes(:department).group_by(&:department)
 
-    prepare_monthly_totals
+    prepare_monthly_totals(@salary_q)
 
-    # @sick_days_summaries = @employee.sick_days_summaries
-    @sick_days_summaries = @employee.addition_income_summaries(sick_days)
-    # @vacations_summaries = @employee.sick_days_summaries
-    @vacations_summaries = @employee.addition_income_summaries(vacations)
+    @vacation_q = @employee.vacations.ransack(params[:vacation_q], search_key: :vacation_q)
+    @vacations = @vacation_q.result.order(period: :desc)
+
+    @sick_days_summaries = @employee.addition_income_summaries(@employee.sick_days)
+    @vacations_summaries = @employee.addition_income_summaries(@employee.vacations)
   end
 
   def new
@@ -84,9 +88,9 @@ class EmployeesController < ApplicationController
                                      :children_count)
   end
 
-  def prepare_monthly_totals
-    @monthly_totals = @q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
-                        .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+  def prepare_monthly_totals(q)
+    @monthly_totals = q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
+                       .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

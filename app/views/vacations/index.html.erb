@@ -12,7 +12,7 @@
   </div>
 
   <% if @vacations.any? %>
-    <%= render 'table' %>
+    <%= render 'table', vacation: @vacation %>
   <% else %>
     <p class="text-gray-500 italic">Записів про відпускні поки що немає.</p>
   <% end %>

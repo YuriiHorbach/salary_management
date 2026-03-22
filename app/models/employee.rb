@@ -17,24 +17,45 @@ class Employee < ApplicationRecord
 
   def self.ransackable_attributes(_auth_object = nil)
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes contract territory_info]
+       chaes contract territory_info amount_cents]
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[department_employees departments positions salaries sick_days vacations] # Added vacations
+    %w[department_employees departments positions salaries sick_days vacations]
   end
 
   def total_salary
     salaries.sum(:amount_cents) / 100.0
   end
 
+  # def addition_income_summaries(income)
+  #   income.group_by(&:period).transform_values do |days|
+  #     if :total_amount
+  #       {
+  #         total: days.map(&:total_amount).sum,
+  #         pdfo: days.map(&:pdfo_amount).sum,
+  #         military: days.map(&:military_amount).sum
+  #       }
+  #     else
+  #       {
+  #         pdfo: days.map(&:pdfo_amount).sum,
+  #         military: days.map(&:military_amount).sum
+  #       }
+  #     end
+  #   end
+  # end
   def addition_income_summaries(income)
     income.group_by(&:period).transform_values do |days|
-      {
-        total: days.map(&:total_amount).sum,
+      first_item = days.first
+
+      summary = {
         pdfo: days.map(&:pdfo_amount).sum,
         military: days.map(&:military_amount).sum
       }
+
+      summary[:total] = days.map(&:total_amount).sum if first_item.respond_to?(:total_amount)
+
+      summary
     end
   end
 

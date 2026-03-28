@@ -12,9 +12,9 @@ RSpec.describe 'Vacations', type: :request do
     let(:valid_attributes) { { period: '2023-01-01', vacation_amount: '100.00' } }
 
     it 'creates a new vacation' do
-      expect {
+      expect do
         post employee_vacations_path(employee), params: { vacation: valid_attributes }
-      }.to change(Vacation, :count).by(1)
+      end.to change(Vacation, :count).by(1)
     end
   end
 

@@ -41,7 +41,7 @@ class VacationsController < ApplicationController
     @vacation.destroy
 
     redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно видалено.',
-                                                  turb_stream: turbo_stream.remove(@vacation)
+                                                    turb_stream: turbo_stream.remove(@vacation)
   end
 
   private

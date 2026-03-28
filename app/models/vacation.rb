@@ -19,7 +19,7 @@ class Vacation < ApplicationRecord
     Money.new(military_tax_cents || 0, vacation_amount.currency)
   end
 
-  def self.ransackable_attributes(auth_object = nil)
+  def self.ransackable_attributes(_auth_object = nil)
     %w[period vacation_amount_cents income_tax_cents military_tax_cents net_amount_cents]
   end
 

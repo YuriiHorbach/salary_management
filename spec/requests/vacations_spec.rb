@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Vacations", type: :request do
   let(:employee) { create(:employee) }
-  let(:vacation) { create(:vacation, employee: employee) }
+  let(:vacation) { create(:vacation, employee: employee, period: '2023-01-01') } # Added period
   let(:user) { create(:user) } # Assuming you have a User model and factory
 
   before do
@@ -24,7 +24,7 @@ RSpec.describe "Vacations", type: :request do
   end
 
   describe "POST /employees/:employee_id/vacations" do
-    let(:valid_attributes) { attributes_for(:vacation, employee: nil) } # employee: nil because it's set by the route
+    let(:valid_attributes) { attributes_for(:vacation, employee: nil, period: '2023-01-01') } # Added period
 
     context "with valid attributes" do
       before do
@@ -44,7 +44,7 @@ RSpec.describe "Vacations", type: :request do
     end
 
     context "with invalid attributes" do
-      let(:invalid_attributes) { attributes_for(:vacation, vacation_amount_cents: -100, employee: nil) }
+      let(:invalid_attributes) { attributes_for(:vacation, vacation_amount_cents: -100, employee: nil, period: '2023-01-01') } # Added period
 
       it "does not create a new vacation" do
         expect do

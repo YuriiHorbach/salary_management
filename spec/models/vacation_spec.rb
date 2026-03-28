@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Vacation, type: :model do
   let(:employee) { create(:employee) }
-  let(:vacation) { create(:vacation, employee: employee) }
+  let(:vacation) { create(:vacation, employee: employee, period: '2023-01-01') } # Added period
 
   describe '#pdfo_amount' do
     it 'calculates the correct PDFO amount' do

@@ -26,7 +26,6 @@ class Vacation < ApplicationRecord
   private
 
   def calculate_and_assign_taxes
-    puts "DEBUG: Сума в центах перед розрахунком: #{vacation_amount_cents}"
     return if vacation_amount_cents.blank? || vacation_amount_cents.to_i.zero?
 
     result = TaxCalculator.call(amount_cents: vacation_amount_cents.to_i, simple: true)

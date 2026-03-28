@@ -22,40 +22,15 @@ class VacationsController < ApplicationController
     @vacation = @employee.vacations.build(vacation_params)
 
     if @vacation.save
-      tax_calculation_result = TaxCalculator.call(
-        amount_cents: @vacation.vacation_amount_cents,
-        simple: true
-      )
-      @vacation.update(
-        income_tax_cents: tax_calculation_result[:income_tax_cents],
-        military_tax_cents: tax_calculation_result[:military_tax_cents],
-        net_amount_cents: tax_calculation_result[:net_amount_cents]
-      )
-
       redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно додано.'
     else
+      puts @vacation.errors.full_messages
       render :new, status: :unprocessable_entity
     end
   end
 
-  def edit; end
-
   def update
     if @vacation.update(vacation_params)
-      # Recalculate taxes if the vacation details change
-      tax_calculation_result = TaxCalculator.call(
-        amount_cents: @vacation.vacation_amount_cents,
-        children_count: @employee.children_count,
-        chaes: @employee.chaes,
-        disability_group: @employee.disability_group,
-        contract: @employee.contract
-      )
-      @vacation.update(
-        income_tax_cents: tax_calculation_result[:income_tax_cents],
-        military_tax_cents: tax_calculation_result[:military_tax_cents],
-        net_amount_cents: tax_calculation_result[:net_amount_cents]
-      )
-
       redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно оновлено.'
     else
       render :edit, status: :unprocessable_entity
@@ -80,6 +55,7 @@ class VacationsController < ApplicationController
   end
 
   def vacation_params
-    params.require(:vacation).permit(:period, :vacation_amount_cents)
+    # params.require(:vacation).permit(:period, :vacation_amount_cents)
+    params.require(:vacation).permit(:period, :vacation_amount)
   end
 end

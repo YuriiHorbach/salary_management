@@ -1,35 +1,42 @@
 class Vacation < ApplicationRecord
-  PDFO_RATE = 0.18
-  MILITARY_RATE = 0.05
-
   belongs_to :employee
 
-  attribute :period, :date
+  before_validation :calculate_and_assign_taxes, if: :vacation_amount_changed?
 
   monetize :vacation_amount_cents
+  monetize :income_tax_cents
+  monetize :military_tax_cents
+  monetize :net_amount_cents
 
-  validates :period, presence: true
+  validates :period, :vacation_amount, presence: true
   validates :vacation_amount, numericality: { greater_than_or_equal_to: 0 }
 
-  def self.ransackable_attributes(auth_object = nil)
-    %w[period vacation_amount_cents income_tax_cents military_tax_cents net_amount_cents created_at]
-  end
-
-  def self.ransackable_associations(auth_object = nil)
-    ['employee']
-  end
-
   def pdfo_amount
-    (vacation_amount * PDFO_RATE).round(half_up: true)
+    Money.new(income_tax_cents || 0, vacation_amount.currency)
   end
 
   def military_amount
-    (vacation_amount * MILITARY_RATE).round(half_up: true)
+    Money.new(military_tax_cents || 0, vacation_amount.currency)
   end
 
-  # Returns the total vacation amount as a Money object.
-  # This method is used in tests to verify the stored amount.
-  def total_amount
-    vacation_amount
+  def self.ransackable_attributes(auth_object = nil)
+    %w[period vacation_amount_cents income_tax_cents military_tax_cents net_amount_cents]
+  end
+
+  private
+
+  def calculate_and_assign_taxes
+    puts "DEBUG: Сума в центах перед розрахунком: #{vacation_amount_cents}"
+    return if vacation_amount_cents.blank? || vacation_amount_cents.to_i.zero?
+
+    result = TaxCalculator.call(amount_cents: vacation_amount_cents.to_i, simple: true)
+
+    self.income_tax_cents = result[:income_tax_cents].to_i
+    self.military_tax_cents = result[:military_tax_cents].to_i
+    self.net_amount_cents = result[:net_amount_cents].to_i
+  end
+
+  def vacation_amount_changed?
+    will_save_change_to_vacation_amount_cents?
   end
 end

@@ -60,7 +60,7 @@
                 <%= vacation.period.strftime("%d.%m.%Y") %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                <%= number_to_currency(vacation.vacation_amount_cents, unit: "₴") %>
+                <%= number_to_currency(vacation.vacation_amount, unit: "₴") %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <%= link_to "Edit", edit_employee_vacation_path(@employee, vacation), class: "text-indigo-600 hover:text-indigo-900" %>
@@ -73,7 +73,7 @@
 
     <% if @total_vacation_amount.present? %>
       <div class="mt-6 p-4 border rounded-lg shadow-sm bg-gray-100 text-lg font-semibold">
-        Загальна сума відпускних: <%= number_to_currency(@total_vacation_amount, unit: "₴") %>
+        Загальна сума відпускних: <%= number_to_currency(Money.new(@total_vacation_amount, 'UAH'), unit: "₴") %>
       </div>
     <% end %>
 

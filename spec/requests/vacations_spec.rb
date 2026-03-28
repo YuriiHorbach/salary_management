@@ -2,8 +2,6 @@ require 'rails_helper'
 
 RSpec.describe "Vacations", type: :request do
   let(:employee) { create(:employee) }
-  # Ensure vacation is created with a valid period and amount that can be converted to Money
-  let(:vacation) { create(:vacation, employee: employee, period: '2023-01-01', vacation_amount_cents: 10000) } # Added period and amount
   let(:user) { create(:user) } # Assuming you have a User model and factory
 
   before do
@@ -25,12 +23,10 @@ RSpec.describe "Vacations", type: :request do
   end
 
   describe "POST /employees/:employee_id/vacations" do
-    # Ensure valid_attributes includes period and potentially amount if it's set here
-    let(:valid_attributes) { attributes_for(:vacation, employee: nil, period: '2023-01-01', vacation_amount_cents: 10000) } # Added period and amount
+    let(:valid_attributes) { attributes_for(:vacation, employee: nil, period: '2023-01-01', vacation_amount_cents: 10000) }
 
     context "with valid attributes" do
       before do
-        # Mocking TaxCalculator to return cents, assuming it works with cents
         allow(TaxCalculator).to receive(:call).and_return({ income_tax_cents: 1800, military_tax_cents: 500, net_amount_cents: 7700 })
       end
 
@@ -47,8 +43,7 @@ RSpec.describe "Vacations", type: :request do
     end
 
     context "with invalid attributes" do
-      # Ensure invalid_attributes includes period
-      let(:invalid_attributes) { attributes_for(:vacation, vacation_amount_cents: -100, employee: nil, period: '2023-01-01') } # Added period
+      let(:invalid_attributes) { attributes_for(:vacation, vacation_amount_cents: -100, employee: nil, period: '2023-01-01') }
 
       it "does not create a new vacation" do
         expect do
@@ -64,6 +59,7 @@ RSpec.describe "Vacations", type: :request do
   end
 
   describe "GET /employees/:employee_id/vacations/:id/edit" do
+    let(:vacation) { create(:vacation, employee: employee, period: '2023-01-01', vacation_amount_cents: 10000) }
     it "returns a successful response" do
       get edit_employee_vacation_path(employee, vacation)
       expect(response).to have_http_status(:ok)
@@ -71,7 +67,7 @@ RSpec.describe "Vacations", type: :request do
   end
 
   describe "PATCH /employees/:employee_id/vacations/:id" do
-    # Ensure valid_attributes are appropriate for Money objects if they were being set here
+    let(:vacation) { create(:vacation, employee: employee, period: '2023-01-01', vacation_amount_cents: 10000) }
     let(:valid_attributes) { { vacation_amount_cents: 15000 } } # 150.00
     let(:invalid_attributes) { { vacation_amount_cents: -50 } }
 
@@ -107,8 +103,10 @@ RSpec.describe "Vacations", type: :request do
   end
 
   describe "DELETE /employees/:employee_id/vacations/:id" do
+    # Create the vacation within the before block for this specific test context
+    let!(:vacation) { create(:vacation, employee: employee, period: '2023-01-01', vacation_amount_cents: 10000) }
+
     it "destroys the vacation" do
-      # The vacation object is created in the 'let' definition, so it exists.
       expect do
         delete employee_vacation_path(employee, vacation)
       end.to change(Vacation, :count).by(-1)

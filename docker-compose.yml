@@ -4,8 +4,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: salary_management_development
     ports:
       - "5433:5432"
 
@@ -17,7 +17,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/salary_management_development
+      - DB_HOST=db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - RAILS_MAX_THREADS=5
     depends_on:
       - db
 

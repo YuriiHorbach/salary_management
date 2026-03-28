@@ -35,16 +35,7 @@ RSpec.configure do |config|
     ActionController::Base.allow_forgery_protection = false
   end
 
-  config.use_transactional_fixtures = false
-
-  config.before(:suite) do
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation)
-  end
-
-  config.around(:each) do |example|
-    DatabaseCleaner.cleaning { example.run }
-  end
+  config.use_transactional_fixtures = true
 
   config.filter_rails_from_backtrace!
 

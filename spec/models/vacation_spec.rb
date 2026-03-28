@@ -17,4 +17,11 @@ RSpec.describe Vacation, type: :model do
       expect(vacation.military_amount).to eq(500) # 5.00
     end
   end
+
+  describe '#total_amount' do
+    it 'calculates the correct total amount' do
+      vacation.vacation_amount_cents = 10000 # 100.00
+      expect(vacation.total_amount).to eq(10000) # 100.00
+    end
+  end
 end

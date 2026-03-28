@@ -36,6 +36,11 @@ RSpec.describe "Vacations", type: :request do
           post employee_vacations_path(employee), params: { vacation: valid_attributes }
         end.to change(Vacation, :count).by(1)
       end
+
+      it "redirects to the employee's vacations list" do
+        post employee_vacations_path(employee), params: { vacation: valid_attributes }
+        expect(response).to redirect_to(employee_vacations_path(employee))
+      end
     end
 
     context "with invalid attributes" do
@@ -75,6 +80,11 @@ RSpec.describe "Vacations", type: :request do
         vacation.reload
         expect(vacation.vacation_amount_cents).to eq(15000)
       end
+
+      it "redirects to the employee's vacations list" do
+        patch employee_vacation_path(employee, vacation), params: { vacation: valid_attributes }
+        expect(response).to redirect_to(employee_vacations_path(employee))
+      end
     end
 
     context "with invalid attributes" do
@@ -82,6 +92,11 @@ RSpec.describe "Vacations", type: :request do
         patch employee_vacation_path(employee, vacation), params: { vacation: invalid_attributes }
         vacation.reload
         expect(vacation.vacation_amount_cents).not_to eq(-50)
+      end
+
+      it "renders the edit vacation form with an error message" do
+        patch employee_vacation_path(employee, vacation), params: { vacation: invalid_attributes }
+        expect(response).to render_template(:edit)
       end
     end
   end
@@ -91,6 +106,11 @@ RSpec.describe "Vacations", type: :request do
       expect do
         delete employee_vacation_path(employee, vacation)
       end.to change(Vacation, :count).by(-1)
+    end
+
+    it "redirects to the employee's vacations list" do
+      delete employee_vacation_path(employee, vacation)
+      expect(response).to redirect_to(employee_vacations_path(employee))
     end
   end
 end

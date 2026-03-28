@@ -26,4 +26,10 @@ class Vacation < ApplicationRecord
   def military_amount
     (vacation_amount * MILITARY_RATE).round(half_up: true)
   end
+
+  # Returns the total vacation amount as a Money object.
+  # This method is used in tests to verify the stored amount.
+  def total_amount
+    vacation_amount
+  end
 end

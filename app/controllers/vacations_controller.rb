@@ -11,7 +11,7 @@ class VacationsController < ApplicationController
 
     @vacations = @q.result(distinct: true).order(period: :desc)
 
-    @total_vacation_amount = @vacations.sum(:vacation_amount_cents)
+    @total_vacation_amount = @q.result.distinct(false).unscope(:order).sum(:vacation_amount_cents)
   end
 
   def new

@@ -8,6 +8,18 @@ RSpec.describe 'Vacations', type: :request do
 
   before { sign_in user }
 
+  describe 'GET /employees/:employee_id/vacations' do
+    it 'calculate vacations with the same sums' do
+      create(:vacation, employee: employee, vacation_amount: 5000, period: '2026-02-01')
+      create(:vacation, employee: employee, vacation_amount: 5000, period: '2026-02-02')
+
+      get employee_vacations_path(employee)
+
+      expect(response.body).to include('10,000')
+      expect(response.body).not_to include('Загальна сума відпускних: ₴5,000')
+    end
+  end
+
   describe 'POST /employees/:employee_id/vacations' do
     let(:valid_attributes) { { period: '2023-01-01', vacation_amount: '100.00' } }
 

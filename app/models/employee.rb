@@ -6,6 +6,7 @@ class Employee < ApplicationRecord
   has_many :positions, through: :department_employees
   has_many :salaries, dependent: :destroy
   has_many :sick_days, class_name: 'SickDay', dependent: :destroy
+  has_many :vacations, dependent: :destroy # Added association for vacations
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true
@@ -15,26 +16,37 @@ class Employee < ApplicationRecord
   after_save :recalculate_taxes_if_needed
 
   def self.ransackable_attributes(_auth_object = nil)
+    # Ensure amount_cents is listed here to allow searching through associations
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes contract territory_info]
+       chaes contract territory_info amount_cents]
   end
 
   def self.ransackable_associations(_auth_object = nil)
-    %w[department_employees departments positions salaries]
+    # Ensure salaries association is listed for Ransack to traverse
+    %w[department_employees departments positions salaries sick_days vacations]
   end
 
   def total_salary
     salaries.sum(:amount_cents) / 100.0
   end
 
-  def sick_days_summaries
-    sick_days.group_by(&:period).transform_values do |days|
-      {
-        total: days.map(&:total_amount).sum,
+  def addition_income_summaries(income)
+    income.group_by(&:period).transform_values do |days|
+      first_item = days.first
+
+      summary = {
         pdfo: days.map(&:pdfo_amount).sum,
         military: days.map(&:military_amount).sum
       }
+
+      summary[:total] = days.map(&:total_amount).sum if first_item.respond_to?(:total_amount)
+
+      summary
     end
+  end
+
+  def full_name
+    "#{first_name} #{last_name}"
   end
 
   private

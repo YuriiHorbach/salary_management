@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_28_155806) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_22_094719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -114,6 +114,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_155806) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "vacations", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.integer "vacation_amount_cents", default: 0, null: false
+    t.date "period", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "income_tax_cents"
+    t.integer "military_tax_cents"
+    t.integer "net_amount_cents"
+    t.index ["employee_id"], name: "index_vacations_on_employee_id"
+  end
+
   add_foreign_key "account_books", "employees"
   add_foreign_key "bookmarks", "folders"
   add_foreign_key "department_employees", "departments", on_delete: :cascade
@@ -123,4 +135,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_28_155806) do
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"
   add_foreign_key "sick_days", "employees"
+  add_foreign_key "vacations", "employees"
 end

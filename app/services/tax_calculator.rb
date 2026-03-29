@@ -15,12 +15,13 @@ class TaxCalculator
 
   def initialize(amount_cents:, children_count: 0, chaes: false, disability_group: 0, contract: false,
                  psp_uah: PSP_UAH, psp_invalidity_uah: nil, gran_dohid_uah: GRAN_DOHID_UAH,
-                 income_rate: INCOME_TAX_RATE, military_rate: MILITARY_TAX_RATE)
+                 income_rate: INCOME_TAX_RATE, military_rate: MILITARY_TAX_RATE, simple: false)
     @amount_cents = amount_cents.to_i
     @children_count = children_count.to_i
     @chaes = !chaes.nil? && chaes != false
     @disability_group = disability_group.to_i
     @contract = contract
+    @simple = simple
 
     @psp_uah = BigDecimal(psp_uah.to_s)
     @psp_invalidity_uah = psp_invalidity_uah ? BigDecimal(psp_invalidity_uah.to_s) : nil
@@ -34,7 +35,8 @@ class TaxCalculator
 
     gross_cents = @amount_cents
     military_tax_cents = (gross_cents * @military_rate).round
-    if @contract
+
+    if @simple || @contract
       income_tax_cents = (gross_cents * @income_rate).round
       return build_result(income_tax_cents, military_tax_cents, gross_cents)
     end

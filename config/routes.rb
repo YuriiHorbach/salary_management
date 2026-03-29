@@ -20,6 +20,7 @@ Rails.application.routes.draw do
 
   resources :employees do
     resources :sick_days
+    resources :vacations
   end
 
   resources :reports, only: [:index]

@@ -19,29 +19,28 @@
 <% end %>
 
 <div class="m-5">
-  <%= search_form_for @q, url: employee_path(@employee), method: :get, html: {class: 'mb-4 flex flex-wrap gap-4 items-end'} do |f| %>
+  <%= search_form_for @salary_q, as: :salary_q, url: employee_path(@employee), method: :get, html: {class: 'mb-4 flex flex-wrap gap-4 items-end'} do |f| %>
+    <% input_classes = "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
 
-  <% input_classes = "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" %>
+    <div>
+      <%= f.label :amount_cents_eq, 'Сума (коп)', class: "block text-sm font-medium mb-1" %>
+      <%= f.search_field :amount_cents_eq, class: input_classes %>
+    </div>
 
-  <div>
-    <%= f.label :amount_cents_eq, 'Сума', class: "block text-sm font-medium mb-1" %>
-    <%= f.search_field :amount_cents_eq, class: input_classes %>
-  </div>
+    <div>
+      <%= f.label :by_year, 'Рік', class: "block text-sm font-medium mb-1" %>
+      <%= f.select :by_year, options_for_select((2020..Date.today.year), params.dig(:salary_q, :by_year)), { include_blank: 'Всі роки' }, class: input_classes %>
+    </div>
 
-  <div>
-    <%= f.label :by_year, 'Рік', class: "block text-sm font-medium mb-1" %>
-    <%= f.select :by_year, options_for_select((2020..Date.today.year), params.dig(:q, :by_year)), { include_blank: 'Всі роки' }, class: input_classes %>
-  </div>
+    <div>
+      <%= f.label :department_id_eq, 'Підрозділ', class: "block text-sm font-medium mb-1" %>
+      <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:salary_q, :department_id_eq)), { include_blank: 'Всі підрозділи' }, class: input_classes %>
+    </div>
 
-  <div>
-    <%= f.label :department_id_eq, 'Підрозділ', class: "block text-sm font-medium mb-1" %>
-    <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:q, :department_id_eq)), { include_blank: 'Всі підрозділи' }, class: input_classes %>
-  </div>
-
-  <div>
-    <%= f.submit 'Пошук', class: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium' %>
-  </div>
-<% end %>
+    <div>
+      <%= f.submit 'Пошук зарплат', class: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium' %>
+    </div>
+  <% end %>
 </div>
 
 <div class="m-5">
@@ -50,81 +49,45 @@
     <thead class="bg-gray-200 dark:bg-gray-700">
       <tr>
         <th class="px-2 py-1">
-          <%= sort_link(@q, :department_name, 'Підрозділ') %>
+          <%= sort_link(@salary_q, :department_name, 'Підрозділ', default_order: :asc) %>
         </th>
         <th class="px-2 py-1">
-          <%= sort_link(@q, :amount, 'Сума') %>
+          <%= sort_link(@salary_q, :amount_cents, 'Сума') %>
         </th>
         <th class="px-2 py-1">
-          <%= sort_link(@q, :paid_on, 'Дата виплати') %>
+          <%= sort_link(@salary_q, :paid_on, 'Дата виплати') %>
         </th>
       </tr>
     </thead>
     <tbody>
-      <% @employee_salaries.each do |department, salaries| %>
-        <% salaries.each do |salary| %>
-          <tr class="border-b border-gray-100 dark:border-gray-700">
-            <td class="px-2 py-1"><%= department&.name || 'Без підрозділу' %></td>
-            <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
-            <td class="px-2 py-1"><%= salary.paid_on&.strftime('%d-%m-%Y') %></td>
-          </tr>
+      <% if @employee_salaries.any? %>
+        <% @employee_salaries.each do |department, salaries| %>
+          <% salaries.each do |salary| %>
+            <tr class="border-b border-gray-100 dark:border-gray-700">
+              <td class="px-2 py-1"><%= department&.name || 'Без підрозділу' %></td>
+              <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
+              <td class="px-2 py-1"><%= salary.paid_on&.strftime('%d-%m-%Y') %></td>
+            </tr>
+          <% end %>
         <% end %>
+      <% else %>
+        <tr><td colspan="3" class="p-4 text-center text-gray-500 italic">Зарплат не знайдено</td></tr>
       <% end %>
     </tbody>
   </table>
 </div>
 
 <div class="m-5">
-  <%= form_with url: employee_path(@employee), method: :get, local: true, class: 'mb-4 flex flex-wrap gap-2 items-end' do %>
-    <div class="relative">
-      <%= label_tag :month, 'Місяць (YYYY-MM)' %>
-      <%= search_field_tag :month, params[:month], class: 'border rounded px-2 py-1 pr-6', id: 'month_search' %>
-      <button type="button"
-              onclick="document.getElementById('month_search').value=''; this.form.submit();"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-              style="background: none; border: none;">
-        &times;
-      </button>
-    </div>
-    <div>
-      <%= label_tag :year, 'Рік' %>
-      <%= number_field_tag :year, params[:year], class: 'border rounded px-2 py-1', min: 1900, max: 2100 %>
-    </div>
-    <div>
-      <%= submit_tag 'Пошук', class: 'bg-blue-500 text-white px-3 py-1 rounded' %>
-    </div>
-  <% end %>
-</div>
-
-<div class="m-5">
-  <h2 class="mt-8 mb-2 text-lg font-bold">Загальна зарплата по місяцях</h2>
+  <h2 class="mt-8 mb-2 text-lg font-bold">Загальна зарплата по місяцях (підсумки)</h2>
   <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border mb-8">
     <thead class="bg-gray-200 dark:bg-gray-700">
       <tr>
-        <% direction = @permitted_params[:direction] == 'asc' ? 'desc' : 'asc' %>
-        <th class="px-2 py-1">
-          <%= link_to 'Місяць', employee_path(@employee, @permitted_params.slice(:year, :month).merge(sort: 'month', direction: direction)), class: 'underline' %>
-        </th>
-        <th class="px-2 py-1">
-          <%= link_to 'Сума', employee_path(@employee, @permitted_params.slice(:year, :month).merge(sort: 'total', direction: direction)), class: 'underline' %>
-        </th>
+        <th class="px-2 py-1">Місяць</th>
+        <th class="px-2 py-1">Сума</th>
       </tr>
     </thead>
     <tbody>
-      <% filtered = @monthly_totals.to_a
-        filtered.select! { |m, _| m.include?(params[:month]) } if params[:month].present?
-        filtered.select! { |m, _| m.starts_with?(params[:year]) } if params[:year].present?
-        if params[:sort] == 'month'
-          filtered.sort_by! { |m, _| m }
-          filtered.reverse! if params[:direction] == 'desc'
-        elsif params[:sort] == 'total'
-          filtered.sort_by! { |_, t| t }
-          filtered.reverse! if params[:direction] == 'desc'
-        else
-          filtered.sort_by! { |m, _| m }.reverse!
-        end
-      %>
-      <% filtered.each do |month, total| %>
+      <% @monthly_totals.sort.reverse.each do |month, total| %>
         <tr class="border-b border-gray-100 dark:border-gray-700">
           <td class="px-2 py-1"><%= month %></td>
           <td class="px-2 py-1"><%= number_to_currency(total) %></td>
@@ -134,11 +97,10 @@
   </table>
 </div>
 
-<div class="m-5">
-  <h2 class="mt-8 mb-2 text-lg font-bold text-gray-800">🏥 Лікарняні</h2>
-
+<div class="m-5 border-t pt-8">
+  <h2 class="mb-2 text-lg font-bold text-gray-800">🏥 Лікарняні (зведені)</h2>
   <div class="overflow-x-auto border rounded-lg shadow-sm">
-    <table class="min-w-full text-left text-sm font-light text-surface dark:text-white">
+    <table class="min-w-full text-left text-sm font-light">
       <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
         <tr>
           <th class="px-4 py-2">📅 Період</th>
@@ -158,22 +120,47 @@
             </tr>
           <% end %>
         <% else %>
-          <tr>
-            <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">
-              Лікарняних для цього співробітника поки немає.
-            </td>
-          </tr>
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">Немає лікарняних</td></tr>
         <% end %>
       </tbody>
     </table>
   </div>
-
-  <div class="mt-4">
-    <%= link_to 'Переглянути всі лікарняні', employee_sick_days_path(@employee),
-                class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+  <div class="mt-4 flex gap-2">
+    <%= link_to 'Переглянути всі', employee_sick_days_path(@employee), class: "text-blue-600 underline" %>
+    <%= link_to 'Додати', new_employee_sick_day_path(@employee), class: "text-green-600 underline" %>
   </div>
-  <div class="mt-4">
-    <%= link_to '➕ Додати лікарняний', new_employee_sick_day_path(@employee),
-                class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm inline-block" %>
+</div>
+
+<div class="m-5 border-t pt-8">
+  <h2 class="mb-2 text-lg font-bold text-gray-800">🏖️ Відпускні</h2>
+  <div class="overflow-x-auto border rounded-lg shadow-sm">
+    <table class="min-w-full text-left text-sm font-light">
+      <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
+        <tr>
+          <th class="px-4 py-2">📅 Період</th>
+          <th class="px-4 py-2 font-bold">💰 Сума</th>
+          <th class="px-4 py-2 text-red-600">📉 ПДФО</th>
+          <th class="px-4 py-2 text-red-600">🛡️ ВЗ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @vacations.any? %>
+          <% @vacations.each do |vacation| %>
+            <tr class="border-b">
+              <td class="px-4 py-2"><%= vacation.period&.strftime("%Y-%m-%d") %></td>
+              <td class="px-4 py-2"><%= number_to_currency(vacation.vacation_amount_cents) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.income_tax_cents) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.military_tax_cents) %></td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">Немає відпускних</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-4 flex gap-2">
+    <%= link_to 'Переглянути всі', employee_vacations_path(@employee), class: "text-blue-600 underline" %>
+    <%= link_to 'Додати', new_employee_vacation_path(@employee), class: "text-green-600 underline" %>
   </div>
 </div>

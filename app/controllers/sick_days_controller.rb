@@ -3,11 +3,11 @@
 class SickDaysController < ApplicationController
   include ActionView::RecordIdentifier
 
-  before_action :set_employee, only: %i[index new create edit update destroy]
+  before_action :set_employee
+  before_action :set_sick_day, only: %i[edit update destroy]
+
   def index
     @sick_days = @employee.sick_days.order(period: :desc)
-
-    @sick_days_summaries = @employee.sick_days_summaries
   end
 
   def new
@@ -17,61 +17,56 @@ class SickDaysController < ApplicationController
   def create
     @sick_day = @employee.sick_days.build(sick_day_params)
 
-    @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01") if params[:sick_day][:period].present?
-
     if @sick_day.save
-      redirect_to new_employee_sick_day_path(@employee), notice: 'Лікарняний успішно додано. Ви можете додати ще один.'
+      # Calculate and store taxes for the sick day
+      tax_calculation_result = TaxCalculator.call(
+        amount_cents: @sick_day.pfu_amount_cents + @sick_day.enterprise_amount_cents,
+        children_count: @employee.children_count,
+        chaes: @employee.chaes,
+        disability_group: @employee.disability_group,
+        contract: @employee.contract
+      )
+      @sick_day.update(
+        income_tax_cents: tax_calculation_result[:income_tax_cents],
+        military_tax_cents: tax_calculation_result[:military_tax_cents],
+        net_amount_cents: tax_calculation_result[:net_amount_cents]
+      )
+
+      redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно додано.'
     else
       render :new, status: :unprocessable_entity
     end
   end
 
-  def edit
-    @sick_day = @employee.sick_days.find(params[:id])
-  end
+  def edit; end
 
   def update
-    @sick_day = @employee.sick_days.find(params[:id])
-    @sick_day.period = Date.parse("#{params[:sick_day][:period]}-01") if params[:sick_day][:period].present?
+    if @sick_day.update(sick_day_params)
+      # Recalculate taxes if the sick day details change
+      tax_calculation_result = TaxCalculator.call(
+        amount_cents: @sick_day.pfu_amount_cents + @sick_day.enterprise_amount_cents,
+        children_count: @employee.children_count,
+        chaes: @employee.chaes,
+        disability_group: @employee.disability_group,
+        contract: @employee.contract
+      )
+      @sick_day.update(
+        income_tax_cents: tax_calculation_result[:income_tax_cents],
+        military_tax_cents: tax_calculation_result[:military_tax_cents],
+        net_amount_cents: tax_calculation_result[:net_amount_cents]
+      )
 
-    if @sick_day.update(sick_day_params.except(:period))
-      @sick_days_summaries = @employee.sick_days_summaries
-
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_stream.replace(dom_id(@sick_day), partial: 'sick_days/row', locals: { sd: @sick_day }),
-
-            turbo_stream.replace("summary_#{@sick_day.period.strftime('%Y-%m')}",
-                                 partial: 'sick_days/summary_row',
-                                 locals: { period: @sick_day.period, summaries: @sick_days_summaries })
-          ]
-        end
-        format.html { redirect_to employee_sick_days_path(@employee), notice: 'Оновлено!' }
-      end
+      redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно оновлено.'
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @sick_day = @employee.sick_days.find(params[:id])
     @sick_day.destroy
 
-    @sick_days_summaries = @employee.sick_days_summaries
-
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.remove(dom_id(@sick_day)),
-
-          turbo_stream.replace("summary_#{@sick_day.period.strftime('%Y-%m')}",
-                               partial: 'sick_days/summary_row',
-                               locals: { period: @sick_day.period, summaries: @sick_days_summaries })
-        ]
-      end
-      format.html { redirect_to employee_sick_days_path(@employee), notice: 'Видалено' }
-    end
+    redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно видалено.',
+                                                  turb_stream: turbo_stream.remove(@sick_day)
   end
 
   private
@@ -80,7 +75,11 @@ class SickDaysController < ApplicationController
     @employee = Employee.find(params[:employee_id])
   end
 
+  def set_sick_day
+    @sick_day = SickDay.find(params[:id])
+  end
+
   def sick_day_params
-    params.require(:sick_day).permit(:period, :pfu_amount, :enterprise_amount)
+    params.require(:sick_day).permit(:period, :pfu_amount_cents, :enterprise_amount_cents)
   end
 end

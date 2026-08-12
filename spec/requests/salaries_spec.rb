@@ -28,7 +28,7 @@ RSpec.describe 'Salaries', type: :request do
 
   describe 'POST /create' do
     it 'creates a salary' do
-      post urls.employee_salaries_path(employee), params: { salary: valid_attributes }
+      post urls.employee_salaries_path(employee), params: { salary: valid_attributes.except(:department_id), department_id: department.id }
       expect(response).to have_http_status(:found)
     end
   end

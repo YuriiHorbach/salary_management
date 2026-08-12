@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Employee < ApplicationRecord
+  before_validation :set_birthdate_from_id_code, if: :id_code_changed?
+
   has_many :department_employees
   has_many :departments, through: :department_employees
   has_many :positions, through: :department_employees
@@ -62,5 +64,11 @@ class Employee < ApplicationRecord
       saved_change_to_disability_group? ||
       saved_change_to_chaes? ||
       saved_change_to_contract?
+  end
+
+  def set_birthdate_from_id_code
+    return if id_code.blank?
+    days_count = id_code.to_s[0..4].to_i
+    base_date = Date.new(1899, 12, 31)
   end
 end

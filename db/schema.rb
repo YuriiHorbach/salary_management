@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_22_094719) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_09_162629) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -53,13 +53,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_22_094719) do
     t.string "first_name", null: false
     t.string "patronic_name"
     t.string "last_name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.integer "children_count"
     t.integer "disability_group"
     t.boolean "chaes"
     t.string "territory_info", default: "", null: false
     t.boolean "contract", default: false
+    t.date "birthday"
   end
 
   create_table "folders", force: :cascade do |t|

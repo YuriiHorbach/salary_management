@@ -60,9 +60,8 @@
     </div>
   <% end %>
 </div>
-<div class="m-5 overflow-x-auto"> <%# Дозволить скрол, якщо екран зовсім маленький %>
+<div class="m-5 overflow-x-auto">
   <%= turbo_frame_tag "employees_list" do %>
-    <%# Встановлюємо чіткі пропорції для 8 колонок %>
     <% grid_layout = "grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;" %>
 
     <div class="grid bg-gray-100 border border-gray-200 font-bold text-xs uppercase text-gray-700 items-center" style="<%= grid_layout %>">
@@ -72,7 +71,7 @@
       <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, "Гр.") %></div>
       <div class="px-2 py-3 border-r border-gray-200 text-center">ЧАЕС</div>
       <div class="px-2 py-3 border-r border-gray-200 text-center">Контр.</div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center">Територія</div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :territory_info, "Територія") %></div>
       <div class="px-2 py-3 text-center">Дії</div>
     </div>
 

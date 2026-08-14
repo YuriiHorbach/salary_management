@@ -6,7 +6,8 @@ class DepartmentEmployeesController < ApplicationController
   before_action :set_department, only: %i[new create]
 
   def new
-    @employees = Employee.all
+    @q = Employee.ransack(params[:q])
+    @employees = @q.result(distinct: true)
   end
 
   def create

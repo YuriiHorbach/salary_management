@@ -9,7 +9,8 @@ default: &default
 development:
   <<: *default
   database: salary_management_development
-  host: db
+  # host: db
+  host: localhost
   username: postgres
   password: password
   # The specified database role being used to connect to PostgreSQL.

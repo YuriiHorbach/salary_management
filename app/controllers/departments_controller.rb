@@ -12,7 +12,10 @@ class DepartmentsController < ApplicationController
     @department = Department.new
   end
 
-  def show; end
+  def show
+    report =SalaryReportService.new(@department.salaries).call
+    @department_salary_report = report[:gross] / 100
+  end
 
   def edit; end
 

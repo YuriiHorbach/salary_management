@@ -1,39 +1,47 @@
 <h1><%= @department.name %></h1>
 
-<div class="grid grid-cols-6 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-  <div class="px-4 py-2 border border-gray-300">ID</div>
-  <div class="px-4 py-2 border border-gray-300">Last name</div>
-  <div class="px-4 py-2 border border-gray-300">First name</div>
-  <div class="px-4 py-2 border border-gray-300">Patronic name</div>
-  <div class="px-4 py-2 border border-gray-300">Add salary</div>
-  <div class="px-4 py-2 border border-gray-300">Remove line</div>
-</div>
-
-<% @department&.employees&.each do |employee| %>
-  <div class="grid grid-cols-6 border border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-    <div class="px-2 py-2 border border-gray-300 flex justify-between items-center">
-      <%= link_to employee.id_code, employee_path(employee), class: "underline text-blue-600 hover:text-blue-800" %>
-    </div>
-    <div class="px-2 py-2 border border-gray-300"><%= employee.last_name %></div>
-    <div class="px-2 py-2 border border-gray-300"><%= employee.first_name %></div>
-    <div class="px-2 py-2 border border-gray-300"><%= employee.patronic_name %></div>
-    <div class="px-2 py-2 border border-gray-300 flex items-center justify-between gap-2">
-      <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
-        <%= link_to new_employee_salary_path(employee, department_id: @department.id),
-                    class: "text-blue-600 hover:underline font-mono" do %>
-          <%= employee.salaries.last&.amount ? "#{employee.salaries.last.amount}" : "+ Add" %>
-        <% end %>
-      <% end %>
-      <%= link_to "| Salary", employee_salaries_path(employee, department_id: @department.id), class: "text-blue-600 hover:underline" %>
-    </div>
-    <div class="flex items-center justify-center p-2 border border-gray-300">
-      <%= link_to '❌', remove_department_employee_path(department_id: @department.id, id: employee.id),
-          data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
-          class: "text-red-500 font-black text-lg hover:text-red-700 leading-none",
-          title: "Remove from department" %>
-    </div>
-  </div>
-<% end %>
+<table class="w-full table-fixed border-collapse text-sm">
+  <thead>
+    <tr class="bg-gray-100">
+      <th class="w-[100px] px-3 py-2 border border-gray-300 text-left">ID</th>
+      <th class="px-3 py-2 border border-gray-300 text-left">Last name</th>
+      <th class="px-3 py-2 border border-gray-300 text-left">First name</th>
+      <th class="px-3 py-2 border border-gray-300 text-left">Patronic name</th>
+      <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">Add salary</th>
+      <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">View salary</th>
+      <th class="w-[70px] px-3 py-2 border border-gray-300 text-center">Remove</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @department&.employees&.each do |employee| %>
+      <tr class="hover:bg-gray-50">
+        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
+          <%= link_to employee.id_code, employee_path(employee), class: "underline text-blue-600 hover:text-blue-800 text-xs" %>
+        </td>
+        <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.last_name %></td>
+        <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.first_name %></td>
+        <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.patronic_name %></td>
+        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
+          <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
+            <%= link_to new_employee_salary_path(employee, department_id: @department.id),
+                        class: "text-blue-600 hover:underline font-mono" do %>
+              <%= employee.salaries.last&.amount ? "#{employee.salaries.last.amount}" : "+ Add" %>
+            <% end %>
+          <% end %>
+        </td>
+        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
+          <%= link_to "Salary", employee_salaries_path(employee, department_id: @department.id), class: "text-blue-600 hover:underline" %>
+        </td>
+        <td class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap">
+          <%= link_to '❌', remove_department_employee_path(department_id: @department.id, id: employee.id),
+              data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
+              class: "text-red-500 font-black text-lg hover:text-red-700 leading-none",
+              title: "Remove from department" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
 
 <br>
 <%= link_to 'Add Employees', new_department_employee_path(department_id: @department.id), class: "mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>

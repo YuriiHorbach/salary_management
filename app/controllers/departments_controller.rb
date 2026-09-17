@@ -13,8 +13,10 @@ class DepartmentsController < ApplicationController
   end
 
   def show
-    report =SalaryReportService.new(@department.salaries).call
-    @department_salary_report = report[:gross] / 100
+    now = Time.current
+    @department_total = @department.salaries
+                                    .where(paid_on: now.beginning_of_month..now)
+                                    .sum(:amount_cents) / 100.0
   end
 
   def edit; end

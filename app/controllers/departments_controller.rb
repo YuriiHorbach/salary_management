@@ -12,7 +12,12 @@ class DepartmentsController < ApplicationController
     @department = Department.new
   end
 
-  def show; end
+  def show
+    now = Time.current
+    @department_total = @department.salaries
+                                    .where(paid_on: now.beginning_of_month..now)
+                                    .sum(:amount_cents) / 100.0
+  end
 
   def edit; end
 

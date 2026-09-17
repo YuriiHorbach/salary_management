@@ -41,7 +41,15 @@
       </tr>
     <% end %>
   </tbody>
+  <tfoot>
+    <tr class="bg-gray-50 font-medium">
+      <td colspan="4" class="px-3 py-2 border border-gray-300 text-right">Всього за <%= l(Date.current, format: :short) %>:</td>
+      <td class="px-3 py-2 border border-gray-300 whitespace-nowrap font-mono">
+        <%= number_to_currency(@department_total, unit: '₴') %>
+      </td>
+      <td colspan="2"></td>
+    </tr>
+  </tfoot>
 </table>
-
 <br>
 <%= link_to 'Add Employees', new_department_employee_path(department_id: @department.id), class: "mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>

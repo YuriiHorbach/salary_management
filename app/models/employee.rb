@@ -51,6 +51,10 @@ class Employee < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
+  def last_salary_display
+    salaries.last&.amount || "+ Add"
+  end
+
   private
 
   def recalculate_taxes_if_needed

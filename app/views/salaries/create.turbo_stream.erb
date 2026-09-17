@@ -1,3 +1,14 @@
-<%= turbo_stream.update Salary.new, '' %>
-<%= turbo_stream.after Salary.new, render(@salary) %>
-<%= prepend_flash %>
+<%= turbo_stream.replace "salary_amount_employee_#{@employee.id}" do %>
+  <%= turbo_frame_tag "salary_amount_employee_#{@employee.id}" do %>
+    <%= link_to new_employee_salary_path(@employee, department_id: @salary.department_id),
+                class: "text-blue-600 hover:underline font-mono" do %>
+      <%= @salary.amount %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if @department_total %>
+  <%= turbo_stream.update "department_total" do %>
+    <%= number_to_currency(@department_total, unit: '₴') %>
+  <% end %>
+<% end %>

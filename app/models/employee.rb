@@ -20,7 +20,7 @@ class Employee < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil)
     # Ensure amount_cents is listed here to allow searching through associations
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes contract territory_info amount_cents]
+       chaes contract territory_info amount_cents book_number book_name_page]
   end
 
   def self.ransackable_associations(_auth_object = nil)

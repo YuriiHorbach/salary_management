@@ -11,25 +11,58 @@ RSpec.describe 'Salaries', type: :request do
 
   let(:valid_attributes) do
     {
-      amount_cents: 5000,
+      amount: '50.00',
       paid_on: '2025-10-01',
       department_id: department.id
     }
   end
 
-  before { sign_in user }
+  before do
+    create(:department_employee, department: department, employee: employee)
+    sign_in user
+  end
 
   describe 'GET /new' do
     it 'works' do
       get urls.new_employee_salary_path(employee)
       expect(response).to have_http_status(:ok)
     end
+
+    it 'renders form with auto-submit Stimulus controller' do
+      get urls.new_employee_salary_path(employee, department_id: department.id)
+      expect(response.body).to include('data-controller="auto-submit"')
+      expect(response.body).to include('blur-&gt;auto-submit#submit')
+    end
   end
 
   describe 'POST /create' do
     it 'creates a salary' do
-      post urls.employee_salaries_path(employee), params: { salary: valid_attributes.except(:department_id), department_id: department.id }
+      expect {
+        post urls.employee_salaries_path(employee),
+             params: { salary: valid_attributes.except(:department_id), department_id: department.id }
+      }.to change(employee.salaries, :count).by(1)
+
       expect(response).to have_http_status(:found)
+      expect(employee.salaries.last.amount_cents).to eq(5000)
+      expect(employee.salaries.last.department_id).to eq(department.id)
+    end
+
+    it 'responds with turbo_stream format' do
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id), department_id: department.id },
+           headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    end
+
+    it 'does not create a salary with empty amount' do
+      expect {
+        post urls.employee_salaries_path(employee),
+             params: { salary: { amount: '', paid_on: '2025-10-01', department_id: department.id } }
+      }.not_to change(employee.salaries, :count)
+
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 end

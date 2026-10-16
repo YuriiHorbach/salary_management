@@ -81,11 +81,12 @@ class EmployeesController < ApplicationController
                                      :last_name,
                                      :patronic_name,
                                      :id_code,
-                                     :territory_info,
+                                     :territory_sign_id,
                                      :chaes,
                                      :contract,
                                      :disability_group,
-                                     :children_count)
+                                     :children_count,
+                                     account_book_attributes: %i[id book_name book_number page_number _destroy])
   end
 
   def sanitized_salary_search_params

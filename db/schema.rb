@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_16_174720) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_16_202154) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,6 +19,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_174720) do
     t.bigint "employee_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "book_number"
+    t.integer "page_number"
     t.index ["employee_id"], name: "index_account_books_on_employee_id"
   end
 
@@ -63,6 +65,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_174720) do
     t.date "birthday"
     t.integer "book_number"
     t.string "book_name_page"
+    t.bigint "territory_sign_id"
+    t.index ["territory_sign_id"], name: "index_employees_on_territory_sign_id"
   end
 
   create_table "folders", force: :cascade do |t|
@@ -105,6 +109,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_174720) do
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
   end
 
+  create_table "territory_signs", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_territory_signs_on_name"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -134,6 +145,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_174720) do
   add_foreign_key "department_employees", "departments", on_delete: :cascade
   add_foreign_key "department_employees", "employees", on_delete: :cascade
   add_foreign_key "department_employees", "positions", on_delete: :cascade
+  add_foreign_key "employees", "territory_signs"
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"

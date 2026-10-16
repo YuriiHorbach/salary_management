@@ -13,7 +13,7 @@
     <div class="text-gray-900"><%= @employee.patronic_name %></div>
 
     <div class="px-2 py-2 flex space-x-2">
-      <%= link_to "Edit", edit_employee_path(@employee), class: "px-3 py-1 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800", data: { turbo_frame: dom_id(@employee) } %>
+      <%= link_to "Edit", edit_employee_path(@employee), class: "btn btn-primary px-3 py-1 text-xs font-medium text-center inline-flex items-center", data: { turbo_frame: dom_id(@employee) } %>
     </div>
   </div>
 <% end %>
@@ -38,7 +38,7 @@
     </div>
 
     <div>
-      <%= f.submit 'Пошук зарплат', class: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium' %>
+      <%= f.submit 'Пошук зарплат', class: 'btn btn-primary px-4 py-2 rounded-md font-medium hover:bg-blue-600' %>
     </div>
   <% end %>
 </div>

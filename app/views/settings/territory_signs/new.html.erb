@@ -1,0 +1,32 @@
+<% content_for :title, "Нова бригади" %>
+
+<h1 class="text-2xl font-bold mb-6">Додати бригаду</h1>
+
+<%= link_to 'Назад до списку', settings_territory_signs_path,
+            class: "text-gray-600 hover:text-blue-600 mb-4 inline-block" %>
+
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 max-w-md">
+  <%= form_with model: @territory_sign, url: settings_territory_signs_path, class: "space-y-4" do |f| %>
+    <% if @territory_sign.errors.any? %>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Помилки:</strong>
+        <ul class="list-disc list-inside mt-1">
+          <% @territory_sign.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= f.label :name, "Назва бригади", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name, class: "mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: "Наприклад: Бригада А" %>
+    </div>
+
+    <div class="flex gap-2">
+      <%= f.submit "Зберегти", class: "btn btn-primary" %>
+      <%= link_to 'Скасувати', settings_territory_signs_path,
+                  class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>

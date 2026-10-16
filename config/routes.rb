@@ -23,7 +23,16 @@ Rails.application.routes.draw do
     resources :vacations
   end
 
-  resources :reports, only: [:index]
+  resources :reports, only: [:index] do
+    get :summary, on: :collection
+    get :detailed, on: :collection
+  end
 
   get '/home_pages/', to: 'home_pages#index'
+
+  namespace :settings do
+    root to: 'dashboard#index'
+    resources :territory_signs, except: [:show]
+    resources :account_books, except: [:show]
+  end
 end

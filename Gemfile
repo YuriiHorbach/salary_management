@@ -70,6 +70,7 @@ group :test do
   gem 'database_cleaner'
   gem 'ostruct'
   gem 'rspec-rails'
+  gem 'selenium-webdriver', '~> 4.11'
   gem 'shoulda-matchers'
 end
 

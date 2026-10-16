@@ -1,0 +1,133 @@
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe Reports::EmployeeDetailedQuery do
+  describe '#call' do
+    let!(:department) { create(:department, name: 'Відділ A') }
+
+    let!(:brigade1) { create(:territory_sign, name: 'Бригада 1') }
+    let!(:brigade2) { create(:territory_sign, name: 'Бригада 2') }
+
+    let!(:emp1) do
+      create(:employee,
+        id_code: '1234567890',
+        first_name: 'Іван',
+        last_name: 'Петренко',
+        territory_sign: brigade1)
+    end
+
+    let!(:emp2) do
+      create(:employee,
+        id_code: '2233445566',
+        first_name: 'Марія',
+        last_name: 'Іваненко',
+        territory_sign: brigade2)
+    end
+
+    let!(:dept_emp1) { create(:department_employee, employee: emp1, department: department) }
+    let!(:dept_emp2) { create(:department_employee, employee: emp2, department: department) }
+
+    let!(:book1) { create(:account_book, employee: emp1, book_name: '61-11') }
+    let!(:book2) { create(:account_book, employee: emp2, book_name: '61-12') }
+
+    let!(:salary1) do
+      create(:salary, employee: emp1, department: department,
+        amount_cents: 100_000, income_tax_cents: 18_000, military_tax_cents: 5_000, net_amount_cents: 77_000,
+        paid_on: Date.current)
+    end
+
+    let!(:salary2) do
+      create(:salary, employee: emp2, department: department,
+        amount_cents: 150_000, income_tax_cents: 27_000, military_tax_cents: 7_500, net_amount_cents: 115_500,
+        paid_on: Date.current)
+    end
+
+    let!(:vacation1) do
+      create(:vacation, employee: emp1,
+        vacation_amount_cents: 30_000, income_tax_cents: 5_400, military_tax_cents: 1_500, net_amount_cents: 23_100,
+        period: Date.current)
+    end
+
+    let!(:sick_day1) do
+      create(:sick_day, employee: emp1,
+        pfu_amount_cents: 20_000, enterprise_amount_cents: 10_000, period: Date.current)
+    end
+
+    it 'returns employee rows with aggregated breakdown' do
+      result = described_class.new.call
+
+      expect(result[:employees].size).to eq(2)
+
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+      expect(emp_row).not_to be_nil
+      expect(emp_row[:full_name]).to eq('Іван Петренко')
+      expect(emp_row[:brigade]).to eq('Бригада 1')
+      expect(emp_row[:department]).to eq('Відділ A')
+      expect(emp_row[:book_name]).to eq('61-11')
+      expect(emp_row[:base_salary]).to eq(1000.00)
+      expect(emp_row[:vacation_amount]).to eq(300.00)
+      expect(emp_row[:sick_total]).to eq(300.00) # 20000 + 10000 cents = 300 UAH
+    end
+
+    it 'includes totals row' do
+      result = described_class.new.call
+
+      expect(result[:totals][:base_salary]).to eq(2500.00) # 1000 + 1500
+      expect(result[:totals][:total_income]).to be > 0
+    end
+
+    it 'filters by brigade' do
+      result = described_class.new(brigade: brigade1.id).call
+
+      expect(result[:employees].size).to eq(1)
+      expect(result[:employees].first[:brigade]).to eq('Бригада 1')
+    end
+
+    it 'filters by department' do
+      result = described_class.new(department: department.id).call
+
+      expect(result[:employees].size).to eq(2)
+    end
+
+    it 'filters by account book' do
+      result = described_class.new(account_book: book1.id).call
+
+      expect(result[:employees].size).to eq(1)
+      expect(result[:employees].first[:book_name]).to eq('61-11')
+    end
+
+    it 'filters by employee search (id_code)' do
+      result = described_class.new(employee_search: '1234567890').call
+
+      expect(result[:employees].size).to eq(1)
+      expect(result[:employees].first[:id_code]).to eq('1234567890')
+    end
+
+    it 'filters by employee search (name)' do
+      result = described_class.new(employee_search: 'Марія').call
+
+      expect(result[:employees].size).to eq(1)
+      expect(result[:employees].first[:full_name]).to eq('Марія Іваненко')
+    end
+
+    it 'filters by date range' do
+      old_salary = create(:salary, employee: emp1, department: department,
+        amount_cents: 50_000, income_tax_cents: 9_000, military_tax_cents: 2_500, net_amount_cents: 38_500,
+        paid_on: 1.month.ago)
+
+      result = described_class.new(date_from: Date.current.beginning_of_month, date_to: Date.current.end_of_month).call
+
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+      # Should not include the old salary
+      expect(emp_row[:base_salary]).to eq(1000.00)
+    end
+
+    it 'returns empty when no employees match' do
+      result = described_class.new(brigade: 999999).call
+
+      expect(result[:employees]).to be_empty
+      expect(result[:totals][:base_salary]).to eq(0.0)
+    end
+  end
+end

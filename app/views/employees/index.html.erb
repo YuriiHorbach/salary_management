@@ -1,6 +1,6 @@
 <p>
   <div class="mb-4">
-    <%= link_to 'Add a new employee', new_employee_path, class: 'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800', data: { turbo_frame: dom_id(Employee.new) } %>
+    <%= link_to 'Add a new employee', new_employee_path, class: 'btn btn-primary btn-xs font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
   </div>
 </p>
 <div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
@@ -53,8 +53,8 @@
           <%= f.label :contract_true, "Contract", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
 
-        <%= f.submit "Пошук 🔍", class: "flex-1 bg-blue-700 text-white font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
-        <%= link_to "Reset", employees_path, class: "flex-1 bg-gray-700 text-white text-center font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+        <%= f.submit "🔍", class: "btn btn-primary flex-1 font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+        <%= link_to "↩", employees_path, class: "btn btn-secondary flex-1 font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
       </div>
 
     </div>

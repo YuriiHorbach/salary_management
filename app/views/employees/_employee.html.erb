@@ -25,22 +25,22 @@
       <%= employee.territory_info %>
     </div>
     
-    <div class="px-2 py-2 flex flex-col space-y-1 items-stretch">
-      <%= link_to "Show", employee_path(employee),
-            class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-green-700 rounded hover:bg-green-800",
-            data: { turbo: :false } %>
+    <div class="px-2 py-2 flex flex-col space-y-0.5 items-stretch">
+<%= link_to "Show", employee_path(employee),
+          class: "btn btn-primary btn-xs rounded",
+          data: { turbo: :false } %>
 
-      <%= link_to "Edit", edit_employee_path(employee),
-            class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-blue-700 rounded hover:bg-blue-800",
-            data: { turbo_frame: dom_id(employee) } %>
+<%= link_to "Edit", edit_employee_path(employee),
+          class: "btn btn-primary btn-yellow btn-xs rounded",
+          data: { turbo_frame: dom_id(employee) } %>
 
       <%= link_to 'Add sick day', new_employee_sick_day_path(employee), 
-            class: "px-2 py-0.5 text-[10px] font-medium text-center text-white bg-blue-700 rounded hover:bg-blue-800", 
+            class: "btn btn-secondary btn-xs rounded",
             data: { turbo: false } %>
 
       <%= link_to 'Delete', employee_path(employee),
-            class: 'px-2 py-0.5 text-[10px] font-medium text-center text-white bg-red-700 rounded hover:bg-red-800',
-            data: { turbo_method: :delete, turbo_confirm: 'Ви впевнені?' } %>
+          class: 'btn btn-danger btn-xs rounded',
+          data: { turbo_method: :delete, turbo_confirm: 'Ви впевнені?' } %>
     </div>
   </div>
 <% end %>

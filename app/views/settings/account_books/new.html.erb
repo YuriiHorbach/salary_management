@@ -1,0 +1,53 @@
+<% content_for :title, "Нова облікова книга" %>
+
+<h1 class="text-2xl font-bold mb-6">Додати облікову книгу</h1>
+
+<div class="mb-6">
+  <%= link_to 'Назад до списку', settings_account_books_path,
+              class: "text-gray-600 hover:text-blue-600 text-sm font-medium" %>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 max-w-2xl">
+  <%= form_with model: @account_book, url: settings_account_books_path, class: "space-y-6" do |f| %>
+    <% if @account_book.errors.any? %>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Помилки:</strong>
+        <ul class="list-disc list-inside mt-1">
+          <% @account_book.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= f.label :employee_id, "Працівник", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.collection_select :employee_id, Employee.order(:id_code), :id, :id_code,
+                              { include_blank: 'Оберіть працівника' },
+                              class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div>
+      <%= f.label :book_name, "Назва книги", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :book_name, class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: "Наприклад: Книга А" %>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <%= f.label :book_number, "Номер книги", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.number_field :book_number, min: 1, class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: "1" %>
+      </div>
+
+      <div>
+        <%= f.label :page_number, "Номер сторінки", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.number_field :page_number, min: 1, class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: "1" %>
+      </div>
+    </div>
+
+    <div class="flex gap-3 pt-4 border-t">
+      <%= f.submit "Зберегти", class: "btn btn-primary px-6 py-2 rounded-md text-sm font-medium font-semibold" %>
+      <%= link_to 'Скасувати', settings_account_books_path,
+                  class: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md text-sm font-medium" %>
+    </div>
+  <% end %>
+</div>

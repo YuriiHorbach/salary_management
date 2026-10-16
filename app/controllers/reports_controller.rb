@@ -17,6 +17,18 @@ class ReportsController < ApplicationController
     @monthly_department_salaries = build_report_data(salaries)
   end
 
+  def summary
+    @result = Reports::SalarySummaryQuery.new(params).call
+  end
+
+  def detailed
+    @result = Reports::EmployeeDetailedQuery.new(params).call
+    @departments = Department.all
+    @brigades = TerritorySign.all.order(:name)
+    @account_books = AccountBook.all
+    @employees = Employee.all.order(:id_code)
+  end
+
   private
 
   def build_report_data(salaries_relation)

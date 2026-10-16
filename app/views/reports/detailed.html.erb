@@ -1,0 +1,136 @@
+<% content_for :title, "Детальний звіт по співробітникам" %>
+
+<h1 class="text-2xl font-bold mb-6">Детальний звіт по співробітникам</h1>
+
+<%= form_with url: detailed_reports_path, method: :get, class: "flex flex-wrap gap-4 items-end mb-6", data: { turbo_frame: "detailed_report_table" } do |f| %>
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :date_from, "З дати", class: "text-sm font-medium" %>
+    <%= f.date_field :date_from, value: params[:date_from], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :date_to, "По дату", class: "text-sm font-medium" %>
+    <%= f.date_field :date_to, value: params[:date_to], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :department, "Підрозділ", class: "text-sm font-medium" %>
+    <%= f.select :department,
+        options_from_collection_for_select(@departments, 'id', 'name', params[:department]),
+        { include_blank: 'Всі підрозділи' },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :brigade, "Бригада", class: "text-sm font-medium" %>
+    <%= f.select :brigade,
+        options_from_collection_for_select(@brigades, 'id', 'name', params[:brigade]),
+        { include_blank: 'Всі бригади' },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :account_book, "Книга", class: "text-sm font-medium" %>
+    <%= f.select :account_book,
+        options_from_collection_for_select(@account_books, 'id', 'book_name', params[:account_book]),
+        { include_blank: 'Всі книги' },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :employee_search, "Співробітник (ПІБ / ІПН)", class: "text-sm font-medium" %>
+    <%= f.text_field :employee_search, value: params[:employee_search], placeholder: "ПІБ або ІПН",
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.submit "Фільтрувати", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to "Скинути", detailed_reports_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
+  </div>
+<% end %>
+
+<%= turbo_frame_tag "detailed_report_table" do %>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border-collapse border border-gray-300">
+      <thead class="bg-gray-100 font-bold sticky top-0">
+        <tr>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ІПН</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Назва книги</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">N стор</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Підрозділ</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ПІБ</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Базова зп</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп податок</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп вз</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп чиста</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відпускні</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відп податок</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відп вз</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лікарняні</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лік податок</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лік вз</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний дохід</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний податок</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний вз</th>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Чиста виплата</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <% if @result[:employees].any? %>
+          <% @result[:employees].each do |emp| %>
+            <tr class="bg-white">
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:id_code] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_name] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_page] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:brigade] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:department] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= emp[:full_name] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:base_salary] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_income_tax] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_military_tax] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_net] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_amount] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_income_tax] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_military_tax] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_total] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_pdfo] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_military] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:gross_vacation] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_income] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_tax] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_military] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm font-semibold"><%= "%.2f" % emp[:net_pay] %></td>
+            </tr>
+          <% end %>
+
+          <tr class="bg-gray-100 font-bold">
+            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="6">Загалом</td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:base_salary] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_income_tax] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_military_tax] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_net] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_amount] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_income_tax] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_military_tax] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_total] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_pdfo] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_military] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:gross_vacation] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_income] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_tax] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_military] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:net_pay] %></td>
+          </tr>
+        <% else %>
+          <tr>
+            <td colspan="21" class="px-6 py-4 text-center text-sm text-gray-500">
+              Даних за вибрані фільтри не знайдено.
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

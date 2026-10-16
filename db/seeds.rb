@@ -1,21 +1,40 @@
-# frozen_string_literal: true
+# db/seeds.rb
+require 'faker'
 
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
-User.destroy_all
+puts "Очищення старої бази..."
+# Спочатку очищаємо таблиці зв'язків, щоб не було помилок Foreign Key
+DepartmentEmployee.destroy_all if defined?(DepartmentEmployee)
 Employee.destroy_all
+Department.destroy_all
 
-User.create!(email: 'admin@example.com', password: 'password')
+puts "Створення відділів..."
+departments = [
+  Department.create!(name: "Бухгалтерія"),
+  Department.create!(name: "IT Відділ"),
+  Department.create!(name: "Відділ кадрів"),
+  Department.create!(name: "Логістика"),
+  Department.create!(name: "Юридичний відділ")
+]
 
-Employee.find_or_create_by!(id_code: '1234567890') do |e|
-  e.first_name = 'Ivan'
-  e.last_name = 'Sirko'
-  e.patronic_name = 'Ivanovych'
+puts "Створення 10 працівників..."
+10.times do
+  employee = Employee.create!(
+    id_code: Faker::Number.number(digits: 10),
+    first_name: Faker::Name.first_name,
+    last_name: Faker::Name.last_name,
+    patronic_name: "Іванович",
+    children_count: rand(0..3),
+    disability_group: nil,
+    chaes: false,
+    contract: [true, false].sample,
+    birthday: Faker::Date.birthday(min_age: 20, max_age: 60)
+  )
+
+  # Прив'язуємо працівника до одного випадкового відділу
+  DepartmentEmployee.create!(
+    employee: employee,
+    department: departments.sample
+  )
 end
+
+puts "Готово! Створено відділи та 10 працівників."

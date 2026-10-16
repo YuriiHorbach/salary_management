@@ -15,9 +15,7 @@ class EmployeesController < ApplicationController
 
     @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
 
-    @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
-
-    @salary_q = @employee.salaries.ransack(params[:salary_q], search_key: :salary_q) # використовуй :salary_q з params
+    @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q) #used salary_q from params
     @employee_salaries = @salary_q.result.includes(:department).group_by(&:department)
 
     @departments = Department.all
@@ -86,6 +84,29 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count)
+  end
+
+  def sanitized_salary_search_params
+    return {} unless params[:salary_q].present?
+
+    permitted = params[:salary_q].permit(:amount_cents_eq, :by_year, :department_id_eq)
+
+    permitted.to_h.tap do |hash|
+      if hash[:amount_cents_eq].present?
+        raw = hash[:amount_cents_eq].to_s.strip
+        hash[:amount_cents_eq] = parse_amount_to_cents(raw)
+      end
+    end.compact
+  end
+
+  def parse_amount_to_cents(raw)
+    return nil if raw.blank?
+
+    normalized = raw.gsub(',', '.').gsub(' ', '')
+
+    cents = (normalized.to_f * 100).round
+
+    cents if cents.positive?
   end
 
   def prepare_monthly_totals(q)

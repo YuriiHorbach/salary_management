@@ -43,6 +43,31 @@ RSpec.describe 'Employees update', type: :request do
       found_salaries = assigns(:employee_salaries).values.flatten
       expect(found_salaries).to include(salary_1200_40)
     end
+
+    it 'keeps the entered amount in hryvnia in the search input instead of showing cents' do
+      get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:salary_amount_uah)).to eq('1200')
+      expect(response.body).to include('value="1200"')
+      expect(response.body).not_to include('value="120000"')
+    end
+
+    it 'keeps raw hryvnia input with comma for display while querying in cents' do
+      get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200,40' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:salary_amount_uah)).to eq('1200,40')
+      expect(response.body).to include('value="1200,40"')
+    end
+
+    it 'does not multiply the amount on repeated searches' do
+      get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:salary_amount_uah)).to eq('1200')
+      expect(response.body).to include('value="1200"')
+    end
   end
 
   describe 'PATCH /employees/:id' do

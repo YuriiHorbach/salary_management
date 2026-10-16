@@ -15,6 +15,8 @@ class EmployeesController < ApplicationController
 
     @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
 
+    @salary_amount_uah = params.dig(:salary_q, :amount_cents_eq).to_s.strip
+
     @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q) #used salary_q from params
     @employee_salaries = @salary_q.result.includes(:department).group_by(&:department)
 

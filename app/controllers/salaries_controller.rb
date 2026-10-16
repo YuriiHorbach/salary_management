@@ -19,12 +19,17 @@ class SalariesController < ApplicationController
 
   def create
     @employee = Employee.find(params[:employee_id])
-    @salary = @employee.salaries.new(salary_params)
-    @salary.department_id = params[:department_id]
+    @salary = @employee.salaries.build(salary_params)
+
+    @salary.department_id ||= params[:department_id] || params.dig(:salary, :department_id)
 
     if @salary.save
+      @department = Department.find(@salary.department_id)
+      @department_total = @department.monthly_total
+
       respond_to do |format|
-        format.html { redirect_to department_path(params[:department_id]), notice: 'Salary added successfully.' }
+        format.html { redirect_to department_path(@department), notice: 'Salary added successfully.' }
+        format.turbo_stream
       end
     else
       render :new, status: :unprocessable_entity

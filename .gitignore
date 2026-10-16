@@ -40,3 +40,4 @@
 
 storage/*.dump
 *.sql
+.opencode/

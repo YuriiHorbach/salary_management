@@ -25,7 +25,7 @@
           <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
             <%= link_to new_employee_salary_path(employee, department_id: @department.id),
                         class: "text-blue-600 hover:underline font-mono" do %>
-              <%= employee.salaries.last&.amount ? "#{employee.salaries.last.amount}" : "+ Add" %>
+              <%= employee.last_salary_display %>
             <% end %>
           <% end %>
         </td>
@@ -43,9 +43,13 @@
   </tbody>
   <tfoot>
     <tr class="bg-gray-50 font-medium">
-      <td colspan="4" class="px-3 py-2 border border-gray-300 text-right">Всього за <%= l(Date.current, format: :short) %>:</td>
+      <td colspan="4" class="px-3 py-2 border border-gray-300 text-right">
+        Всього за <%= l(Date.current, format: :short) %>:
+      </td>
       <td class="px-3 py-2 border border-gray-300 whitespace-nowrap font-mono">
-        <%= number_to_currency(@department_total, unit: '₴') %>
+        <span id="department_total">
+          <%= number_to_currency(@department_total, unit: '₴') %>
+        </span>
       </td>
       <td colspan="2"></td>
     </tr>

@@ -32,7 +32,7 @@
   <div class="flex flex-col sm:flex-row gap-2">
     <%= f.label :account_book, "Книга", class: "text-sm font-medium" %>
     <%= f.select :account_book,
-        options_from_collection_for_select(@account_books, 'id', 'code', params[:account_book]),
+        options_for_select(@account_book_codes, params[:account_book]),
         { include_blank: 'Всі книги' },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>

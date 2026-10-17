@@ -26,8 +26,7 @@
               <%= link_to 'Редагувати', edit_settings_territory_sign_path(sign),
                           class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
               <%= link_to 'Видалити', settings_territory_sign_path(sign),
-                          method: :delete,
-                          data: { confirm: 'Ви дійсно хочете видалити цю бригаду?' },
+                          data: { turbo_method: :delete, turbo_confirm: 'Ви дійсно хочете видалити цю бригаду?' },
                           class: "text-red-600 hover:text-red-800 underline text-sm ml-4" %>
             </td>
           </tr>

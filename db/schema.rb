@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_16_202154) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_202154) do
     t.integer "book_number"
     t.string "book_name_page"
     t.bigint "territory_sign_id"
+    t.string "identifier"
+    t.index ["identifier"], name: "index_employees_on_identifier"
     t.index ["territory_sign_id"], name: "index_employees_on_territory_sign_id"
   end
 

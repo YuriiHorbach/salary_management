@@ -49,6 +49,51 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe '#book_identifier' do
+    let(:territory_sign) { create(:territory_sign, name: 'Бригада А') }
+    let(:employee) { create(:employee, territory_sign: territory_sign) }
+
+    it 'returns nil when no account book' do
+      expect(employee.book_identifier).to be_nil
+    end
+
+    it 'returns nil when account book has no numbers' do
+      create(:account_book, employee: employee, book_name: 'Test')
+      expect(employee.book_identifier).to be_nil
+    end
+
+    it 'generates identifier from territory sign, book number and page number' do
+      create(:account_book, employee: employee, book_number: 1, page_number: 1)
+      expect(employee.book_identifier).to eq('Б11')
+    end
+
+    it 'generates identifier with uppercase first letter' do
+      create(:account_book, employee: employee, book_number: 12, page_number: 3)
+      expect(employee.book_identifier).to eq('Б123')
+    end
+  end
+
+  describe 'auto-generates identifier on save', truncation: true do
+    let(:territory_sign) { create(:territory_sign, name: 'Овочева') }
+
+    it 'sets identifier when employee is saved with account book' do
+      employee = create(:employee, territory_sign: territory_sign)
+      create(:account_book, employee: employee, book_number: 1, page_number: 2)
+      employee.reload
+      expect(employee.identifier).to eq('О12')
+    end
+
+    it 'updates identifier when territory sign changes' do
+      employee = create(:employee, territory_sign: territory_sign)
+      create(:account_book, employee: employee, book_number: 1, page_number: 1)
+      new_sign = create(:territory_sign, name: 'Бригада Б')
+
+      employee.update!(territory_sign: new_sign)
+      employee.reload
+      expect(employee.identifier).to eq('Б11')
+    end
+  end
+
   describe 'recalculates taxes on attribute change', truncation: true do
     let!(:employee) { create(:employee, children_count: 0, contract: false) }
     let!(:salary) { create(:salary, employee: employee, amount_cents: 700_000, created_at: 5.minutes.ago) }

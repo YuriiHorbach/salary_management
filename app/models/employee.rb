@@ -19,11 +19,31 @@ class Employee < ApplicationRecord
   validates :last_name, presence: true
 
   after_save :recalculate_taxes_if_needed
+  after_save :set_book_identifier
 
   def self.ransackable_attributes(_auth_object = nil)
     # Ensure amount_cents is listed here to allow searching through associations
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes contract territory_info amount_cents book_number book_name_page]
+       chaes contract territory_info amount_cents book_number book_name_page identifier]
+  end
+
+  def book_identifier
+    return nil unless account_book&.book_number && account_book&.page_number && territory_sign
+
+    first_letter = territory_sign.name.to_s.strip[0]
+    return nil unless first_letter
+
+    format('%s%d%d', first_letter.upcase, account_book.book_number, account_book.page_number)
+  end
+
+  private
+
+  def set_book_identifier
+    computed = book_identifier
+    return if computed.nil?
+    return if identifier == computed
+
+    update_column(:identifier, computed)
   end
 
   def self.ransackable_associations(_auth_object = nil)

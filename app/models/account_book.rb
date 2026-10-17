@@ -6,6 +6,11 @@ class AccountBook < ApplicationRecord
   validates :code, presence: true,
                    format: { with: /\A[А-ЯЄІЇҐA-Z]\d+\z/, message: 'має бути у форматі Б11 (літера бригади та номери)' }
 
+  # Unique book codes available to assign to employees, ordered for selects.
+  def self.available_codes
+    distinct.order(:code).pluck(:code)
+  end
+
   after_save :refresh_employee_identifier
   after_destroy :clear_employee_identifier
 

@@ -31,4 +31,14 @@ RSpec.describe AccountBook, type: :model do
   describe 'associations' do
     it { should belong_to(:employee).optional }
   end
+
+  describe '.available_codes' do
+    it 'returns unique codes ordered alphabetically' do
+      create(:account_book, code: 'B11')
+      create(:account_book, code: 'A1')
+      create(:account_book, code: 'B11')
+
+      expect(AccountBook.available_codes).to eq(%w[A1 B11])
+    end
+  end
 end

@@ -11,7 +11,7 @@ class Employee < ApplicationRecord
   has_many :vacations, dependent: :destroy # Added association for vacations
   has_one :account_book, dependent: :destroy
   belongs_to :territory_sign, optional: true
-  accepts_nested_attributes_for :account_book
+  accepts_nested_attributes_for :account_book, reject_if: ->(attributes) { attributes['code'].blank? }
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true

@@ -28,4 +28,13 @@ RSpec.describe TerritorySign, type: :model do
       expect(sign.to_s).to eq('Термінал А')
     end
   end
+
+  describe '.ordered' do
+    it 'returns territory signs ordered by name' do
+      create(:territory_sign, name: 'B Brigade')
+      create(:territory_sign, name: 'A Brigade')
+
+      expect(TerritorySign.ordered.pluck(:name)).to eq(['A Brigade', 'B Brigade'])
+    end
+  end
 end

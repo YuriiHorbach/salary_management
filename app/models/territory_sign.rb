@@ -5,6 +5,8 @@ class TerritorySign < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
 
+  scope :ordered, -> { order(:name) }
+
   def to_s
     name
   end

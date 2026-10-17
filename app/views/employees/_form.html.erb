@@ -87,7 +87,7 @@
       </div>
       <div>
         <%= form.collection_select :territory_sign_id,
-                          TerritorySign.all.order(:name),
+                          @territory_signs,
                           :id, :name,
                           { include_blank: 'Оберіть бригаду' },
                           { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>

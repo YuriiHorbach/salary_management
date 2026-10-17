@@ -3,7 +3,7 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_employee, only: %i[edit update destroy]
-  before_action :load_account_book_codes, only: %i[new edit create update]
+  before_action :load_form_collections, only: %i[new edit create update]
 
   def index
     @q = Employee.ransack(params[:q])
@@ -80,8 +80,9 @@ class EmployeesController < ApplicationController
     @employee = Employee.find(params[:id])
   end
 
-  def load_account_book_codes
+  def load_form_collections
     @account_book_codes = AccountBook.available_codes
+    @territory_signs = TerritorySign.ordered
   end
 
   def employee_params

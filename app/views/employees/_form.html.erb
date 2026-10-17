@@ -87,49 +87,25 @@
       </div>
       <div>
         <%= form.collection_select :territory_sign_id,
-                          TerritorySign.all.order(:name),
+                          @territory_signs,
                           :id, :name,
                           { include_blank: 'Оберіть бригаду' },
                           { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
       </div>
     </div>
 
-    <% if @employee.account_book %>
-      <%= form.fields_for :account_book, @employee.account_book do |ab_form| %>
-        <div class="mb-5">
-          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :book_name, "Назва книги" %>
-
-          </div>
-          <div>
-            <%= ab_form.text_field :book_name, maxlength: 30, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :book_number, "Номер книги" %>
-
-          </div>
-          <div>
-            <%= ab_form.number_field :book_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :page_number, "Номер сторінки" %>
-
-          </div>
-          <div>
-            <%= ab_form.number_field :page_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
-          </div>
-        </div>
-      <% end %>
-    <% else %>
+    <%= form.fields_for :account_book do |ab_form| %>
       <div class="mb-5">
         <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          <span class="text-gray-500 text-sm">Облікову книжку можна додати після збереження працівника</span>
+          <%= ab_form.label :code, "Код облікової книги" %>
+
+        </div>
+        <div>
+          <%= ab_form.collection_select :code,
+                            @account_book_codes,
+                            :to_s, :to_s,
+                            { include_blank: '— без книги —' },
+                            { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
         </div>
       </div>
     <% end %>

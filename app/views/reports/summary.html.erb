@@ -15,10 +15,10 @@
 
     <tbody class="divide-y divide-gray-200">
       <% @result[:brigades].each do |brigade_name, brigade_data| %>
-        <% brigade_data[:books].each do |book_name, book_row| %>
+        <% brigade_data[:books].each do |book_code, book_row| %>
           <tr class="bg-white">
             <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= brigade_name %></td>
-            <td class="border border-gray-300 px-3 py-2 text-sm pl-8"><%= book_name %></td>
+            <td class="border border-gray-300 px-3 py-2 text-sm pl-8"><%= book_code %></td>
             <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
               <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (book_row[key] || 0) %></td>
             <% end %>

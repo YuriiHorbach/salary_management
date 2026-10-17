@@ -31,8 +31,7 @@ module Reports
 
         {
           id_code: emp.id_code.to_s,
-          book_name: emp.account_book&.book_name || '—',
-          book_page: emp.account_book&.page_number || '—',
+          book_code: emp.account_book&.code || '—',
           brigade: emp.territory_sign&.name || '—',
           department: emp.department_employees.first&.department&.name || '—',
           full_name: emp.full_name,

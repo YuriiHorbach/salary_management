@@ -3,6 +3,7 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_employee, only: %i[edit update destroy]
+  before_action :load_form_collections, only: %i[new edit create update]
 
   def index
     @q = Employee.ransack(params[:q])
@@ -33,6 +34,7 @@ class EmployeesController < ApplicationController
 
   def new
     @employee = Employee.new
+    @employee.build_account_book
   end
 
   def create
@@ -48,7 +50,9 @@ class EmployeesController < ApplicationController
     end
   end
 
-  def edit; end
+  def edit
+    @employee.build_account_book unless @employee.account_book
+  end
 
   def update
     if @employee.update(employee_params)
@@ -76,6 +80,11 @@ class EmployeesController < ApplicationController
     @employee = Employee.find(params[:id])
   end
 
+  def load_form_collections
+    @account_book_codes = AccountBook.available_codes
+    @territory_signs = TerritorySign.ordered
+  end
+
   def employee_params
     params.require(:employee).permit(:first_name,
                                      :last_name,
@@ -86,7 +95,7 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count,
-                                     account_book_attributes: %i[id book_name book_number page_number _destroy])
+                                     account_book_attributes: %i[id code _destroy])
   end
 
   def sanitized_salary_search_params

@@ -62,14 +62,14 @@ module Reports
       vacation_agg = vacation_aggregates
       sick_agg = sick_day_aggregates
 
-      grouped = employees.group_by { |e| [e.territory_sign&.name.to_s, e.account_book&.book_name.to_s] }
+      grouped = employees.group_by { |e| [e.territory_sign&.name.to_s, e.account_book&.code.to_s] }
 
       brigades = {}
       grand_total = zero_hash
 
-      grouped.each do |(brigade, book_name), emps|
+      grouped.each do |(brigade, book_code), emps|
         brigades[brigade] ||= { books: {}, total: zero_hash }
-        brigades[brigade][:books][book_name] ||= zero_hash
+        brigades[brigade][:books][book_code] ||= zero_hash
 
         emps.each do |emp|
           s = salary_agg[emp.id] || salary_zero
@@ -78,7 +78,7 @@ module Reports
 
           row = compute_row(s, v, sk)
 
-          brigades[brigade][:books][book_name] = add_hashes(brigades[brigade][:books][book_name], row)
+          brigades[brigade][:books][book_code] = add_hashes(brigades[brigade][:books][book_code], row)
           brigades[brigade][:total] = add_hashes(brigades[brigade][:total], row)
           grand_total = add_hashes(grand_total, row)
         end

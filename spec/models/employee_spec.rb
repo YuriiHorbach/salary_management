@@ -49,6 +49,37 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe '#book_identifier' do
+    let(:employee) { create(:employee) }
+
+    it 'returns nil when no account book' do
+      expect(employee.book_identifier).to be_nil
+    end
+
+    it 'returns the account book code' do
+      create(:account_book, employee: employee, code: 'Б11')
+      expect(employee.book_identifier).to eq('Б11')
+    end
+  end
+
+  describe 'auto-generates identifier on save', truncation: true do
+    it 'sets identifier from the account book code' do
+      employee = create(:employee)
+      create(:account_book, employee: employee, code: 'Б11')
+      employee.reload
+      expect(employee.identifier).to eq('Б11')
+    end
+
+    it 'updates identifier when the account book code changes' do
+      employee = create(:employee)
+      book = create(:account_book, employee: employee, code: 'Б11')
+
+      book.update!(code: 'Б12')
+      employee.reload
+      expect(employee.identifier).to eq('Б12')
+    end
+  end
+
   describe 'recalculates taxes on attribute change', truncation: true do
     let!(:employee) { create(:employee, children_count: 0, contract: false) }
     let!(:salary) { create(:salary, employee: employee, amount_cents: 700_000, created_at: 5.minutes.ago) }

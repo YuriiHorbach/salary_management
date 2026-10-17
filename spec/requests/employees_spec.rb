@@ -98,4 +98,64 @@ RSpec.describe 'Employees update', type: :request do
       end.not_to have_enqueued_job(TaxCalculationJob)
     end
   end
+
+  describe 'GET /employees/new' do
+    it 'shows the book code selector with available codes' do
+      create(:account_book, code: 'А11')
+
+      get new_employee_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('А11')
+    end
+  end
+
+  describe 'GET /employees/:id/edit' do
+    it 'shows the book code selector with the current code' do
+      create(:account_book, employee: employee, code: 'О11')
+
+      get edit_employee_path(employee)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('О11')
+    end
+  end
+
+  describe 'book code selection' do
+    it 'assigns the selected book code to the employee profile' do
+      patch employee_path(employee), params: {
+        employee: { account_book_attributes: { code: 'О11' } }
+      }
+
+      expect(response).to have_http_status(:redirect)
+      employee.reload
+      expect(employee.account_book.code).to eq('О11')
+      expect(employee.identifier).to eq('О11')
+    end
+
+    it 'changes the book code when another code is selected' do
+      create(:account_book, employee: employee, code: 'О11')
+
+      patch employee_path(employee), params: {
+        employee: { account_book_attributes: { code: 'Б22' } }
+      }
+
+      expect(response).to have_http_status(:redirect)
+      employee.reload
+      expect(employee.account_book.code).to eq('Б22')
+      expect(employee.identifier).to eq('Б22')
+    end
+
+    it 'keeps the existing book when no code is selected' do
+      create(:account_book, employee: employee, code: 'О11')
+
+      patch employee_path(employee), params: {
+        employee: { account_book_attributes: { code: '' } }
+      }
+
+      expect(response).to have_http_status(:redirect)
+      employee.reload
+      expect(employee.account_book.code).to eq('О11')
+    end
+  end
 end

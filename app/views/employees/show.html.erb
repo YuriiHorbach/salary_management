@@ -3,6 +3,9 @@
     <div class="w-32 font-semibold text-gray-500">ID code</div>
     <div class="text-gray-900"><%= @employee.id_code %></div>
 
+    <div class="w-32 font-semibold text-gray-500">Ідентифікатор книги</div>
+    <div class="text-gray-900"><%= @employee.identifier || '—' %></div>
+
     <div class="w-32 font-semibold text-gray-500">Last name</div>
     <div class="text-gray-900"><%= @employee.last_name %></div>
 

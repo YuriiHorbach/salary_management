@@ -33,9 +33,9 @@ RSpec.describe Reports::SalarySummaryQuery do
         territory_sign: brigade2)
     end
 
-    let!(:book1) { create(:account_book, employee: emp1, book_name: '61-11') }
-    let!(:book2) { create(:account_book, employee: emp2, book_name: '61-11') }
-    let!(:book3) { create(:account_book, employee: emp3, book_name: '61-12') }
+    let!(:book1) { create(:account_book, employee: emp1, code: 'Б11') }
+    let!(:book2) { create(:account_book, employee: emp2, code: 'Б11') }
+    let!(:book3) { create(:account_book, employee: emp3, code: 'Б12') }
 
     let!(:salary1) do
       create(:salary, employee: emp1, department: department,
@@ -84,10 +84,10 @@ RSpec.describe Reports::SalarySummaryQuery do
       expect(result[:brigades]).to have_key('Бригада 2')
 
       brigade1_result = result[:brigades]['Бригада 1']
-      expect(brigade1_result[:books]).to have_key('61-11')
+      expect(brigade1_result[:books]).to have_key('Б11')
 
-      book_row = brigade1_result[:books]['61-11']
-      # emp1 + emp2 are both in Brigada 1 with book 61-11
+      book_row = brigade1_result[:books]['Б11']
+      # emp1 + emp2 are both in Brigada 1 with book Б11
       expect(book_row[:salary_gross_vacation]).to be_within(0.01).of((100_000 + 30_000 + 150_000 + 40_000) / 100.0)
       expect(book_row[:total_income]).to be_within(0.01).of(
         (100_000 + 30_000 + 150_000 + 40_000 + 30_000) / 100.0

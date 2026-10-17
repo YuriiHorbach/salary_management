@@ -10,17 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_16_202154) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_17_140002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "account_books", force: :cascade do |t|
-    t.string "book_name", null: false
     t.bigint "employee_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "book_number"
-    t.integer "page_number"
+    t.string "code"
     t.index ["employee_id"], name: "index_account_books_on_employee_id"
   end
 
@@ -63,9 +61,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_202154) do
     t.string "territory_info", default: "", null: false
     t.boolean "contract", default: false
     t.date "birthday"
-    t.integer "book_number"
-    t.string "book_name_page"
     t.bigint "territory_sign_id"
+    t.string "identifier"
+    t.index ["identifier"], name: "index_employees_on_identifier"
     t.index ["territory_sign_id"], name: "index_employees_on_territory_sign_id"
   end
 

@@ -90,11 +90,27 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:employees].size).to eq(2)
     end
 
-    it 'filters by account book' do
-      result = described_class.new(account_book: book1.id).call
+    it 'filters by account book code' do
+      result = described_class.new(account_book: 'Б11').call
 
       expect(result[:employees].size).to eq(1)
       expect(result[:employees].first[:book_code]).to eq('Б11')
+    end
+
+    it 'returns all employees that share the same account book code' do
+      emp2.account_book.update!(code: 'Б11')
+
+      result = described_class.new(account_book: 'Б11').call
+
+      expect(result[:employees].map { |e| e[:id_code] }).to contain_exactly('1234567890', '2233445566')
+    end
+
+    it 'returns nothing for an account book code that is not assigned to employees' do
+      create(:account_book, employee: nil, code: 'Ч1')
+
+      result = described_class.new(account_book: 'Ч1').call
+
+      expect(result[:employees]).to be_empty
     end
 
     it 'filters by employee search (id_code)' do

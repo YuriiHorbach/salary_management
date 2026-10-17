@@ -27,6 +27,16 @@ RSpec.describe 'AccountBooks settings', type: :request do
       expect(response.body).to include('А11')
       expect(response.body).to include('Б22')
     end
+
+    it 'renders the delete link as a Turbo DELETE request' do
+      book = create(:account_book, employee: employee, code: 'Б77')
+      get settings_account_books_path
+
+      link = Nokogiri::HTML(response.body).at_css("a[href='#{settings_account_book_path(book)}']")
+      expect(link['data-turbo-method']).to eq('delete')
+      expect(link['data-turbo-confirm']).to be_present
+      expect(link['data-method']).to be_nil
+    end
   end
 
   describe 'GET /settings/account_books/new' do

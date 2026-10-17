@@ -26,6 +26,16 @@ RSpec.describe 'TerritorySigns settings', type: :request do
       expect(response.body).to include('Бригада А')
       expect(response.body).to include('Бригада Б')
     end
+
+    it 'renders the delete link as a Turbo DELETE request' do
+      sign = create(:territory_sign, name: 'Бригада В')
+      get settings_territory_signs_path
+
+      link = Nokogiri::HTML(response.body).at_css("a[href='#{settings_territory_sign_path(sign)}']")
+      expect(link['data-turbo-method']).to eq('delete')
+      expect(link['data-turbo-confirm']).to be_present
+      expect(link['data-method']).to be_nil
+    end
   end
 
   describe 'GET /settings/territory_signs/new' do

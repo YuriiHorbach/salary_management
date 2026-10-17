@@ -28,8 +28,7 @@
               <%= link_to 'Редагувати', edit_settings_account_book_path(book),
                           class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
               <%= link_to 'Видалити', settings_account_book_path(book),
-                          method: :delete,
-                          data: { confirm: 'Ви дійсно хочете видалити цю книгу?' },
+                          data: { turbo_method: :delete, turbo_confirm: 'Ви дійсно хочете видалити цю книгу?' },
                           class: "text-red-600 hover:text-red-800 underline text-sm ml-4" %>
             </td>
           </tr>

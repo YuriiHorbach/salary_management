@@ -25,7 +25,7 @@ class ReportsController < ApplicationController
     @result = Reports::EmployeeDetailedQuery.new(params).call
     @departments = Department.all
     @brigades = TerritorySign.all.order(:name)
-    @account_books = AccountBook.all
+    @account_book_codes = AccountBook.available_codes
     @employees = Employee.all.order(:id_code)
   end
 

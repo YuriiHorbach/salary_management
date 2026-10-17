@@ -77,7 +77,7 @@ module Reports
 
       scope = scope.where(territory_sign_id: @params[:brigade]) if @params[:brigade].present?
       scope = scope.where(departments: { id: @params[:department] }) if @params[:department].present?
-      scope = scope.where(account_books: { id: @params[:account_book] }) if @params[:account_book].present?
+      scope = scope.where(account_books: { code: @params[:account_book] }) if @params[:account_book].present?
 
       if @params[:employee_search].present?
         search = "%#{@params[:employee_search]}%"

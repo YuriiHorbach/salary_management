@@ -28,8 +28,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
     let!(:dept_emp1) { create(:department_employee, employee: emp1, department: department) }
     let!(:dept_emp2) { create(:department_employee, employee: emp2, department: department) }
 
-    let!(:book1) { create(:account_book, employee: emp1, book_name: '61-11') }
-    let!(:book2) { create(:account_book, employee: emp2, book_name: '61-12') }
+    let!(:book1) { create(:account_book, employee: emp1, code: 'Б11') }
+    let!(:book2) { create(:account_book, employee: emp2, code: 'Б12') }
 
     let!(:salary1) do
       create(:salary, employee: emp1, department: department,
@@ -64,7 +64,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(emp_row[:full_name]).to eq('Іван Петренко')
       expect(emp_row[:brigade]).to eq('Бригада 1')
       expect(emp_row[:department]).to eq('Відділ A')
-      expect(emp_row[:book_name]).to eq('61-11')
+      expect(emp_row[:book_code]).to eq('Б11')
       expect(emp_row[:base_salary]).to eq(1000.00)
       expect(emp_row[:vacation_amount]).to eq(300.00)
       expect(emp_row[:sick_total]).to eq(300.00) # 20000 + 10000 cents = 300 UAH
@@ -94,7 +94,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       result = described_class.new(account_book: book1.id).call
 
       expect(result[:employees].size).to eq(1)
-      expect(result[:employees].first[:book_name]).to eq('61-11')
+      expect(result[:employees].first[:book_code]).to eq('Б11')
     end
 
     it 'filters by employee search (id_code)' do

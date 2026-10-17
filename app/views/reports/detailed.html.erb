@@ -32,7 +32,7 @@
   <div class="flex flex-col sm:flex-row gap-2">
     <%= f.label :account_book, "Книга", class: "text-sm font-medium" %>
     <%= f.select :account_book,
-        options_from_collection_for_select(@account_books, 'id', 'book_name', params[:account_book]),
+        options_from_collection_for_select(@account_books, 'id', 'code', params[:account_book]),
         { include_blank: 'Всі книги' },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
@@ -55,8 +55,7 @@
       <thead class="bg-gray-100 font-bold sticky top-0">
         <tr>
           <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ІПН</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Назва книги</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">N стор</th>
+          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Код книги</th>
           <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада</th>
           <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Підрозділ</th>
           <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ПІБ</th>
@@ -82,8 +81,7 @@
           <% @result[:employees].each do |emp| %>
             <tr class="bg-white">
               <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:id_code] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_name] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_page] %></td>
+              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_code] %></td>
               <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:brigade] %></td>
               <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:department] %></td>
               <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= emp[:full_name] %></td>
@@ -106,7 +104,7 @@
           <% end %>
 
           <tr class="bg-gray-100 font-bold">
-            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="6">Загалом</td>
+            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="5">Загалом</td>
             <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:base_salary] %></td>
             <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_income_tax] %></td>
             <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_military_tax] %></td>
@@ -125,7 +123,7 @@
           </tr>
         <% else %>
           <tr>
-            <td colspan="21" class="px-6 py-4 text-center text-sm text-gray-500">
+            <td colspan="19" class="px-6 py-4 text-center text-sm text-gray-500">
               Даних за вибрані фільтри не знайдено.
             </td>
           </tr>

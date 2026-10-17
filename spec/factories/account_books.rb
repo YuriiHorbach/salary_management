@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :account_book do
-    code { 'Б11' }
+    sequence(:code) { |n| "Б#{n}" }
     employee
   end
 end

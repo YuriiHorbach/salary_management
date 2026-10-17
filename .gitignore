@@ -31,11 +31,17 @@
 
 /public/assets
 
+# Ignore Node.js dependencies (tailwindcss-ruby via tailwindcss-rails provides
+# its own tailwindcss binary, so node_modules is not needed in the repository).
+/node_modules
+
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+# Compiled Tailwind CSS is intentionally tracked so a fresh clone has styles.
+!/app/assets/builds/tailwind.css
 .aider*
 
 storage/*.dump

@@ -29,6 +29,11 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe 'associations' do
+    it { should have_one(:account_book).dependent(:destroy) }
+    it { should belong_to(:territory_sign).optional }
+  end
+
   describe '#total_salary' do
     let(:employee) { create(:employee) }
 

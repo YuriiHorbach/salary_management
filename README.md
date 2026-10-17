@@ -6,6 +6,18 @@ To make it easy for you to get started with GitLab, here's a list of recommended
 
 Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
 
+## Стилі (Tailwind)
+
+Tailwind CSS збирається гемом `tailwindcss-rails` (`tailwindcss-ruby`), тому `node`/`npm` встановлювати не обов'язково. Після зміни класів у в'юхах згенеруйте стилі заново:
+
+    bin/rails tailwindcss:build
+
+У режимі розробки можна використовувати автоматичне відслідковування:
+
+    bin/rails tailwindcss:watch
+
+Оновлений `app/assets/builds/tailwind.css` коммітьте разом із змінами в в'юхах, щоб стилі були доступні після `git clone`.
+
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files

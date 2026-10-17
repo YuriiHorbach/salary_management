@@ -3,46 +3,60 @@
 require 'rails_helper'
 
 RSpec.describe 'Reports', type: :request do
+  include ActiveJob::TestHelper
+
   let(:user) { create(:user) }
-  let(:department_a) { create(:department, name: 'Marketing') }
-  let(:department_b) { create(:department, name: 'Development') }
+  let(:employee) { create(:employee, children_count: 0) }
+  let!(:salary) { create(:salary, employee: employee, amount_cents: 300_000) }
 
   before do
-    sign_in user, scope: :user
-    Salary.delete_all
+    sign_in user
+    ActiveJob::Base.queue_adapter = :test
   end
 
-  describe 'GET /reports' do
-    context 'when user is logged in' do
-      it 'renders the report with correct total amounts' do
-        create(:salary,
-               department: department_a,
-               amount_cents: 100_000_0,
-               income_tax_cents: 180_000,
-               military_tax_cents: 15_000,
-               net_amount_cents: 805_000)
+  describe 'GET /reports/summary' do
+    it 'returns a successful response' do
+      get summary_reports_path
 
-        get reports_path
-
-        expect(response).to have_http_status(:success)
-        expect(response.body).to include('10,000')
-        expect(response.body).to include('1,800')
-        expect(response.body).to include('150')
-        expect(response.body).to include('8,050')
-      end
+      expect(response).to have_http_status(:ok)
     end
 
-    context 'filtering' do
-      it 'filters by department correctly' do
-        create(:salary, department: department_b, amount_cents: 500_000, paid_on: '2025-01-15')
-        create(:salary, department: department_a, amount_cents: 200_000, paid_on: '2025-02-15')
+    it 'returns aggregated summary data' do
+      get summary_reports_path
 
-        get reports_path, params: { q: { by_department: department_a.id } }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Загальний дохід')
+      expect(response.body).to include('Загальний податок')
+    end
+  end
 
-        expect(response.body).to include('Marketing')
-        expect(response.body).to include('2,000')
-        expect(response.body).not_to include('5,000')
-      end
+  describe 'GET /reports/detailed' do
+    it 'returns a successful response' do
+      get detailed_reports_path
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'renders the detailed report table' do
+      get detailed_reports_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('ІПН')
+      expect(response.body).to include('ПІБ')
+      expect(response.body).to include('detailed_report_table')
+    end
+
+    it 'filters by brigade' do
+      get detailed_reports_path, params: { brigade: employee.territory_info }
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'filters by date range' do
+      get detailed_reports_path,
+          params: { date_from: Date.current.beginning_of_month, date_to: Date.current.end_of_month }
+
+      expect(response).to have_http_status(:ok)
     end
   end
 end

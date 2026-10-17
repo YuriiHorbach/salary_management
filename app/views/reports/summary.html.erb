@@ -1,0 +1,48 @@
+<% content_for :title, "Зведений звіт (Pivot)" %>
+
+<h1 class="text-2xl font-bold mb-6">Зведений звіт по зарплатах (Pivot)</h1>
+
+<div class="overflow-x-auto">
+  <table class="min-w-full border-collapse border border-gray-300">
+    <thead class="bg-gray-100 font-bold">
+      <tr>
+        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада / Книга</th>
+        <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap"><%= Reports::SalarySummaryQuery::COLUMN_LABELS[key] %></th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y divide-gray-200">
+      <% @result[:brigades].each do |brigade_name, brigade_data| %>
+        <% brigade_data[:books].each do |book_name, book_row| %>
+          <tr class="bg-white">
+            <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= brigade_name %></td>
+            <td class="border border-gray-300 px-3 py-2 text-sm pl-8"><%= book_name %></td>
+            <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (book_row[key] || 0) %></td>
+            <% end %>
+          </tr>
+        <% end %>
+
+        <tr class="bg-gray-100 font-bold">
+          <td class="border border-gray-300 px-3 py-2 text-sm" colspan="2"><%= brigade_name %> — Підсумок</td>
+          <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (brigade_data[:total][key] || 0) %></td>
+          <% end %>
+        </tr>
+      <% end %>
+
+      <tr class="bg-gray-200 font-bold">
+        <td class="border border-gray-300 px-3 py-2 text-sm" colspan="2">Всього</td>
+        <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
+          <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (@result[:grand_total][key] || 0) %></td>
+        <% end %>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<% if @result[:brigades].empty? %>
+  <div class="mt-4 text-gray-500">Даних для звіту не знайдено.</div>
+<% end %>

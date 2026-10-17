@@ -10,10 +10,37 @@
       </svg>
     </button>
 
-    <div id="menu" class="hidden lg:flex space-x-4">
+    <div id="menu" class="hidden lg:flex space-x-4 items-center">
       <%= link_to 'Departments', departments_path, class: 'hover:text-blue-200' %>
       <%= link_to 'Employees', employees_path, class: 'hover:text-blue-200' %>
-      <%= link_to 'Reports', reports_path, class: 'hover:text-blue-200' %>
+
+      <details style="position:relative;" data-controller="dropdown" data-action="toggle->dropdown#toggle">
+        <summary style="list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.25rem;">
+          <span>Звіти</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <div style="position:absolute; top:100%; left:0; margin-top:.25rem; z-index:50; min-width:14rem; white-space:nowrap; background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px rgba(0,0,0,.1); padding:.25rem 0;">
+          <%= link_to 'Зведений звіт', summary_reports_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
+          <%= link_to 'Детальний звіт', detailed_reports_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
+        </div>
+      </details>
+
+      <details style="position:relative;" data-controller="dropdown" data-action="toggle->dropdown#toggle">
+        <summary style="list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.25rem;">
+          <span>Налаштування</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <div style="position:absolute; top:100%; left:0; margin-top:.25rem; z-index:50; min-width:14rem; white-space:nowrap; background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px rgba(0,0,0,.1); padding:.25rem 0;">
+          <%= link_to 'Налаштування системи', settings_root_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
+          <%= link_to 'Бригади', settings_territory_signs_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
+          <%= link_to 'Книги', settings_account_books_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
+        </div>
+      </details>
+
       <% if user_signed_in? %>
         <%= link_to 'Logout', destroy_user_session_path, data: { turbo_method: :delete }, class: 'hover:text-blue-200' %>
       <% else %>

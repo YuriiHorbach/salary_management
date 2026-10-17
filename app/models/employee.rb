@@ -9,6 +9,9 @@ class Employee < ApplicationRecord
   has_many :salaries, dependent: :destroy
   has_many :sick_days, class_name: 'SickDay', dependent: :destroy
   has_many :vacations, dependent: :destroy # Added association for vacations
+  has_one :account_book, dependent: :destroy
+  belongs_to :territory_sign, optional: true
+  accepts_nested_attributes_for :account_book
 
   validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
   validates :first_name, presence: true

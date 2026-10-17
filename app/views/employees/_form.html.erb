@@ -82,17 +82,61 @@
 
     <div class="mb-5">
       <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-        <%= form.label :territory_info, "Бригада" %>
+        <%= form.label :territory_sign_id, "Теріторіальна ознака (Бригада)" %>
 
       </div>
       <div>
-        <%= form.text_field :territory_info, maxlength: 30, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+        <%= form.collection_select :territory_sign_id,
+                          TerritorySign.all.order(:name),
+                          :id, :name,
+                          { include_blank: 'Оберіть бригаду' },
+                          { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
       </div>
     </div>
 
+    <% if @employee.account_book %>
+      <%= form.fields_for :account_book, @employee.account_book do |ab_form| %>
+        <div class="mb-5">
+          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <%= ab_form.label :book_name, "Назва книги" %>
+
+          </div>
+          <div>
+            <%= ab_form.text_field :book_name, maxlength: 30, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <%= ab_form.label :book_number, "Номер книги" %>
+
+          </div>
+          <div>
+            <%= ab_form.number_field :book_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <%= ab_form.label :page_number, "Номер сторінки" %>
+
+          </div>
+          <div>
+            <%= ab_form.number_field :page_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="mb-5">
+        <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          <span class="text-gray-500 text-sm">Облікову книжку можна додати після збереження працівника</span>
+        </div>
+      </div>
+    <% end %>
+
     <div class="mt-3">
-      <%= form.submit "Submit", class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" %>
-      <%= link_to "Cancel", employees_path, class: "px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" %>
+      <%= form.submit "Submit", class: "btn btn-primary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
+      <%= link_to "Cancel", employees_path, class: "btn btn-secondary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
     </div>
   <% end %>
 <% end %>

@@ -9,5 +9,5 @@
 
   <%= render 'form', employee: @employee, vacation: @vacation %>
 
-  <%= link_to "Видалити", employee_vacation_path(@employee, @vacation), data: { turbo_method: :delete, turbo_confirm: "Ви впевнені?" }, class: "inline-block px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-4" %>
+  <%= link_to "Видалити", employee_vacation_path(@employee, @vacation), data: { turbo_method: :delete, turbo_confirm: "Ви впевнені?" }, class: "btn btn-danger btn-xs font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 mt-4" %>
 </div>

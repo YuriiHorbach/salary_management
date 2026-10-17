@@ -98,32 +98,13 @@
       <%= form.fields_for :account_book, @employee.account_book do |ab_form| %>
         <div class="mb-5">
           <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :book_name, "Назва книги" %>
+            <%= ab_form.label :code, "Код облікової книги (наприклад Б11)" %>
 
           </div>
           <div>
-            <%= ab_form.text_field :book_name, maxlength: 30, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+            <%= ab_form.text_field :code, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
           </div>
-        </div>
-
-        <div class="mb-5">
-          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :book_number, "Номер книги" %>
-
-          </div>
-          <div>
-            <%= ab_form.number_field :book_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            <%= ab_form.label :page_number, "Номер сторінки" %>
-
-          </div>
-          <div>
-            <%= ab_form.number_field :page_number, min: 1, class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
-          </div>
+          <p class="mt-1 text-xs text-gray-500">Формат: літера бригади + номер книги + номер сторінки (наприклад Б11)</p>
         </div>
       <% end %>
     <% else %>

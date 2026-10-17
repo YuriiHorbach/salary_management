@@ -4,7 +4,7 @@ class Settings::AccountBooksController < Settings::BaseController
   before_action :set_account_book, only: %i[edit update destroy]
 
   def index
-    @account_books = AccountBook.includes(:employee).order(:book_name)
+    @account_books = AccountBook.includes(:employee).order(:code)
   end
 
   def new
@@ -43,6 +43,6 @@ class Settings::AccountBooksController < Settings::BaseController
   end
 
   def account_book_params
-    params.require(:account_book).permit(:employee_id, :book_name, :book_number, :page_number)
+    params.require(:account_book).permit(:code)
   end
 end

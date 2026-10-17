@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class AccountBook < ApplicationRecord
-  belongs_to :employee
+  belongs_to :employee, optional: true
 
-  validates :book_name, presence: true
+  validates :code, presence: true, uniqueness: true,
+                   format: { with: /\A[А-ЯЄІЇҐA-Z]\d+\z/, message: 'має бути у форматі Б11 (літера бригади та номери)' }
 
   def book_code
     return nil if book_number.nil? || page_number.nil?

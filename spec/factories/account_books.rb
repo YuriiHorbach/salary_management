@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :account_book do
-    association :employee
-    book_name { '61-11' }
+    code { 'Б11' }
+    employee
   end
 end

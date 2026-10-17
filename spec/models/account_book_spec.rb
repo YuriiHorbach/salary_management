@@ -8,21 +8,28 @@ RSpec.describe AccountBook, type: :model do
       expect(build(:account_book)).to be_valid
     end
 
-    it 'is invalid without book_name' do
-      expect(build(:account_book, book_name: nil)).to be_invalid
+    it 'is invalid without code' do
+      expect(build(:account_book, code: nil)).to be_invalid
     end
 
-    it 'is valid with book_number' do
-      expect(build(:account_book, book_number: 1)).to be_valid
+    it 'is invalid with wrong code format' do
+      expect(build(:account_book, code: 'invalid')).to be_invalid
     end
 
-    it 'is valid with page_number' do
-      expect(build(:account_book, page_number: 5)).to be_valid
+    it 'is invalid with duplicate code' do
+      create(:account_book, code: 'Б11')
+      expect(build(:account_book, code: 'Б11')).to be_invalid
+    end
+
+    it 'is valid with proper code format' do
+      expect(build(:account_book, code: 'Б11')).to be_valid
+      expect(build(:account_book, code: 'О12')).to be_valid
+      expect(build(:account_book, code: 'А1')).to be_valid
     end
   end
 
   describe 'associations' do
-    it { should belong_to(:employee) }
+    it { should belong_to(:employee).optional }
   end
 
   describe '#book_code' do

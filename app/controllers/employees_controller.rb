@@ -86,7 +86,7 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count,
-                                     account_book_attributes: %i[id book_name book_number page_number _destroy])
+                                     account_book_attributes: %i[id code _destroy])
   end
 
   def sanitized_salary_search_params

@@ -301,6 +301,8 @@ GEM
       rack (>= 1.1)
       rubocop (>= 1.52.0, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
+    rubocop-rspec (3.4.0)
+      rubocop (~> 1.61)
     rubocop-thread_safety (0.6.0)
       rubocop (>= 1.48.1)
     ruby-progressbar (1.13.0)
@@ -390,6 +392,7 @@ DEPENDENCIES
   rubocop-changes (~> 0.8.1)
   rubocop-performance
   rubocop-rails
+  rubocop-rspec
   rubocop-thread_safety
   selenium-webdriver (~> 4.11)
   shoulda-matchers

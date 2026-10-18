@@ -167,7 +167,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
     end
 
     describe 'SQL query efficiency' do
-      def count_sql_queries(&block)
+      def count_sql_queries(&)
         query_count = 0
 
         counter = lambda do |event|
@@ -176,7 +176,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
           query_count += 1
         end
 
-        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &block)
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &)
 
         query_count
       end

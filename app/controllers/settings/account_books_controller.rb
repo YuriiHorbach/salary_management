@@ -19,7 +19,7 @@ class Settings::AccountBooksController < Settings::BaseController
     if @account_book.save
       redirect_to settings_account_books_path, notice: 'Книгу додано.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -27,7 +27,7 @@ class Settings::AccountBooksController < Settings::BaseController
     if @account_book.update(account_book_params)
       redirect_to settings_account_books_path, notice: 'Книгу оновлено.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

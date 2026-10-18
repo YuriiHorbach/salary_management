@@ -27,7 +27,7 @@ class DepartmentsController < ApplicationController
         format.html { redirect_to employees_path, notice: 'Listing was successfully created.' }
       end
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -38,7 +38,7 @@ class DepartmentsController < ApplicationController
         format.html { redirect_to employees_path, notice: 'Department updated successfully!' }
       end
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

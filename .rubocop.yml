@@ -1,0 +1,57 @@
+# .rubocop.yml
+inherit_from: .rubocop_todo.yml
+
+require:
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-thread_safety
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - '.git/**/*'
+    - '**/node_modules/**/*'
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'storage/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+
+Style/Documentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 15
+  CountAsOne: ['array', 'hash', 'heredoc']
+  Exclude:
+    - 'db/**/*'
+
+Metrics/AbcSize:
+  Max: 25
+  Exclude:
+    - 'db/**/*'
+
+Metrics/ClassLength:
+  Max: 150
+  CountAsOne: ['array', 'hash', 'heredoc']
+
+Metrics/BlockLength:
+  CountAsOne: ['array', 'hash', 'heredoc']
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+    - 'config/environments/*.rb'
+    - 'db/**/*'
+    - 'lib/tasks/**/*.rake'
+    - 'Rakefile'
+    - '**/*.gemspec'
+
+Rails/I18nLocaleTexts:
+  Enabled: false

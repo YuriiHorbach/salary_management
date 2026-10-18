@@ -214,5 +214,11 @@ RSpec.describe Reports::EmployeeDetailedQuery do
     it 'lists the five text columns in TEXT_COLUMNS' do
       expect(described_class::TEXT_COLUMNS).to eq(%i[id_code book_code brigade department full_name])
     end
+
+    it 'has a totals key for every numeric column so the totals row never drops one' do
+      numeric_columns = described_class::COLUMN_LABELS.keys - described_class::TEXT_COLUMNS
+
+      expect(numeric_columns - described_class::COLUMN_KEYS).to be_empty
+    end
   end
 end

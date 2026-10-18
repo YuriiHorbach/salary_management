@@ -2,6 +2,38 @@
 
 require 'rails_helper'
 
+FULLY_POPULATED_ROW = [
+  '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Іван Петренко',
+  '1000.00', '180.00', '50.00', '770.00',
+  '300.00', '54.00', '15.00',
+  '300.00', '54.00', '15.00',
+  '1300.00', '1600.00', '288.00', '80.00', '1232.00'
+].freeze
+
+RSpec.shared_context 'with a fully populated employee' do
+  let(:department) { create(:department, name: 'Відділ X') }
+  let(:brigade) { create(:territory_sign, name: 'Бригада X') }
+  let(:employee) do
+    create(:employee, id_code: '1234567890', first_name: 'Іван', last_name: 'Петренко',
+                      territory_sign: brigade, children_count: 0)
+  end
+  let(:rows) { Nokogiri::HTML(response.body).css('table tbody tr') }
+  let!(:salary) do
+    create(:salary, employee: employee, department: department, amount_cents: 100_000,
+                    income_tax_cents: 18_000, military_tax_cents: 5_000, net_amount_cents: 77_000)
+  end
+
+  before do
+    create(:account_book, employee: employee, code: 'Б99')
+    create(:department_employee, employee: employee, department: department)
+    create(:vacation, employee: employee, vacation_amount_cents: 30_000, income_tax_cents: 5_400,
+                      military_tax_cents: 1_500, net_amount_cents: 23_100)
+    create(:sick_day, employee: employee, pfu_amount_cents: 20_000,
+                      enterprise_amount_cents: 10_000, period: Date.current)
+    get detailed_reports_path
+  end
+end
+
 RSpec.describe 'Reports', type: :request do
   include ActiveJob::TestHelper
 
@@ -112,6 +144,42 @@ RSpec.describe 'Reports', type: :request do
 
         expect(header_cells[index].text.strip).to eq(label)
         expect(header_cells[index]['class']).to include(alignment)
+      end
+    end
+
+    it 'renders a single empty-state cell spanning all columns' do
+      get detailed_reports_path, params: { brigade: 999_999 }
+
+      doc = Nokogiri::HTML(response.body)
+      cells = doc.css('table tbody tr').first.css('td')
+
+      expect(cells.size).to eq(1)
+      expect(cells.first['colspan']).to eq('20')
+    end
+
+    context 'with a fully populated employee' do
+      include_context 'with a fully populated employee'
+
+      it 'renders the employee cells in the expected column order' do
+        expect(rows.first.css('td').map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW)
+      end
+
+      it 'aligns numeric cells right and emphasises full_name and net_pay' do
+        cells = rows.first.css('td')
+
+        expect(cells[4]['class']).to include('font-medium')
+        expect(cells[4]['class']).not_to include('text-right')
+        expect(cells[5..].map { |td| td['class'] }).to all(include('text-right'))
+        expect(cells[19]['class']).to include('text-right', 'font-semibold')
+      end
+
+      it 'renders the totals row with a spanning label and the numeric totals' do
+        cells = rows.last.css('td')
+
+        expect(cells.size).to eq(16)
+        expect(cells.first['colspan']).to eq('5')
+        expect(cells.first.text.strip).to eq('Загалом')
+        expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
       end
     end
   end

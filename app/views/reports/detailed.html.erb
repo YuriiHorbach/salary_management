@@ -65,50 +65,21 @@
         <% if @result[:employees].any? %>
           <% @result[:employees].each do |emp| %>
             <tr class="bg-white">
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:id_code] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:book_code] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:brigade] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm"><%= emp[:department] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= emp[:full_name] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:base_salary] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_income_tax] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_military_tax] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:salary_net] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_amount] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_income_tax] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:vacation_military_tax] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_total] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_pdfo] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:sick_military] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:gross_vacation] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_income] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_tax] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % emp[:total_military] %></td>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm font-semibold"><%= "%.2f" % emp[:net_pay] %></td>
+              <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_key do |key| %>
+                <td class="<%= detailed_report_cell_class(key) %>"><%= detailed_report_cell_value(key, emp) %></td>
+              <% end %>
             </tr>
           <% end %>
 
           <tr class="bg-gray-100 font-bold">
-            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="5">Загалом</td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:base_salary] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_income_tax] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_military_tax] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:salary_net] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_amount] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_income_tax] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:vacation_military_tax] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_total] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_pdfo] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:sick_military] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:gross_vacation] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_income] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_tax] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:total_military] %></td>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % @result[:totals][:net_pay] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= Reports::EmployeeDetailedQuery::TEXT_COLUMNS.size %>">Загалом</td>
+            <% (Reports::EmployeeDetailedQuery::COLUMN_LABELS.keys - Reports::EmployeeDetailedQuery::TEXT_COLUMNS).each do |key| %>
+              <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"><%= "%.2f" % @result[:totals][key] %></td>
+            <% end %>
           </tr>
         <% else %>
           <tr>
-            <td colspan="20" class="px-6 py-4 text-center text-sm text-gray-500">
+            <td colspan="<%= Reports::EmployeeDetailedQuery::COLUMN_LABELS.size %>" class="px-6 py-4 text-center text-sm text-gray-500">
               Даних за вибрані фільтри не знайдено.
             </td>
           </tr>

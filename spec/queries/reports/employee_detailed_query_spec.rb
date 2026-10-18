@@ -145,5 +145,31 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:employees]).to be_empty
       expect(result[:totals][:base_salary]).to eq(0.0)
     end
+
+    describe 'SQL query efficiency' do
+      def count_sql_queries(&block)
+        query_count = 0
+
+        counter = lambda do |event|
+          next if %w[SCHEMA CACHE].include?(event.payload[:name])
+
+          query_count += 1
+        end
+
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &block)
+
+        query_count
+      end
+
+      it 'executes the same number of queries regardless of the employee count' do
+        queries_for_two_employees = count_sql_queries { described_class.new.call }
+
+        create_list(:employee, 3)
+
+        queries_for_five_employees = count_sql_queries { described_class.new.call }
+
+        expect(queries_for_five_employees).to eq(queries_for_two_employees)
+      end
+    end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'csv'
 
 FULLY_POPULATED_ROW = [
   '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Іван Петренко',
@@ -81,6 +82,34 @@ RSpec.describe 'Reports', type: :request do
 
       expect(header_cells).to eq(Reports::SalarySummaryQuery::COLUMN_KEYS.size + 2)
       expect(first_data_cells).to eq(header_cells)
+    end
+
+    context 'when requesting CSV' do
+      it 'returns a CSV attachment response' do
+        get summary_reports_path(format: :csv)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include("summary-#{Date.current}.csv")
+      end
+
+      it 'renders a parseable CSV document' do
+        get summary_reports_path(format: :csv)
+
+        rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+        expect(rows).to be_an(Array)
+        expect(rows.first).to be_present
+        expect(rows.first.first(2)).to eq(%w[Бригада Книга])
+        expect(rows.last.first).to eq('Всього')
+      end
+
+      it 'keeps the html behavior untouched when no format is given' do
+        get summary_reports_path
+
+        expect(response.media_type).to eq('text/html')
+      end
     end
   end
 
@@ -181,6 +210,80 @@ RSpec.describe 'Reports', type: :request do
         expect(cells.first.text.strip).to eq('Загалом')
         expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
       end
+    end
+
+    context 'when requesting CSV' do
+      let(:brigade_one) { create(:territory_sign, name: 'Бригада Один') }
+      let(:brigade_two) { create(:territory_sign, name: 'Бригада Два') }
+      let(:employee_one) do
+        create(:employee, id_code: '1111111111', first_name: 'Перший', last_name: 'Працівник',
+                          territory_sign: brigade_one)
+      end
+      let(:employee_two) do
+        create(:employee, id_code: '2222222222', first_name: 'Другий', last_name: 'Працівник',
+                          territory_sign: brigade_two)
+      end
+
+      let(:csv_rows) { CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';') }
+      let(:csv_id_codes) { csv_rows[1..].map(&:first) }
+
+      before do
+        create(:salary, employee: employee_one)
+        create(:salary, employee: employee_two)
+      end
+
+      it 'returns a CSV attachment response with the detailed filename' do
+        get detailed_reports_path(format: :csv)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include("detailed-#{Date.current}.csv")
+      end
+
+      it 'renders a parseable CSV document headed by ІПН' do
+        get detailed_reports_path(format: :csv)
+
+        expect(csv_rows).to be_an(Array)
+        expect(csv_rows.first.first).to eq('ІПН')
+      end
+
+      it 'includes both employees from different brigades' do
+        get detailed_reports_path(format: :csv)
+
+        expect(csv_id_codes).to include('1111111111', '2222222222')
+      end
+
+      it 'filters the CSV rows by the brigade parameter' do
+        get detailed_reports_path(format: :csv), params: { brigade: brigade_one.id }
+
+        expect(csv_id_codes).to include('1111111111')
+        expect(csv_id_codes).not_to include('2222222222')
+      end
+
+      it 'keeps the html behavior untouched when no format is given' do
+        get detailed_reports_path
+
+        expect(response.media_type).to eq('text/html')
+      end
+    end
+  end
+
+  describe 'CSV export without authentication' do
+    before { sign_out user }
+
+    it 'does not return the summary data' do
+      get summary_reports_path(format: :csv)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.headers['Content-Disposition']).to be_nil
+    end
+
+    it 'does not return the detailed data' do
+      get detailed_reports_path(format: :csv)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.headers['Content-Disposition']).to be_nil
     end
   end
 end

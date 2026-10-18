@@ -100,5 +100,19 @@ RSpec.describe 'Reports', type: :request do
       expect(headers).to include('Брутто зп+відп')
       expect(headers.last).to eq('Чиста виплата')
     end
+
+    it 'renders the header cells with the exact labels, order and alignment classes' do
+      get detailed_reports_path
+
+      doc = Nokogiri::HTML(response.body)
+      header_cells = doc.css('table thead tr').first.css('th')
+
+      Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_with_index do |(key, label), index|
+        alignment = Reports::EmployeeDetailedQuery::TEXT_COLUMNS.include?(key) ? 'text-left' : 'text-right'
+
+        expect(header_cells[index].text.strip).to eq(label)
+        expect(header_cells[index]['class']).to include(alignment)
+      end
+    end
   end
 end

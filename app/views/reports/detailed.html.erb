@@ -54,26 +54,10 @@
     <table class="min-w-full border-collapse border border-gray-300">
       <thead class="bg-gray-100 font-bold sticky top-0">
         <tr>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ІПН</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Код книги</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Підрозділ</th>
-          <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">ПІБ</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Базова зп</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп податок</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп вз</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">зп чиста</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відпускні</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відп податок</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">відп вз</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лікарняні</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лік податок</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">лік вз</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Брутто зп+відп</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний дохід</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний податок</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Загальний вз</th>
-          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">Чиста виплата</th>
+          <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each do |key, label| %>
+            <% alignment = Reports::EmployeeDetailedQuery::TEXT_COLUMNS.include?(key) ? 'text-left' : 'text-right' %>
+            <th class="border border-gray-300 px-3 py-2 <%= alignment %> text-sm whitespace-nowrap"><%= label %></th>
+          <% end %>
         </tr>
       </thead>
 

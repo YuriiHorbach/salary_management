@@ -3,6 +3,26 @@
 require 'rails_helper'
 
 RSpec.describe Reports::EmployeeDetailedQuery do
+  let(:expected_column_keys) do
+    %i[
+      id_code book_code brigade department full_name
+      base_salary salary_income_tax salary_military_tax salary_net
+      vacation_amount vacation_income_tax vacation_military_tax
+      sick_total sick_pdfo sick_military
+      gross_vacation total_income total_tax total_military net_pay
+    ]
+  end
+
+  let(:expected_column_labels) do
+    [
+      'ІПН', 'Код книги', 'Бригада', 'Підрозділ', 'ПІБ',
+      'Базова зп', 'зп податок', 'зп вз', 'зп чиста',
+      'відпускні', 'відп податок', 'відп вз',
+      'лікарняні', 'лік податок', 'лік вз',
+      'Брутто зп+відп', 'Загальний дохід', 'Загальний податок', 'Загальний вз', 'Чиста виплата'
+    ]
+  end
+
   describe '#call' do
     let!(:department) { create(:department, name: 'Відділ A') }
 
@@ -170,6 +190,29 @@ RSpec.describe Reports::EmployeeDetailedQuery do
 
         expect(queries_for_five_employees).to eq(queries_for_two_employees)
       end
+    end
+  end
+
+  describe 'COLUMN_LABELS' do
+    it 'defines the columns in the exact order they appear in the report' do
+      expect(described_class::COLUMN_LABELS.keys).to eq(expected_column_keys)
+    end
+
+    it 'has the expected Ukrainian label for every column' do
+      expect(described_class::COLUMN_LABELS.values).to eq(expected_column_labels)
+    end
+
+    it 'only references keys that exist in employee_rows and hides vacation_net' do
+      create(:employee)
+
+      row_keys = described_class.new.call[:employees].first.keys
+
+      expect(described_class::COLUMN_LABELS.keys - row_keys).to be_empty
+      expect(row_keys).to include(:vacation_net)
+    end
+
+    it 'lists the five text columns in TEXT_COLUMNS' do
+      expect(described_class::TEXT_COLUMNS).to eq(%i[id_code book_code brigade department full_name])
     end
   end
 end

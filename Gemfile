@@ -63,6 +63,8 @@ group :development, :test do
   gem 'rubocop-rails', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'rubocop-rspec'
+  gem 'ruby-lsp'
+  gem 'ruby-lsp-rspec'
 end
 
 group :test do
@@ -83,6 +85,7 @@ group :development do
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  #
 end
 
 gem 'devise'

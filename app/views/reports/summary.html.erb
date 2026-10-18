@@ -6,7 +6,8 @@
   <table class="min-w-full border-collapse border border-gray-300">
     <thead class="bg-gray-100 font-bold">
       <tr>
-        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада / Книга</th>
+        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Бригада</th>
+        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap">Книга</th>
         <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
           <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap"><%= Reports::SalarySummaryQuery::COLUMN_LABELS[key] %></th>
         <% end %>

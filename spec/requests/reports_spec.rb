@@ -222,7 +222,7 @@ RSpec.describe 'Reports', type: :request do
 
         expect(cells[4]['class']).to include('font-medium')
         expect(cells[4]['class']).not_to include('text-right')
-        expect(cells[5..].map { |td| td['class'] }).to all(include('text-right'))
+        expect(cells[5..].pluck('class')).to all(include('text-right'))
         expect(cells[19]['class']).to include('text-right', 'font-semibold')
       end
 

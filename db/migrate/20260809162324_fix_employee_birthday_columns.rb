@@ -7,7 +7,8 @@ class FixEmployeeBirthdayColumns < ActiveRecord::Migration[7.1]
     SQL
 
     remove_column :employees, :birthdate
-    remove_column :employees, :"id_code;last_name;first_name" if column_exists?(:employees, :"id_code;last_name;first_name")
+    remove_column :employees, :"id_code;last_name;first_name" if column_exists?(:employees,
+                                                                                :"id_code;last_name;first_name")
   end
 
   def down

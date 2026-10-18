@@ -34,7 +34,7 @@ class SickDaysController < ApplicationController
 
       redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно додано.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -58,7 +58,7 @@ class SickDaysController < ApplicationController
 
       redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно оновлено.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

@@ -74,7 +74,11 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     visit settings_account_books_path
 
     # Nav bar should still have white text elements (we didn't touch the nav)
-    nav_white_text = evaluate_script("Array.from(document.querySelectorAll('nav a')).some(el => getComputedStyle(el).color === 'rgb(255, 255, 255)')")
+    nav_white_text = evaluate_script("Array.from(document
+                                           .querySelectorAll('nav a'))
+                                           .some(el => getComputedStyle(el)
+                                           .color === 'rgb(255, 255, 255)')
+                                     ")
     expect(nav_white_text).to be true
   end
 end

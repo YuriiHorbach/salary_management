@@ -46,7 +46,7 @@ class EmployeesController < ApplicationController
         format.html { redirect_to employees_path, notice: 'Employee created successfully!' }
       end
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -61,7 +61,7 @@ class EmployeesController < ApplicationController
         format.html { redirect_to employees_path, notice: 'Employee updated successfully!' }
       end
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -123,7 +123,7 @@ class EmployeesController < ApplicationController
 
   def prepare_monthly_totals(q)
     @monthly_totals = q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
-                       .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+                              .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

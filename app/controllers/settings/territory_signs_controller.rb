@@ -19,7 +19,7 @@ class Settings::TerritorySignsController < Settings::BaseController
     if @territory_sign.save
       redirect_to settings_territory_signs_path, notice: 'Теріторіальну ознаку додано.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -27,7 +27,7 @@ class Settings::TerritorySignsController < Settings::BaseController
     if @territory_sign.update(territory_sign_params)
       redirect_to settings_territory_signs_path, notice: 'Теріторіальну оновлено.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

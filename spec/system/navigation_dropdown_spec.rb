@@ -24,7 +24,9 @@ RSpec.describe 'Navigation dropdown', type: :system, js: true do
     expect(panel_position).to eq('absolute')
 
     panel_top = evaluate_script("document.querySelector('details[open] > div').getBoundingClientRect().top").to_i
-    summary_bottom = evaluate_script("document.querySelector('details[open] summary').getBoundingClientRect().bottom").to_i
+    summary_bottom = evaluate_script("document.querySelector('details[open] summary')
+                     .getBoundingClientRect().bottom")
+                     .to_i
     expect(panel_top).to be_within(10).of(summary_bottom)
 
     panel_left = evaluate_script("document.querySelector('details[open] > div').getBoundingClientRect().left").to_i

@@ -25,7 +25,7 @@ class VacationsController < ApplicationController
       redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно додано.'
     else
       puts @vacation.errors.full_messages
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -33,7 +33,7 @@ class VacationsController < ApplicationController
     if @vacation.update(vacation_params)
       redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно оновлено.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

@@ -6,18 +6,21 @@
 # affects calculations performed afterwards; already persisted results are not
 # recalculated.
 class TaxSetting < ApplicationRecord
+  # Default values used to seed the singleton when no configuration exists yet.
+  DEFAULTS = {
+    income_rate: BigDecimal('0.18'), # 18%
+    military_rate: BigDecimal('0.05'), # 5%
+    gran_dohid_uah: BigDecimal(4240), # граничний дохід для ПСП у грн
+    psp_uah: BigDecimal(1514) # податкова соціальна пільга (звичайна)
+  }.freeze
+
   validates :income_rate, :military_rate, :gran_dohid_uah, :psp_uah,
             presence: true,
             numericality: { greater_than_or_equal_to: 0 }
 
-  # Returns the single settings row, creating it from the TaxCalculator
-  # defaults the first time it is needed.
+  # Returns the single settings row, creating it from the defaults the first
+  # time it is needed.
   def self.current
-    first || create!(
-      income_rate: TaxCalculator::INCOME_TAX_RATE,
-      military_rate: TaxCalculator::MILITARY_TAX_RATE,
-      gran_dohid_uah: TaxCalculator::GRAN_DOHID_UAH,
-      psp_uah: TaxCalculator::PSP_UAH
-    )
+    first || create!(DEFAULTS)
   end
 end

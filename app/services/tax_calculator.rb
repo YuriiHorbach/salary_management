@@ -4,18 +4,17 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 
 class TaxCalculator
-  INCOME_TAX_RATE = BigDecimal('0.18') # 18%
-  MILITARY_TAX_RATE = BigDecimal('0.05') # 5%
-  GRAN_DOHID_UAH = BigDecimal('4240')    # граничний дохід для ПСП у грн
-  PSP_UAH = BigDecimal('1514') # податкова соціальна пільга (звичайна)
-
   def self.call(**args)
     new(**args).call
   end
 
+  # Rates and thresholds default to the persisted TaxSetting singleton. Callers
+  # may still override any of them explicitly (useful for historical results).
   def initialize(amount_cents:, children_count: 0, chaes: false, disability_group: 0, contract: false,
-                 psp_uah: PSP_UAH, psp_invalidity_uah: nil, gran_dohid_uah: GRAN_DOHID_UAH,
-                 income_rate: INCOME_TAX_RATE, military_rate: MILITARY_TAX_RATE, simple: false)
+                 psp_uah: nil, psp_invalidity_uah: nil, gran_dohid_uah: nil,
+                 income_rate: nil, military_rate: nil, simple: false)
+    settings = TaxSetting.current
+
     @amount_cents = amount_cents.to_i
     @children_count = children_count.to_i
     @chaes = !chaes.nil? && chaes != false
@@ -23,11 +22,11 @@ class TaxCalculator
     @contract = contract
     @simple = simple
 
-    @psp_uah = BigDecimal(psp_uah.to_s)
-    @psp_invalidity_uah = psp_invalidity_uah ? BigDecimal(psp_invalidity_uah.to_s) : nil
-    @gran_dohid_uah = BigDecimal(gran_dohid_uah.to_s)
-    @income_rate = BigDecimal(income_rate.to_s)
-    @military_rate = BigDecimal(military_rate.to_s)
+    @psp_uah = to_decimal(psp_uah || settings.psp_uah)
+    @psp_invalidity_uah = psp_invalidity_uah ? to_decimal(psp_invalidity_uah) : nil
+    @gran_dohid_uah = to_decimal(gran_dohid_uah || settings.gran_dohid_uah)
+    @income_rate = to_decimal(income_rate || settings.income_rate)
+    @military_rate = to_decimal(military_rate || settings.military_rate)
   end
 
   def call
@@ -86,6 +85,10 @@ class TaxCalculator
 
   def to_cents(uah_decimal)
     (BigDecimal(uah_decimal.to_s) * 100).to_i
+  end
+
+  def to_decimal(value)
+    BigDecimal(value.to_s)
   end
 
   def zero_result

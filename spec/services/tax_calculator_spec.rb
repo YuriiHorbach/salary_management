@@ -61,5 +61,53 @@ RSpec.describe TaxCalculator, type: :service do
         expect(res[:income_tax_cents]).to eq 44_244
       end
     end
+
+    context 'when a custom TaxSetting exists' do
+      before do
+        create(:tax_setting, income_rate: 0.10, military_rate: 0.02, gran_dohid_uah: 10_000, psp_uah: 0)
+      end
+
+      it 'picks up the persisted rates and thresholds instead of the constants' do
+        res = described_class.call(amount_cents: 200_000)
+
+        expect(res[:income_tax_cents]).to eq 20_000
+        expect(res[:military_tax_cents]).to eq 4_000
+        expect(res[:net_amount_cents]).to eq(200_000 - 20_000 - 4_000)
+      end
+
+      it 'uses the persisted threshold when deciding whether PSP applies' do
+        # gran_dohid_uah: 10_000 UAH (1_000_000 cents) -> 200_000 cents is below, PSP (0) applied
+        below = described_class.call(amount_cents: 900_000)
+        expect(below[:income_tax_cents]).to eq 90_000
+
+        # gross above the configured threshold -> no PSP reduction
+        above = described_class.call(amount_cents: 2_000_000)
+        expect(above[:income_tax_cents]).to eq 200_000
+      end
+
+      it 'still lets explicitly passed arguments override the persisted values' do
+        res = described_class.call(
+          amount_cents: 100_000,
+          income_rate: 0.18,
+          military_rate: 0.05
+        )
+
+        expect(res[:income_tax_cents]).to eq 18_000
+        expect(res[:military_tax_cents]).to eq 5_000
+      end
+    end
+
+    context 'when no TaxSetting exists yet' do
+      it 'creates the default settings from the TaxSetting defaults' do
+        expect { described_class.call(amount_cents: 200_000) }
+          .to change(TaxSetting, :count).by(1)
+
+        setting = TaxSetting.current
+        expect(setting.income_rate).to eq(TaxSetting::DEFAULTS[:income_rate])
+        expect(setting.military_rate).to eq(TaxSetting::DEFAULTS[:military_rate])
+        expect(setting.gran_dohid_uah).to eq(TaxSetting::DEFAULTS[:gran_dohid_uah])
+        expect(setting.psp_uah).to eq(TaxSetting::DEFAULTS[:psp_uah])
+      end
+    end
   end
 end

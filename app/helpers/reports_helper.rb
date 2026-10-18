@@ -3,6 +3,19 @@
 module ReportsHelper
   START_YEAR = 2000
 
+  DETAILED_FILTER_PARAMS = %i[
+    date_from date_to department brigade account_book employee_search
+  ].freeze
+
+  # Builds the detailed report CSV path, keeping the active filters as query
+  # parameters while forcing Rails to render the format as a `.csv` extension.
+  def detailed_report_csv_path(params)
+    filters = params.permit(*DETAILED_FILTER_PARAMS).to_h
+    path = detailed_reports_path(format: :csv)
+
+    filters.present? ? "#{path}?#{filters.to_query}" : path
+  end
+
   def year_options
     (START_YEAR..Time.now.year).to_a.reverse
   end

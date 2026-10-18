@@ -84,6 +84,30 @@ RSpec.describe 'Reports', type: :request do
       expect(first_data_cells).to eq(header_cells)
     end
 
+    describe 'CSV export button' do
+      it 'renders a link to the summary CSV export with the green Tailwind classes' do
+        get summary_reports_path
+
+        doc = Nokogiri::HTML(response.body)
+        link = doc.at_css('a[href*="/reports/summary.csv"]')
+
+        expect(link).to be_present
+        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
+                                         'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
+        expect(link['data-turbo']).to eq('false')
+      end
+
+      it 'does not append any query parameters to the summary CSV export link' do
+        get summary_reports_path, params: { brigade: 123 }
+
+        doc = Nokogiri::HTML(response.body)
+        href = doc.at_css('a[href*="/reports/summary.csv"]')['href']
+
+        expect(href).to eq('/reports/summary.csv')
+      end
+    end
+
     context 'when requesting CSV' do
       it 'returns a CSV attachment response' do
         get summary_reports_path(format: :csv)
@@ -209,6 +233,39 @@ RSpec.describe 'Reports', type: :request do
         expect(cells.first['colspan']).to eq('5')
         expect(cells.first.text.strip).to eq('Загалом')
         expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
+      end
+    end
+
+    describe 'CSV export button' do
+      let(:brigade) { create(:territory_sign, name: 'Бригада Експорт') }
+
+      it 'renders next to the reset button with the green Tailwind classes' do
+        get detailed_reports_path
+
+        doc = Nokogiri::HTML(response.body)
+        link = doc.at_css('a[href*=".csv"]')
+        reset_link = doc.xpath("//a[normalize-space(text())='Скинути']").first
+
+        expect(link).to be_present
+        expect(reset_link).to be_present
+        expect(link.parent).to eq(reset_link.parent)
+        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
+                                         'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
+        expect(link['data-turbo']).to eq('false')
+      end
+
+      it 'keeps the current filters and drops commit/controller/action from the export link' do
+        get detailed_reports_path, params: { brigade: brigade.id }
+
+        doc = Nokogiri::HTML(response.body)
+        href = doc.at_css('a[href*=".csv"]')['href']
+
+        expect(href).to include('.csv')
+        expect(href).to include("brigade=#{brigade.id}")
+        expect(href).not_to include('commit')
+        expect(href).not_to include('controller')
+        expect(href).not_to include('action')
       end
     end
 

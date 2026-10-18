@@ -28,6 +28,28 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).to include('Загальний дохід')
       expect(response.body).to include('Загальний податок')
     end
+
+    it 'splits the first column into separate Brigade and Book headers' do
+      get summary_reports_path
+
+      doc = Nokogiri::HTML(response.body)
+      headers = doc.css('table thead tr').first.css('th').map { |th| th.text.strip }
+
+      expect(headers.first).to eq('Бригада')
+      expect(headers.second).to eq('Книга')
+      expect(headers).not_to include('Бригада / Книга')
+    end
+
+    it 'renders one header cell per table column' do
+      get summary_reports_path
+
+      doc = Nokogiri::HTML(response.body)
+      header_cells = doc.css('table thead tr').first.css('th').size
+      first_data_cells = doc.css('table tbody tr').first.css('td').size
+
+      expect(header_cells).to eq(Reports::SalarySummaryQuery::COLUMN_KEYS.size + 2)
+      expect(first_data_cells).to eq(header_cells)
+    end
   end
 
   describe 'GET /reports/detailed' do

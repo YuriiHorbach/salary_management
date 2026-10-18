@@ -19,17 +19,35 @@ class ReportsController < ApplicationController
 
   def summary
     @result = Reports::SalarySummaryQuery.new(params).call
+
+    respond_to do |format|
+      format.html
+      format.csv { send_csv(Reports::SalarySummaryCsvExporter.new(@result).call, 'summary') }
+    end
   end
 
   def detailed
     @result = Reports::EmployeeDetailedQuery.new(params).call
-    @departments = Department.all
-    @brigades = TerritorySign.all.order(:name)
-    @account_book_codes = AccountBook.available_codes
-    @employees = Employee.all.order(:id_code)
+
+    respond_to do |format|
+      format.html do
+        @departments = Department.all
+        @brigades = TerritorySign.all.order(:name)
+        @account_book_codes = AccountBook.available_codes
+        @employees = Employee.all.order(:id_code)
+      end
+      format.csv { send_csv(Reports::EmployeeDetailedCsvExporter.new(@result).call, 'detailed') }
+    end
   end
 
   private
+
+  def send_csv(content, prefix)
+    send_data content,
+              filename: "#{prefix}-#{Date.current}.csv",
+              type: 'text/csv; charset=utf-8',
+              disposition: 'attachment'
+  end
 
   def build_report_data(salaries_relation)
     gross = salaries_relation

@@ -1,6 +1,13 @@
 <% content_for :title, "Зведений звіт (Pivot)" %>
 
-<h1 class="text-2xl font-bold mb-6">Зведений звіт по зарплатах (Pivot)</h1>
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <h1 class="text-2xl font-bold">Зведений звіт по зарплатах (Pivot)</h1>
+
+  <%= link_to "Експорт CSV",
+      summary_reports_path(format: :csv),
+      class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded",
+      data: { turbo: false } %>
+</div>
 
 <div class="overflow-x-auto">
   <table class="min-w-full border-collapse border border-gray-300">

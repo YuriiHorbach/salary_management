@@ -47,3 +47,4 @@
 storage/*.dump
 *.sql
 .opencode/
+.continue/

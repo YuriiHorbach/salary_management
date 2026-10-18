@@ -1,9 +1,32 @@
 # frozen_string_literal: true
 
 module Reports
-  # Builds a detailed per-employee report with filters for date range,
-  # department, brigade/territory, account book and employee search.
   class EmployeeDetailedQuery
+    COLUMN_LABELS = {
+      id_code: 'ІПН',
+      book_code: 'Код книги',
+      brigade: 'Бригада',
+      department: 'Підрозділ',
+      full_name: 'ПІБ',
+      base_salary: 'Базова зп',
+      salary_income_tax: 'зп податок',
+      salary_military_tax: 'зп вз',
+      salary_net: 'зп чиста',
+      vacation_amount: 'відпускні',
+      vacation_income_tax: 'відп податок',
+      vacation_military_tax: 'відп вз',
+      sick_total: 'лікарняні',
+      sick_pdfo: 'лік податок',
+      sick_military: 'лік вз',
+      gross_vacation: 'Брутто зп+відп',
+      total_income: 'Загальний дохід',
+      total_tax: 'Загальний податок',
+      total_military: 'Загальний вз',
+      net_pay: 'Чиста виплата'
+    }.freeze
+
+    TEXT_COLUMNS = %i[id_code book_code brigade department full_name].freeze
+
     def initialize(params = {})
       @params = params || {}
     end
@@ -18,7 +41,7 @@ module Reports
     private
 
     def employee_rows
-      base_employees.map do |emp|
+      @employee_rows ||= base_employees.map do |emp|
         s = salary_aggregates[emp.id] || salary_zero
         v = vacation_aggregates[emp.id] || vacation_zero
         sk = sick_day_aggregates[emp.id] || sick_zero
@@ -91,73 +114,79 @@ module Reports
     end
 
     def salary_aggregates
-      scope = Salary.where(employee_id: employee_ids)
-      scope = scope.where('paid_on >= ?', @params[:date_from]) if @params[:date_from].present?
-      scope = scope.where('paid_on <= ?', @params[:date_to]) if @params[:date_to].present?
+      @salary_aggregates ||= begin
+        scope = Salary.where(employee_id: employee_ids)
+        scope = scope.where('paid_on >= ?', @params[:date_from]) if @params[:date_from].present?
+        scope = scope.where('paid_on <= ?', @params[:date_to]) if @params[:date_to].present?
 
-      scope.group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(military_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(net_amount_cents), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            amount: v[1] / 100.0,
-            income_tax: v[2] / 100.0,
-            military_tax: v[3] / 100.0,
-            net: v[4] / 100.0
-          }
-        end
+        scope.group(:employee_id)
+          .pluck(
+            :employee_id,
+            Arel.sql('COALESCE(SUM(amount_cents), 0)'),
+            Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
+            Arel.sql('COALESCE(SUM(military_tax_cents), 0)'),
+            Arel.sql('COALESCE(SUM(net_amount_cents), 0)')
+          )
+          .index_by(&:first)
+          .transform_values do |v|
+            {
+              amount: v[1] / 100.0,
+              income_tax: v[2] / 100.0,
+              military_tax: v[3] / 100.0,
+              net: v[4] / 100.0
+            }
+          end
+      end
     end
 
     def vacation_aggregates
-      scope = Vacation.where(employee_id: employee_ids)
-      scope = scope.where('period >= ?', @params[:date_from]) if @params[:date_from].present?
-      scope = scope.where('period <= ?', @params[:date_to]) if @params[:date_to].present?
+      @vacation_aggregates ||= begin
+        scope = Vacation.where(employee_id: employee_ids)
+        scope = scope.where('period >= ?', @params[:date_from]) if @params[:date_from].present?
+        scope = scope.where('period <= ?', @params[:date_to]) if @params[:date_to].present?
 
-      scope.group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(vacation_amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(military_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(net_amount_cents), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            amount: v[1] / 100.0,
-            income_tax: v[2] / 100.0,
-            military_tax: v[3] / 100.0,
-            net: v[4] / 100.0
-          }
-        end
+        scope.group(:employee_id)
+          .pluck(
+            :employee_id,
+            Arel.sql('COALESCE(SUM(vacation_amount_cents), 0)'),
+            Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
+            Arel.sql('COALESCE(SUM(military_tax_cents), 0)'),
+            Arel.sql('COALESCE(SUM(net_amount_cents), 0)')
+          )
+          .index_by(&:first)
+          .transform_values do |v|
+            {
+              amount: v[1] / 100.0,
+              income_tax: v[2] / 100.0,
+              military_tax: v[3] / 100.0,
+              net: v[4] / 100.0
+            }
+          end
+      end
     end
 
     def sick_day_aggregates
-      scope = SickDay.where(employee_id: employee_ids)
-      scope = scope.where('period >= ?', @params[:date_from]) if @params[:date_from].present?
-      scope = scope.where('period <= ?', @params[:date_to]) if @params[:date_to].present?
+      @sick_day_aggregates ||= begin
+        scope = SickDay.where(employee_id: employee_ids)
+        scope = scope.where('period >= ?', @params[:date_from]) if @params[:date_from].present?
+        scope = scope.where('period <= ?', @params[:date_to]) if @params[:date_to].present?
 
-      scope.group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(pfu_amount_cents + enterprise_amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.18), 0)'),
-          Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.05), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            total: v[1] / 100.0,
-            pdfo: v[2] / 100.0,
-            military: v[3] / 100.0
-          }
-        end
+        scope.group(:employee_id)
+          .pluck(
+            :employee_id,
+            Arel.sql('COALESCE(SUM(pfu_amount_cents + enterprise_amount_cents), 0)'),
+            Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.18), 0)'),
+            Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.05), 0)')
+          )
+          .index_by(&:first)
+          .transform_values do |v|
+            {
+              total: v[1] / 100.0,
+              pdfo: v[2] / 100.0,
+              military: v[3] / 100.0
+            }
+          end
+      end
     end
 
     COLUMN_KEYS = %i[

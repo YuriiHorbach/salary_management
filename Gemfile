@@ -87,3 +87,5 @@ end
 gem 'devise'
 gem 'money-rails'
 gem 'ransack'
+
+gem 'csv'

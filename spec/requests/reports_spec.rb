@@ -1,6 +1,39 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'csv'
+
+FULLY_POPULATED_ROW = [
+  '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Іван Петренко',
+  '1000.00', '180.00', '50.00', '770.00',
+  '300.00', '54.00', '15.00',
+  '300.00', '54.00', '15.00',
+  '1300.00', '1600.00', '288.00', '80.00', '1232.00'
+].freeze
+
+RSpec.shared_context 'with a fully populated employee' do
+  let(:department) { create(:department, name: 'Відділ X') }
+  let(:brigade) { create(:territory_sign, name: 'Бригада X') }
+  let(:employee) do
+    create(:employee, id_code: '1234567890', first_name: 'Іван', last_name: 'Петренко',
+                      territory_sign: brigade, children_count: 0)
+  end
+  let(:rows) { Nokogiri::HTML(response.body).css('table tbody tr') }
+  let!(:salary) do
+    create(:salary, employee: employee, department: department, amount_cents: 100_000,
+                    income_tax_cents: 18_000, military_tax_cents: 5_000, net_amount_cents: 77_000)
+  end
+
+  before do
+    create(:account_book, employee: employee, code: 'Б99')
+    create(:department_employee, employee: employee, department: department)
+    create(:vacation, employee: employee, vacation_amount_cents: 30_000, income_tax_cents: 5_400,
+                      military_tax_cents: 1_500, net_amount_cents: 23_100)
+    create(:sick_day, employee: employee, pfu_amount_cents: 20_000,
+                      enterprise_amount_cents: 10_000, period: Date.current)
+    get detailed_reports_path
+  end
+end
 
 RSpec.describe 'Reports', type: :request do
   include ActiveJob::TestHelper
@@ -49,6 +82,58 @@ RSpec.describe 'Reports', type: :request do
 
       expect(header_cells).to eq(Reports::SalarySummaryQuery::COLUMN_KEYS.size + 2)
       expect(first_data_cells).to eq(header_cells)
+    end
+
+    describe 'CSV export button' do
+      it 'renders a link to the summary CSV export with the green Tailwind classes' do
+        get summary_reports_path
+
+        doc = Nokogiri::HTML(response.body)
+        link = doc.at_css('a[href*="/reports/summary.csv"]')
+
+        expect(link).to be_present
+        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
+                                         'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
+        expect(link['data-turbo']).to eq('false')
+      end
+
+      it 'does not append any query parameters to the summary CSV export link' do
+        get summary_reports_path, params: { brigade: 123 }
+
+        doc = Nokogiri::HTML(response.body)
+        href = doc.at_css('a[href*="/reports/summary.csv"]')['href']
+
+        expect(href).to eq('/reports/summary.csv')
+      end
+    end
+
+    context 'when requesting CSV' do
+      it 'returns a CSV attachment response' do
+        get summary_reports_path(format: :csv)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include("summary-#{Date.current}.csv")
+      end
+
+      it 'renders a parseable CSV document' do
+        get summary_reports_path(format: :csv)
+
+        rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+        expect(rows).to be_an(Array)
+        expect(rows.first).to be_present
+        expect(rows.first.first(2)).to eq(%w[Бригада Книга])
+        expect(rows.last.first).to eq('Всього')
+      end
+
+      it 'keeps the html behavior untouched when no format is given' do
+        get summary_reports_path
+
+        expect(response.media_type).to eq('text/html')
+      end
     end
   end
 
@@ -99,6 +184,163 @@ RSpec.describe 'Reports', type: :request do
 
       expect(headers).to include('Брутто зп+відп')
       expect(headers.last).to eq('Чиста виплата')
+    end
+
+    it 'renders the header cells with the exact labels, order and alignment classes' do
+      get detailed_reports_path
+
+      doc = Nokogiri::HTML(response.body)
+      header_cells = doc.css('table thead tr').first.css('th')
+
+      Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_with_index do |(key, label), index|
+        alignment = Reports::EmployeeDetailedQuery::TEXT_COLUMNS.include?(key) ? 'text-left' : 'text-right'
+
+        expect(header_cells[index].text.strip).to eq(label)
+        expect(header_cells[index]['class']).to include(alignment)
+      end
+    end
+
+    it 'renders a single empty-state cell spanning all columns' do
+      get detailed_reports_path, params: { brigade: 999_999 }
+
+      doc = Nokogiri::HTML(response.body)
+      cells = doc.css('table tbody tr').first.css('td')
+
+      expect(cells.size).to eq(1)
+      expect(cells.first['colspan']).to eq('20')
+    end
+
+    context 'with a fully populated employee' do
+      include_context 'with a fully populated employee'
+
+      it 'renders the employee cells in the expected column order' do
+        expect(rows.first.css('td').map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW)
+      end
+
+      it 'aligns numeric cells right and emphasises full_name and net_pay' do
+        cells = rows.first.css('td')
+
+        expect(cells[4]['class']).to include('font-medium')
+        expect(cells[4]['class']).not_to include('text-right')
+        expect(cells[5..].map { |td| td['class'] }).to all(include('text-right'))
+        expect(cells[19]['class']).to include('text-right', 'font-semibold')
+      end
+
+      it 'renders the totals row with a spanning label and the numeric totals' do
+        cells = rows.last.css('td')
+
+        expect(cells.size).to eq(16)
+        expect(cells.first['colspan']).to eq('5')
+        expect(cells.first.text.strip).to eq('Загалом')
+        expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
+      end
+    end
+
+    describe 'CSV export button' do
+      let(:brigade) { create(:territory_sign, name: 'Бригада Експорт') }
+
+      it 'renders next to the reset button with the green Tailwind classes' do
+        get detailed_reports_path
+
+        doc = Nokogiri::HTML(response.body)
+        link = doc.at_css('a[href*=".csv"]')
+        reset_link = doc.xpath("//a[normalize-space(text())='Скинути']").first
+
+        expect(link).to be_present
+        expect(reset_link).to be_present
+        expect(link.parent).to eq(reset_link.parent)
+        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
+                                         'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
+        expect(link['data-turbo']).to eq('false')
+      end
+
+      it 'keeps the current filters and drops commit/controller/action from the export link' do
+        get detailed_reports_path, params: { brigade: brigade.id }
+
+        doc = Nokogiri::HTML(response.body)
+        href = doc.at_css('a[href*=".csv"]')['href']
+
+        expect(href).to include('.csv')
+        expect(href).to include("brigade=#{brigade.id}")
+        expect(href).not_to include('commit')
+        expect(href).not_to include('controller')
+        expect(href).not_to include('action')
+      end
+    end
+
+    context 'when requesting CSV' do
+      let(:brigade_one) { create(:territory_sign, name: 'Бригада Один') }
+      let(:brigade_two) { create(:territory_sign, name: 'Бригада Два') }
+      let(:employee_one) do
+        create(:employee, id_code: '1111111111', first_name: 'Перший', last_name: 'Працівник',
+                          territory_sign: brigade_one)
+      end
+      let(:employee_two) do
+        create(:employee, id_code: '2222222222', first_name: 'Другий', last_name: 'Працівник',
+                          territory_sign: brigade_two)
+      end
+
+      let(:csv_rows) { CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';') }
+      let(:csv_id_codes) { csv_rows[1..].map(&:first) }
+
+      before do
+        create(:salary, employee: employee_one)
+        create(:salary, employee: employee_two)
+      end
+
+      it 'returns a CSV attachment response with the detailed filename' do
+        get detailed_reports_path(format: :csv)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include("detailed-#{Date.current}.csv")
+      end
+
+      it 'renders a parseable CSV document headed by ІПН' do
+        get detailed_reports_path(format: :csv)
+
+        expect(csv_rows).to be_an(Array)
+        expect(csv_rows.first.first).to eq('ІПН')
+      end
+
+      it 'includes both employees from different brigades' do
+        get detailed_reports_path(format: :csv)
+
+        expect(csv_id_codes).to include('1111111111', '2222222222')
+      end
+
+      it 'filters the CSV rows by the brigade parameter' do
+        get detailed_reports_path(format: :csv), params: { brigade: brigade_one.id }
+
+        expect(csv_id_codes).to include('1111111111')
+        expect(csv_id_codes).not_to include('2222222222')
+      end
+
+      it 'keeps the html behavior untouched when no format is given' do
+        get detailed_reports_path
+
+        expect(response.media_type).to eq('text/html')
+      end
+    end
+  end
+
+  describe 'CSV export without authentication' do
+    before { sign_out user }
+
+    it 'does not return the summary data' do
+      get summary_reports_path(format: :csv)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.headers['Content-Disposition']).to be_nil
+    end
+
+    it 'does not return the detailed data' do
+      get detailed_reports_path(format: :csv)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.headers['Content-Disposition']).to be_nil
     end
   end
 end

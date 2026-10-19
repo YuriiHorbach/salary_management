@@ -8,6 +8,7 @@ class SickDaysController < ApplicationController
 
   def index
     @sick_days = @employee.sick_days.order(period: :desc)
+    @sick_days_summaries = @employee.sick_days_summaries
   end
 
   def new
@@ -51,6 +52,7 @@ class SickDaysController < ApplicationController
   end
 
   def sick_day_params
-    params.require(:sick_day).permit(:period, :pfu_amount_cents, :enterprise_amount_cents)
+    params.require(:sick_day).permit(:period, :pfu_amount, :enterprise_amount,
+                                     :pfu_amount_cents, :enterprise_amount_cents)
   end
 end

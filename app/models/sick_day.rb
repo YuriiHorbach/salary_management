@@ -21,6 +21,12 @@ class SickDay < ApplicationRecord
     pfu_amount + enterprise_amount
   end
 
+  # The form submits a month ("YYYY-MM"), while the attribute is cast to Date.
+  def period=(value)
+    value = Date.strptime(value, '%Y-%m') if value.is_a?(String) && /\A\d{4}-\d{2}\z/.match?(value)
+    super
+  end
+
   def pdfo_amount
     Money.new(income_tax_cents || 0, pfu_amount.currency)
   end

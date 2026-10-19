@@ -25,8 +25,6 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     width = evaluate_script("arguments[0].getBoundingClientRect().width", add_btn.native)
     height = evaluate_script("arguments[0].getBoundingClientRect().height", add_btn.native)
 
-    puts "Add button - color: #{color}, backgroundColor: #{bg_color}, width: #{width}, height: #{height}"
-
     # Text should be black (rgb(0, 0, 0))
     expect(color).to eq('rgb(0, 0, 0)')
 

@@ -129,4 +129,49 @@ RSpec.describe Employee, type: :model do
       expect(salary.reload.income_tax_cents).to eq(old_tax)
     end
   end
+
+  describe '.search_by_id_code_or_name' do
+    let!(:petrenko) do
+      create(:employee, id_code: '1234567890', last_name: 'Петренко',
+                        first_name: 'Іван', patronic_name: 'Іванович')
+    end
+    let!(:ivanenko) do
+      create(:employee, id_code: '9876543210', last_name: 'Іваненко',
+                        first_name: 'Марія', patronic_name: 'Петрівна')
+    end
+
+    it 'matches by last name case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('петренко')).to contain_exactly(petrenko)
+    end
+
+    it 'matches by first name case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('мАрІя')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by patronymic case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('петрівна')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by a partial id code' do
+      expect(described_class.search_by_id_code_or_name('12345')).to contain_exactly(petrenko)
+    end
+
+    it 'returns every employee when the term is blank' do
+      expect(described_class.search_by_id_code_or_name(nil)).to contain_exactly(petrenko, ivanenko)
+      expect(described_class.search_by_id_code_or_name('  ')).to contain_exactly(petrenko, ivanenko)
+    end
+
+    it 'escapes LIKE wildcards so they are treated literally' do
+      expect(described_class.search_by_id_code_or_name('%')).to be_empty
+    end
+  end
+
+  describe '#full_name_with_id_code' do
+    it 'returns the id code followed by the full name' do
+      employee = build(:employee, id_code: '1234567890', last_name: 'Петренко',
+                                  first_name: 'Іван', patronic_name: 'Іванович')
+
+      expect(employee.full_name_with_id_code).to eq('1234567890 — Петренко Іван Іванович')
+    end
+  end
 end

@@ -11,10 +11,5 @@
         class: "ml-4 text-gray-600 hover:text-gray-900 underline" %>
   </div>
 
-  <% if @sick_days.any? %>
-    <%= render 'table' %>
-  <% else %>
-    <p class="text-gray-500 italic">Записів про лікарняні поки що немає.</p>
-  <% end %>
+  <%= render 'list', sick_days: @sick_days, sick_days_summaries: @sick_days_summaries %>
 </div>
-

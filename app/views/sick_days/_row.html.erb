@@ -5,7 +5,12 @@
     <div class="px-4 text-right"><%= number_to_currency(sd.enterprise_amount) %></div>
     <div class="px-4 text-right font-medium"><%= number_to_currency(sd.total_amount) %></div>
     <div class="px-4 text-center">
-      <%= link_to "✏️", edit_employee_sick_day_path(@employee, sd), class: "hover:scale-110 inline-block p-1" %>
+      <%= link_to "✏️", edit_employee_sick_day_path(@employee, sd),
+          class: "hover:scale-110 transition-transform p-1" %>
+      <%= button_to "❌", employee_sick_day_path(@employee, sd),
+          method: :delete,
+          form_class: "inline",
+          data: { turbo_confirm: "Are you sure?" } %>
     </div>
   </div>
 <% end %>

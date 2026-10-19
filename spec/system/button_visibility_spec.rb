@@ -10,7 +10,8 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     fill_in 'user[email]', with: user.email
     fill_in 'user[password]', with: user.password
     click_button 'Log in'
-    expect(page).to have_current_path(root_path)
+    expect(page).to have_current_path(root_path, wait: 10)
+    expect(page).to have_link('Logout')
   end
 
   it 'buttons on settings/account_books have black text and colored background' do

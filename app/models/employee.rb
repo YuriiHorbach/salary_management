@@ -55,6 +55,16 @@ class Employee < ApplicationRecord
     end
   end
 
+  def sick_days_summaries
+    sick_days.group_by(&:period).transform_values do |days|
+      {
+        pfu: days.map(&:pfu_amount).sum,
+        enterprise: days.map(&:enterprise_amount).sum,
+        total: days.map(&:total_amount).sum
+      }
+    end
+  end
+
   def last_salary_display
     salaries.last&.amount || "+ Add"
   end

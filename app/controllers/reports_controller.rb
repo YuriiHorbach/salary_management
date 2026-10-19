@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ReportsController < ApplicationController
+  DETAILED_REPORT_PER_PAGE = 20
+
   before_action :authenticate_user!
 
   def index
@@ -34,7 +36,7 @@ class ReportsController < ApplicationController
         @departments = Department.all
         @brigades = TerritorySign.all.order(:name)
         @account_book_codes = AccountBook.available_codes
-        @employees = Employee.all.order(:id_code)
+        @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
       end
       format.csv { send_csv(Reports::EmployeeDetailedCsvExporter.new(@result).call, 'detailed') }
     end

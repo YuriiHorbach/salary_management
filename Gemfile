@@ -93,3 +93,5 @@ gem 'money-rails'
 gem 'ransack'
 
 gem 'csv'
+
+gem 'pagy', '~> 43.8'

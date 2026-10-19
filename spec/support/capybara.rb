@@ -24,8 +24,13 @@ Capybara.server = :puma, { Silent: true }
 RSpec.configure do |config|
   config.include Capybara::DSL, type: :system
   config.include Capybara::RSpecMatchers, type: :system
+  config.include Warden::Test::Helpers, type: :system
 
   config.before(:each, type: :system) do
     driven_by :chrome_headless
+  end
+
+  config.after(:each, type: :system) do
+    Warden.test_reset!
   end
 end

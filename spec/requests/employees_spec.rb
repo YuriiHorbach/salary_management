@@ -70,6 +70,18 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees/:id vacation amounts' do
+    it 'shows vacation amounts in currency units instead of cents' do
+      create(:vacation, employee: employee, period: '2026-02-01', vacation_amount: 1000)
+
+      get employee_path(employee)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('$1,000.00')
+      expect(response.body).not_to include('$100,000.00')
+    end
+  end
+
   describe 'PATCH /employees/:id' do
     it 'recalculates taxes when tax-affecting attributes change' do
       perform_enqueued_jobs { salary.save }

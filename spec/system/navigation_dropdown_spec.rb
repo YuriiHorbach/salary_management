@@ -6,11 +6,8 @@ RSpec.describe 'Navigation dropdown', type: :system, js: true do
   let(:user) { create(:user, email: 'test@example.com', password: '123456') }
 
   def sign_in_user
-    visit new_user_session_path
-    fill_in 'user[email]', with: user.email
-    fill_in 'user[password]', with: user.password
-    click_button 'Log in'
-    expect(page).to have_current_path(root_path, wait: 10)
+    login_as user, scope: :user
+    visit root_path
     expect(page).to have_link('Logout')
   end
 

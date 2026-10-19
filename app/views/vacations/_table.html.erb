@@ -13,9 +13,9 @@
       <% @vacations.each do |vacation| %>
         <tr class="border-b">
           <td class="px-4 py-2"><%= vacation.period&.strftime("%Y-%m-%d") %></td>
-          <td class="px-4 py-2"><%= number_to_currency(vacation.vacation_amount_cents) %></td>
-          <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.income_tax_cents) %></td>
-          <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.military_tax_cents) %></td>
+          <td class="px-4 py-2"><%= number_to_currency(vacation.vacation_amount) %></td>
+          <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.pdfo_amount) %></td>
+          <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.military_amount) %></td>
           <td class="px-4 py-2 flex justify-end gap-2">
             <%= link_to 'Редагувати', edit_employee_vacation_path(@employee, vacation), class: "text-blue-600 hover:underline" %>
             <%= link_to 'Видалити', employee_vacation_path(@employee, vacation), data: { turbo_method: :delete, turbo_confirm: 'Ви впевнені?' }, class: "text-red-600 hover:underline" %>

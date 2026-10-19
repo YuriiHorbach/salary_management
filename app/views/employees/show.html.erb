@@ -151,9 +151,9 @@
           <% @vacations.each do |vacation| %>
             <tr class="border-b">
               <td class="px-4 py-2"><%= vacation.period&.strftime("%Y-%m-%d") %></td>
-              <td class="px-4 py-2"><%= number_to_currency(vacation.vacation_amount_cents) %></td>
-              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.income_tax_cents) %></td>
-              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.military_tax_cents) %></td>
+              <td class="px-4 py-2"><%= number_to_currency(vacation.vacation_amount) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.pdfo_amount) %></td>
+              <td class="px-4 py-2 text-red-500"><%= number_to_currency(vacation.military_amount) %></td>
             </tr>
           <% end %>
         <% else %>

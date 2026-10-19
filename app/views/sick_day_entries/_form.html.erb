@@ -1,0 +1,50 @@
+<% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white" %>
+
+<%= form_with(model: sick_day, url: sick_day_entries_path,
+    class: "grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-yellow-50 dark:bg-yellow-900/20 py-4 px-4 rounded border border-yellow-200",
+    data: { turbo_frame: "_top" }) do |f| %>
+
+  <%= hidden_field_tag :employee_search, @employee_search %>
+
+  <% if sick_day.errors.any? %>
+    <div class="md:col-span-5 text-sm text-red-600">
+      <%= sick_day.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :employee_id, "Працівник", class: "block text-sm font-medium mb-1" %>
+    <%= f.collection_select :employee_id, employees, :id, :full_name_with_id_code,
+        { include_blank: "Оберіть працівника" },
+        { class: input_classes, required: true } %>
+  </div>
+
+  <div>
+    <%= f.label :period, "Період", class: "block text-sm font-medium mb-1" %>
+    <%= f.month_field :period,
+        class: input_classes,
+        value: sick_day.period&.strftime("%Y-%m"),
+        required: true %>
+  </div>
+
+  <div>
+    <%= f.label :pfu_amount, "Лікарняний за рахунок ПФУ", class: "block text-sm font-medium mb-1" %>
+    <%= f.number_field :pfu_amount,
+        value: (sick_day.pfu_amount if sick_day.pfu_amount.to_f.positive?),
+        min: 0, step: 0.01, class: "#{input_classes} text-right" %>
+  </div>
+
+  <div>
+    <%= f.label :enterprise_amount, "Лікарняний за рахунок підприємства", class: "block text-sm font-medium mb-1" %>
+    <%= f.number_field :enterprise_amount,
+        value: (sick_day.enterprise_amount if sick_day.enterprise_amount.to_f.positive?),
+        min: 0, step: 0.01, class: "#{input_classes} text-right" %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <%= f.submit "Зберегти", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to "Скасувати", employees_path,
+        class: "text-gray-600 hover:text-gray-900 underline",
+        data: { turbo_frame: "_top" } %>
+  </div>
+<% end %>

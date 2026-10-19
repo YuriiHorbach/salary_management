@@ -21,6 +21,19 @@ class Employee < ApplicationRecord
   after_save :recalculate_taxes_if_needed
   after_save :set_book_identifier
 
+  # PostgreSQL uses the C collation here, so ILIKE/LOWER do not fold Cyrillic.
+  # Match case-insensitively in Ruby and keep returning a relation for chaining.
+  scope :search_by_id_code_or_name, lambda { |term|
+    next all if term.blank?
+
+    normalized = term.to_s.strip.downcase
+    ids = pluck(:id, :id_code, :last_name, :first_name, :patronic_name).filter_map do |id, *values|
+      id if values.any? { |value| value.to_s.downcase.include?(normalized) }
+    end
+
+    where(id: ids)
+  }
+
   def self.ransackable_attributes(_auth_object = nil)
     # Ensure amount_cents is listed here to allow searching through associations
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
@@ -71,6 +84,10 @@ class Employee < ApplicationRecord
 
   def full_name
     "#{first_name} #{last_name}"
+  end
+
+  def full_name_with_id_code
+    "#{id_code} — #{last_name} #{first_name} #{patronic_name}"
   end
 
   private

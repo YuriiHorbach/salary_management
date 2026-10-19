@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_17_140002) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -105,6 +105,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_17_140002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
+  end
+
+  create_table "tax_settings", force: :cascade do |t|
+    t.decimal "income_rate", precision: 6, scale: 4, null: false
+    t.decimal "military_rate", precision: 6, scale: 4, null: false
+    t.decimal "gran_dohid_uah", precision: 10, scale: 2, null: false
+    t.decimal "psp_uah", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "territory_signs", force: :cascade do |t|

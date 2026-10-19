@@ -34,5 +34,6 @@ Rails.application.routes.draw do
     root to: 'dashboard#index'
     resources :territory_signs, except: [:show]
     resources :account_books, except: [:show]
+    resource :tax_settings, only: %i[edit update]
   end
 end

@@ -1,6 +1,9 @@
 # db/seeds.rb
 require 'faker'
 
+puts "Ініціалізація налаштувань податків..."
+TaxSetting.current
+
 puts "Очищення старої бази..."
 # Спочатку очищаємо таблиці зв'язків, щоб не було помилок Foreign Key
 DepartmentEmployee.destroy_all if defined?(DepartmentEmployee)

@@ -66,8 +66,8 @@
       </thead>
 
       <tbody class="divide-y divide-gray-200">
-        <% if @result[:employees].any? %>
-          <% @result[:employees].each do |emp| %>
+        <% if @employees.any? %>
+          <% @employees.each do |emp| %>
             <tr class="bg-white">
               <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_key do |key| %>
                 <td class="<%= detailed_report_cell_class(key) %>"><%= detailed_report_cell_value(key, emp) %></td>
@@ -91,4 +91,14 @@
       </tbody>
     </table>
   </div>
+
+  <% if @pagy.last > 1 %>
+    <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
+      <span class="text-gray-600">Сторінка <%= @pagy.page %> з <%= @pagy.last %></span>
+      <%== @pagy.series_nav(
+            anchor_string: 'class="inline-block mr-1 px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"',
+            querify: ->(params) { params.except!('commit', 'controller', 'action') }
+          ) %>
+    </div>
+  <% end %>
 <% end %>

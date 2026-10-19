@@ -326,6 +326,115 @@ RSpec.describe 'Reports', type: :request do
     end
   end
 
+  describe 'GET /reports/detailed pagination' do
+    let!(:salary) { nil } # disable the shared salary/employee so the employee count is deterministic
+    let(:brigade) { create(:territory_sign, name: 'Бригада Пагінація') }
+    let(:department) { create(:department, name: 'Відділ Пагінація') }
+    let!(:employees) { create_list(:employee, 25, territory_sign: brigade) }
+
+    def parsed_doc
+      Nokogiri::HTML(response.body)
+    end
+
+    def employee_rows
+      parsed_doc.css('table tbody tr').select do |row|
+        row.css('td').size == Reports::EmployeeDetailedQuery::COLUMN_LABELS.size
+      end
+    end
+
+    def employee_id_codes
+      employee_rows.map { |row| row.css('td').first.text.strip }
+    end
+
+    def totals_row
+      parsed_doc.css('table tbody tr').find do |row|
+        row.css('td').size < Reports::EmployeeDetailedQuery::COLUMN_LABELS.size
+      end
+    end
+
+    it 'shows 20 employees per page' do
+      get detailed_reports_path
+
+      expect(employee_rows.size).to eq(20)
+    end
+
+    it 'shows the remaining employees on the second page' do
+      get detailed_reports_path(page: 2)
+
+      expect(employee_rows.size).to eq(5)
+    end
+
+    it 'does not repeat employees across pages' do
+      get detailed_reports_path
+      first_page_ids = employee_id_codes
+
+      get detailed_reports_path(page: 2)
+      second_page_ids = employee_id_codes
+
+      expect(first_page_ids & second_page_ids).to be_empty
+      expect((first_page_ids + second_page_ids).sort).to eq(employees.map { |e| e.id_code.to_s }.sort)
+    end
+
+    it 'keeps the totals row for all filtered employees, not just the current page' do
+      employees.each do |employee|
+        create(:salary, employee: employee, department: department, amount_cents: 100_000)
+      end
+
+      get detailed_reports_path
+
+      expect(totals_row.text).to include('25000.00')
+    end
+
+    it 'renders the pagination navigation inside the report turbo frame' do
+      get detailed_reports_path
+
+      frame = parsed_doc.at_css('turbo-frame#detailed_report_table')
+
+      expect(frame).to be_present
+      expect(frame.at_css('nav.pagy')).to be_present
+      expect(frame.at_css('a[href*="page=2"]')).to be_present
+    end
+
+    it 'keeps the active filters in the pagination links' do
+      get detailed_reports_path(brigade: brigade.id)
+
+      link = parsed_doc.at_css('a[href*="page=2"]')
+
+      expect(link['href']).to include("brigade=#{brigade.id}")
+    end
+
+    it 'drops the commit param from the pagination links' do
+      get detailed_reports_path(commit: 'Фільтрувати')
+
+      link = parsed_doc.at_css('a[href*="page=2"]')
+
+      expect(link['href']).not_to include('commit')
+    end
+
+    it 'keeps all employees in the CSV export regardless of the page param' do
+      get detailed_reports_path(format: :csv, page: 2)
+
+      csv = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+      ids = csv[1..].reject { |row| row.first == 'Загалом' }.map(&:first)
+
+      expect(ids).to match_array(employees.map { |e| e.id_code.to_s })
+    end
+
+    it 'does not pass the page param to the CSV export link' do
+      get detailed_reports_path(page: 2)
+
+      href = parsed_doc.at_css('a[href*=".csv"]')['href']
+
+      expect(href).not_to include('page=')
+    end
+
+    it 'handles out-of-range pages without raising' do
+      get detailed_reports_path(page: 999)
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
   describe 'CSV export without authentication' do
     before { sign_out user }
 

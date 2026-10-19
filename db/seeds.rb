@@ -20,7 +20,7 @@ departments = [
 ]
 
 puts "Створення 10 працівників..."
-10.times do
+50.times do
   employee = Employee.create!(
     id_code: Faker::Number.number(digits: 10),
     first_name: Faker::Name.first_name,

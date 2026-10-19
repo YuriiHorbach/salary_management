@@ -20,6 +20,18 @@ RSpec.describe 'Vacations', type: :request do
     end
   end
 
+  describe 'GET /employees/:employee_id/vacations/new' do
+    it 'does not prefill the vacation amount and shows the input format hint' do
+      get new_employee_vacation_path(employee)
+
+      amount_input = Nokogiri::HTML(response.body).at_css('input[name="vacation[vacation_amount]"]')
+
+      expect(response).to have_http_status(:ok)
+      expect(amount_input['value']).to be_blank
+      expect(response.body).to include('1000,00')
+    end
+  end
+
   describe 'POST /employees/:employee_id/vacations' do
     let(:valid_attributes) { { period: '2023-01-01', vacation_amount: '100.00' } }
 

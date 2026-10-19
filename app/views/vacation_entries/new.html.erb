@@ -1,0 +1,24 @@
+<% content_for :title, 'Додати відпустку' %>
+
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Додати відпустку</h1>
+
+  <%= form_with url: new_vacation_entry_path, method: :get,
+      class: "mb-6 flex flex-wrap gap-4 items-end",
+      data: { turbo_frame: "vacation_entry_form" } do |f| %>
+    <div class="flex flex-col">
+      <%= f.label :employee_search, "Пошук за ІПН або ПІБ", class: "text-sm font-medium mb-1" %>
+      <%= f.text_field :employee_search, value: @employee_search,
+          placeholder: "ІПН або ПІБ",
+          class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+    </div>
+
+    <%= f.submit "Пошук", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to "Скинути", new_vacation_entry_path,
+        class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
+  <% end %>
+
+  <%= turbo_frame_tag "vacation_entry_form" do %>
+    <%= render "form", vacation: @vacation, employees: @employees %>
+  <% end %>
+</div>

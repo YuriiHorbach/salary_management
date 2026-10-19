@@ -12,8 +12,10 @@
   </div>
 
   <div class="px-4">
-    <p>Сума відпустки</p>
-    <%= f.number_field :vacation_amount, step: :any, class: "#{input_classes} text-right" %>
+    <p>Сума відпустки <span class="text-xs font-normal text-gray-500">(приклад: 1000,00)</span></p>
+    <%= f.number_field :vacation_amount,
+        value: (vacation.vacation_amount if vacation.vacation_amount_cents.to_i.positive?),
+        step: :any, class: "#{input_classes} text-right" %>
   </div>
 
   <div class="px-4 text-right font-medium text-gray-400">

@@ -29,7 +29,12 @@ class SickDaysController < ApplicationController
 
   def update
     if @sick_day.update(sick_day_params)
-      redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно оновлено.'
+      respond_to do |format|
+        format.turbo_stream { render turbo_stream: sick_days_list_turbo_stream(@employee.sick_days_summaries) }
+        format.html do
+          redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно оновлено.'
+        end
+      end
     else
       render :edit, status: :unprocessable_content
     end
@@ -56,13 +61,13 @@ class SickDaysController < ApplicationController
   end
 
   def summary_turbo_stream(period, summaries)
-    return empty_list_turbo_stream(summaries) if summaries.empty?
+    return sick_days_list_turbo_stream(summaries) if summaries.empty?
     return replace_summary_turbo_stream(period, summaries) if summaries.key?(period)
 
     turbo_stream.remove(period_summary_id(period))
   end
 
-  def empty_list_turbo_stream(summaries)
+  def sick_days_list_turbo_stream(summaries)
     turbo_stream.replace(
       'sick_days_list',
       partial: 'sick_days/list',

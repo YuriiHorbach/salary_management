@@ -3,6 +3,24 @@
 require 'capybara/rspec'
 require 'selenium-webdriver'
 
+# Chrome 158+ rejects `Storage.clearDataForOrigin` when `origin` is "*", but
+# Capybara 3.40 still sends it from ChromeDriver#reset!. Replace it with the
+# real session origin so the session can be reset between system specs.
+module ChromeClearDataForOriginWorkaround
+  def execute_cdp(cmd, params = {})
+    if cmd == 'Storage.clearDataForOrigin' && params[:origin] == '*'
+      origin = Capybara.current_session&.server_url
+      return if origin.nil?
+
+      params = params.merge(origin: origin)
+    end
+
+    super
+  end
+end
+
+Capybara::Selenium::Driver::ChromeDriver.prepend(ChromeClearDataForOriginWorkaround)
+
 Capybara.register_driver :chrome_headless do |app|
   options = ::Selenium::WebDriver::Chrome::Options.new
   options.add_argument('--headless=new')

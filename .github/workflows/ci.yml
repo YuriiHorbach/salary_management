@@ -57,8 +57,11 @@ jobs:
       - name: Make Chrome available to Capybara
         run: echo "CHROME_BIN=${{ steps.chrome.outputs.chrome-path }}" >> "$GITHUB_ENV"
 
+      # Do not use db:prepare here: on a fresh database it also runs db:seed,
+      # and this project's seeds wipe data and create 50 fake employees, which
+      # breaks the test suite. Load only the schema instead.
       - name: Prepare database
-        run: bin/rails db:prepare
+        run: bin/rails db:create db:schema:load
 
       - name: Build Tailwind CSS
         run: bin/rails tailwindcss:build

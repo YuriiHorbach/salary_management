@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   end
 
   resources :sick_day_entries, only: %i[new create]
+  resources :vacation_entries, only: %i[new create]
 
   resources :reports, only: [:index] do
     get :summary, on: :collection

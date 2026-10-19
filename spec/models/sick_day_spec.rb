@@ -36,22 +36,31 @@ RSpec.describe SickDay, type: :model do
   end
 
   describe 'financial logic' do
-    let(:sick_day) { build(:sick_day, pfu_amount: 1000.50, enterprise_amount: 500.50) }
+    let(:period) { Date.new(2026, 1, 1) }
+    let(:sick_day) do
+      create(:sick_day, pfu_amount: 1000.50, enterprise_amount: 500.50, period: period)
+    end
 
     it 'calculates total amount correctly' do
       expect(sick_day.total_amount.amount).to eq(1501.00)
     end
 
-    it 'calculates PDFO correctly' do
+    it 'calculates PDFO as 18% of the total amount' do
       expect(sick_day.pdfo_amount.amount).to eq(270.18)
     end
 
-    it 'calculates military tax correctly' do
+    it 'calculates military tax as 5% of the total amount' do
       expect(sick_day.military_amount.amount).to eq(75.05)
     end
 
+    it 'stores the calculated taxes in the tax columns' do
+      expect(sick_day.income_tax_cents).to eq(27_018)
+      expect(sick_day.military_tax_cents).to eq(7_505)
+      expect(sick_day.net_amount_cents).to eq(115_577)
+    end
+
     it 'handles critical rounding with 5% rate' do
-      special_sd = build(:sick_day, pfu_amount: Money.new(10_027), enterprise_amount: 0)
+      special_sd = create(:sick_day, pfu_amount: Money.new(10_027), enterprise_amount: 0, period: period)
 
       expect(special_sd.military_amount.cents).to eq(501)
     end
@@ -63,7 +72,7 @@ RSpec.describe SickDay, type: :model do
       expect(sick_day.enterprise_amount).to eq(0)
     end
 
-    it 'returns an integer for pdfo_amount' do
+    it 'returns an integer for pdfo_amount cents' do
       expect(sick_day.pdfo_amount.cents).to be_an(Integer)
     end
 
@@ -71,12 +80,44 @@ RSpec.describe SickDay, type: :model do
       expect(sick_day.pdfo_amount).to be > 0
     end
 
-    it 'returns a positive pdfo_amount' do
+    it 'returns a positive enterprise_amount' do
       expect(sick_day.enterprise_amount).to be > 0
     end
 
-    it 'compare pdfo_amount with military_amount' do
+    it 'compares pdfo_amount with military_amount' do
       expect(sick_day.pdfo_amount).to be > sick_day.military_amount
+    end
+
+    it 'assigns zero taxes for a zero total amount' do
+      zero_sd = create(:sick_day, pfu_amount_cents: 0, enterprise_amount_cents: 0, period: period)
+
+      expect(zero_sd.income_tax_cents).to eq(0)
+      expect(zero_sd.military_tax_cents).to eq(0)
+      expect(zero_sd.net_amount_cents).to eq(0)
+    end
+
+    it 'applies a changed TaxSetting only to new records' do
+      old_sick_day = create(:sick_day, pfu_amount_cents: 100_000, enterprise_amount_cents: 0, period: period)
+      expect(old_sick_day.income_tax_cents).to eq(18_000)
+
+      TaxSetting.current.update!(income_rate: 0.20)
+
+      new_sick_day = create(:sick_day, pfu_amount_cents: 100_000, enterprise_amount_cents: 0,
+                                       period: Date.new(2026, 2, 1))
+
+      expect(new_sick_day.income_tax_cents).to eq(20_000)
+      expect(old_sick_day.reload.income_tax_cents).to eq(18_000)
+      expect(old_sick_day.pdfo_amount.amount).to eq(180.00)
+    end
+
+    it 'recalculates taxes when the amount is edited' do
+      sick_day.update!(pfu_amount_cents: 200_000, enterprise_amount_cents: 0)
+
+      expect(sick_day.income_tax_cents).to eq(36_000)
+      expect(sick_day.military_tax_cents).to eq(10_000)
+      expect(sick_day.net_amount_cents).to eq(154_000)
+      expect(sick_day.pdfo_amount.amount).to eq(360.00)
+      expect(sick_day.military_amount.amount).to eq(100.00)
     end
   end
 end

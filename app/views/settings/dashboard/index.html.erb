@@ -15,6 +15,15 @@
   </div>
 
   <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+    <h2 class="text-lg font-semibold mb-4 text-yellow-700">💰 Податки</h2>
+    <p class="text-gray-600 mb-4">Керуйте ставками податків та порогами для розрахунку заробітної плати.</p>
+    <div class="flex gap-2">
+      <%= link_to 'Редагувати налаштування', edit_settings_tax_settings_path,
+                  class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4 text-green-700">📚 Облікові книги</h2>
     <p class="text-gray-600 mb-4">Керуйте книгами: назва, номер книги, номер сторінки.</p>
     <div class="flex gap-2">

@@ -10,7 +10,8 @@ Capybara.register_driver :chrome_headless do |app|
   options.add_argument('--disable-dev-shm-usage')
   options.add_argument('--disable-gpu')
   options.add_argument('--window-size=1400,900')
-  options.binary = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  options.binary = ENV['CHROME_BIN'].presence ||
+                   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end

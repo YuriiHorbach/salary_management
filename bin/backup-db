@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+DB_NAME="${DB_NAME:-salary_management_development}"
+DB_USER="${DB_USER:-postgres}"
+OUTPUT="${1:-backups/salary-management-$(date +%Y%m%d-%H%M%S).sql}"
+
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE=(docker-compose)
+else
+  echo "Помилка: не знайдено 'docker compose' або 'docker-compose'." >&2
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "Помилка: Docker не запущений. Запусти Docker Desktop / Docker Engine." >&2
+  exit 1
+fi
+
+echo "Запускаю контейнер бази даних..."
+"${COMPOSE[@]}" up -d db >/dev/null
+
+echo -n "Чекаю готовності PostgreSQL"
+for _ in {1..30}; do
+  if "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
+    echo " — готово."
+    break
+  fi
+  echo -n "."
+  sleep 1
+done
+
+if ! "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
+  echo
+  echo "Помилка: база '$DB_NAME' недоступна. Перевір: ${COMPOSE[*]} logs db" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$OUTPUT")"
+umask 077
+TMP_OUTPUT="${OUTPUT}.part"
+trap 'rm -f "$TMP_OUTPUT"' EXIT
+
+echo "Створюю дамп бази '$DB_NAME'..."
+"${COMPOSE[@]}" exec -T db pg_dump -U "$DB_USER" -d "$DB_NAME" > "$TMP_OUTPUT"
+mv "$TMP_OUTPUT" "$OUTPUT"
+
+echo "Готово: $OUTPUT ($(du -h "$OUTPUT" | cut -f1))"

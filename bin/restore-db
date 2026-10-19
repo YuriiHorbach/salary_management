@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+DB_NAME="${DB_NAME:-salary_management_development}"
+DB_USER="${DB_USER:-postgres}"
+DB_PASSWORD="${DB_PASSWORD:-password}"
+
+usage() {
+  cat <<'USAGE'
+Використання: bin/restore-db <файл-дампу> [--yes]
+
+Відновлює базу даних з дампу, створеного pg_dump.
+Підтримуються plain SQL та custom/tar формати.
+
+За замовчуванням поточна база ПЕРЕСТВОРЮЄТЬСЯ (дані буде втрачено),
+тому перед цим буде запитано підтвердження.
+
+  -y, --yes    не питати підтвердження
+  -h, --help   показати цю довідку
+
+Змінні середовища:
+  DB_NAME      ім'я бази (типово salary_management_development)
+  DB_USER      користувач (типово postgres)
+  DB_PASSWORD  пароль (типово password)
+
+Приклади:
+  bin/restore-db backups/salary-management-20261020-120000.sql
+  bin/restore-db dump.sql --yes
+  DB_NAME=salary_management_restore_test bin/restore-db dump.sql --yes
+USAGE
+}
+
+DUMP_FILE=""
+ASSUME_YES=false
+
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes) ASSUME_YES=true ;;
+    -h|--help) usage; exit 0 ;;
+    -*) echo "Невідомий параметр: $arg" >&2; usage; exit 1 ;;
+    *) DUMP_FILE="$arg" ;;
+  esac
+done
+
+if [[ -z "$DUMP_FILE" ]]; then
+  usage
+  exit 1
+fi
+
+if [[ ! -f "$DUMP_FILE" ]]; then
+  echo "Помилка: файл не знайдено: $DUMP_FILE" >&2
+  exit 1
+fi
+
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE=(docker-compose)
+else
+  echo "Помилка: не знайдено 'docker compose' або 'docker-compose'." >&2
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "Помилка: Docker не запущений. Запусти Docker Desktop / Docker Engine." >&2
+  exit 1
+fi
+
+if [[ "$ASSUME_YES" != true ]]; then
+  echo "УВАГА: базу '$DB_NAME' буде видалено й створено заново."
+  echo "Усі поточні дані в ній буде втрачено."
+  read -r -p "Продовжити? [y/N] " answer
+  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+    echo "Скасовано."
+    exit 1
+  fi
+fi
+
+echo "Запускаю контейнер бази даних..."
+"${COMPOSE[@]}" up -d db >/dev/null
+
+echo -n "Чекаю готовності PostgreSQL"
+for _ in {1..30}; do
+  if "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" >/dev/null 2>&1; then
+    echo " — готово."
+    break
+  fi
+  echo -n "."
+  sleep 1
+done
+
+if ! "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" >/dev/null 2>&1; then
+  echo
+  echo "Помилка: PostgreSQL недоступний. Перевір: ${COMPOSE[*]} logs db" >&2
+  exit 1
+fi
+
+if [[ "$DB_NAME" == "salary_management_development" ]]; then
+  echo "Зупиняю web, щоб звільнити з'єднання з базою..."
+  "${COMPOSE[@]}" stop web >/dev/null 2>&1 || true
+fi
+
+echo "Перестворюю базу '$DB_NAME'..."
+"${COMPOSE[@]}" exec -T db psql -U "$DB_USER" -d postgres -v ON_ERROR_STOP=1 \
+  -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();" \
+  -c "DROP DATABASE IF EXISTS \"$DB_NAME\";" \
+  -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
+
+MAGIC="$(head -c 5 "$DUMP_FILE" 2>/dev/null || true)"
+
+echo "Відновлюю дані з '$DUMP_FILE'..."
+if [[ "$MAGIC" == "PGDMP" ]]; then
+  "${COMPOSE[@]}" exec -T db pg_restore -U "$DB_USER" -d "$DB_NAME" \
+    --no-owner --no-privileges < "$DUMP_FILE"
+else
+  "${COMPOSE[@]}" exec -T db psql -q -U "$DB_USER" -d "$DB_NAME" \
+    -v ON_ERROR_STOP=1 < "$DUMP_FILE"
+fi
+
+echo "Застосовую міграції до '$DB_NAME'..."
+DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}"
+"${COMPOSE[@]}" run --rm -e DATABASE_URL="$DATABASE_URL" -e SKIP_SCHEMA_DUMP=1 \
+  web bin/rails db:migrate
+
+if [[ "$DB_NAME" == "salary_management_development" ]]; then
+  echo "Запускаю web..."
+  "${COMPOSE[@]}" up -d web >/dev/null
+  echo "Готово. Застосунок доступний на http://localhost:3000"
+else
+  echo "Готово. Базу '$DB_NAME' відновлено."
+  echo "Щоб запустити застосунок саме з нею, задай DATABASE_URL для контейнера web."
+fi

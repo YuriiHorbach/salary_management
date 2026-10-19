@@ -33,6 +33,7 @@ class ReportsController < ApplicationController
 
     respond_to do |format|
       format.html do
+        @q = Employee.ransack(params[:q])
         @departments = Department.all
         @brigades = TerritorySign.all.order(:name)
         @account_book_codes = AccountBook.available_codes

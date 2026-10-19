@@ -33,12 +33,45 @@ module Reports
 
     def call
       {
-        employees: employee_rows,
+        employees: sorted_employee_rows,
         totals: totals_row
       }
     end
 
     private
+
+    def sorted_employee_rows
+      @sorted_employee_rows ||= begin
+        key, direction = sort_key_and_direction
+
+        if key
+          sorted = employee_rows.sort_by do |row|
+            [sortable_value(row[key], key), row[:id_code]]
+          end
+          direction == 'desc' ? sorted.reverse : sorted
+        else
+          employee_rows
+        end
+      end
+    end
+
+    def sort_key_and_direction
+      key, direction = sort_param.to_s.split(/\s+/, 2)
+      return [nil, nil] unless COLUMN_LABELS.key?(key&.to_sym)
+
+      [key.to_sym, direction.to_s.downcase == 'desc' ? 'desc' : 'asc']
+    end
+
+    def sort_param
+      query = @params[:q] || @params['q']
+      return if query.blank?
+
+      query[:s] || query['s']
+    end
+
+    def sortable_value(value, key)
+      TEXT_COLUMNS.include?(key) ? value.to_s.downcase : value.to_f
+    end
 
     def employee_rows
       @employee_rows ||= base_employees.map do |emp|

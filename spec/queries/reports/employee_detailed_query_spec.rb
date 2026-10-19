@@ -166,6 +166,48 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:totals][:base_salary]).to eq(0.0)
     end
 
+    describe 'sorting' do
+      it 'sorts numeric columns descending' do
+        result = described_class.new(q: { s: 'base_salary desc' }).call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
+      end
+
+      it 'sorts numeric columns ascending' do
+        result = described_class.new(q: { s: 'base_salary asc' }).call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[1234567890 2233445566])
+      end
+
+      it 'sorts text columns case-insensitively' do
+        emp1.update!(first_name: 'apple', last_name: 'z')
+        emp2.update!(first_name: 'Banana', last_name: 'y')
+
+        result = described_class.new(q: { s: 'full_name asc' }).call
+
+        expect(result[:employees].map { |e| e[:full_name] }).to eq(['apple z', 'Banana y'])
+      end
+
+      it 'accepts string keys from request params' do
+        result = described_class.new('q' => { 's' => 'base_salary desc' }).call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
+      end
+
+      it 'falls back to the default order for an unknown column' do
+        result = described_class.new(q: { s: 'not_a_column desc' }).call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[1234567890 2233445566])
+      end
+
+      it 'keeps the totals row unchanged' do
+        default_totals = described_class.new.call[:totals]
+        sorted_totals = described_class.new(q: { s: 'base_salary desc' }).call[:totals]
+
+        expect(sorted_totals).to eq(default_totals)
+      end
+    end
+
     describe 'SQL query efficiency' do
       def count_sql_queries(&)
         query_count = 0

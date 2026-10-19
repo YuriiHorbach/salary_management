@@ -210,6 +210,83 @@ RSpec.describe 'Reports', type: :request do
       expect(cells.first['colspan']).to eq('20')
     end
 
+    describe 'sorting' do
+      let!(:top_earner) do
+        create(:employee, id_code: '9999999999', first_name: 'Найвищий', last_name: 'Оклад')
+      end
+      let!(:top_earner_salary) { create(:salary, employee: top_earner, amount_cents: 900_000) }
+
+      def header_links
+        Nokogiri::HTML(response.body).css('table thead th a')
+      end
+
+      def report_id_codes
+        rows = Nokogiri::HTML(response.body).css('table tbody tr').select do |row|
+          row.css('td').size == Reports::EmployeeDetailedQuery::COLUMN_LABELS.size
+        end
+
+        rows.map { |row| row.css('td').first.text.strip }
+      end
+
+      def query_params_for(link)
+        Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
+      end
+
+      it 'renders a Ransack sort link in every header cell' do
+        get detailed_reports_path
+
+        expect(header_links.size).to eq(Reports::EmployeeDetailedQuery::COLUMN_LABELS.size)
+        expect(query_params_for(header_links.first).dig('q', 's')).to eq('id_code asc')
+      end
+
+      it 'sorts rows descending by the requested numeric column' do
+        get detailed_reports_path, params: { q: { s: 'base_salary desc' } }
+
+        expect(report_id_codes.first).to eq('9999999999')
+      end
+
+      it 'sorts rows ascending by the requested numeric column' do
+        get detailed_reports_path, params: { q: { s: 'base_salary asc' } }
+
+        expect(report_id_codes.last).to eq('9999999999')
+      end
+
+      it 'keeps the active filters in the sort links' do
+        brigade = create(:territory_sign, name: 'Бригада Сортування')
+
+        get detailed_reports_path(brigade: brigade.id)
+
+        expect(header_links.first['href']).to include("brigade=#{brigade.id}")
+      end
+
+      it 'drops the commit and page params from the sort links' do
+        get detailed_reports_path(commit: 'Фільтрувати', page: 2)
+
+        href = header_links.first['href']
+
+        expect(href).not_to include('commit')
+        expect(href).not_to include('page=')
+      end
+
+      it 'preserves the active sort in the filter form' do
+        get detailed_reports_path(q: { s: 'base_salary desc' })
+
+        hidden = Nokogiri::HTML(response.body).at_css('form input[type="hidden"][name="q[s]"]')
+
+        expect(hidden['value']).to eq('base_salary desc')
+      end
+
+      it 'falls back to the default order for an unknown sort column' do
+        get detailed_reports_path
+        default_ids = report_id_codes
+
+        get detailed_reports_path, params: { q: { s: 'not_a_column desc' } }
+
+        expect(response).to have_http_status(:ok)
+        expect(report_id_codes).to eq(default_ids)
+      end
+    end
+
     context 'with a fully populated employee' do
       include_context 'with a fully populated employee'
 
@@ -401,6 +478,29 @@ RSpec.describe 'Reports', type: :request do
       link = parsed_doc.at_css('a[href*="page=2"]')
 
       expect(link['href']).to include("brigade=#{brigade.id}")
+    end
+
+    it 'keeps the active sort in the pagination links' do
+      get detailed_reports_path(q: { s: 'base_salary desc' })
+
+      link = parsed_doc.at_css('a[href*="page=2"]')
+      query = Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
+
+      expect(query.dig('q', 's')).to eq('base_salary desc')
+    end
+
+    it 'sorts all employees before paginating' do
+      employees.each_with_index do |employee, index|
+        create(:salary, employee: employee, department: department, amount_cents: (index + 1) * 10_000)
+      end
+
+      get detailed_reports_path(q: { s: 'base_salary desc' })
+
+      expect(employee_id_codes).to eq(employees.last(20).reverse.map { |e| e.id_code.to_s })
+
+      get detailed_reports_path(q: { s: 'base_salary desc' }, page: 2)
+
+      expect(employee_id_codes).to eq(employees.first(5).reverse.map { |e| e.id_code.to_s })
     end
 
     it 'drops the commit param from the pagination links' do

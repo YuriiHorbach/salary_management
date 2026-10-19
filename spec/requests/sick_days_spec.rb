@@ -188,6 +188,35 @@ RSpec.describe 'SickDays', type: :request do
       end
     end
 
+    context 'with a turbo_stream request' do
+      it 'updates the row and recalculates the period total' do
+        create(:sick_day, employee: employee, period: Date.new(2026, 1, 1),
+                          pfu_amount_cents: 1_000, enterprise_amount_cents: 0)
+
+        patch employee_sick_day_path(employee, sick_day),
+              params: { sick_day: { pfu_amount: '200.00', enterprise_amount: '100.00' } },
+              as: :turbo_stream
+
+        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+        expect(response.body).to include('target="sick_days_list"')
+        expect(response.body).to include('$300.00')
+        expect(response.body).to include('$310.00')
+        expect(response.body).not_to include('$110.00')
+      end
+
+      it 'moves the row to the new month and recalculates both totals' do
+        patch employee_sick_day_path(employee, sick_day),
+              params: { sick_day: { period: '2026-02', pfu_amount: '200.00', enterprise_amount: '100.00' } },
+              as: :turbo_stream
+
+        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+        expect(response.body).to include('target="sick_days_list"')
+        expect(response.body).not_to include('January 2026')
+        expect(response.body).to include('February 2026')
+        expect(response.body).to include('$300.00')
+      end
+    end
+
     context 'with invalid params' do
       it 'does not update the record and re-renders :edit with 422' do
         patch employee_sick_day_path(employee, sick_day),

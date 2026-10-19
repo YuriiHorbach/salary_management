@@ -18,6 +18,32 @@ Tailwind CSS збирається гемом `tailwindcss-rails` (`tailwindcss-r
 
 Оновлений `app/assets/builds/tailwind.css` коммітьте разом із змінами в в'юхах, щоб стилі були доступні після `git clone`.
 
+## Запуск у Docker
+
+Потрібен запущений Docker Desktop. Усе піднімається однією командою:
+
+    docker compose up --build
+
+- застосунок — http://localhost:3000
+- PostgreSQL — localhost:5433 (щоб не конфліктувати з локальним Postgres на 5432)
+
+При першому старті контейнер `web` через `bin/docker-entrypoint` сам виконає `db:prepare` (створить базу та застосує схему).
+
+Зупинити без втрати даних:
+
+    docker compose down
+
+Повністю скинути базу (видалить том із даними):
+
+    docker compose down -v
+
+Корисні команди:
+
+    docker compose exec web bin/rails console
+    docker compose exec web bin/rails tailwindcss:build   # після зміни класів Tailwind
+
+Параметри підключення до БД задаються у `docker-compose.yml` (`DB_HOST=db`, `DB_USERNAME=postgres`, `DB_PASSWORD=password`), тому `config/database.yml` використовує `DB_HOST` зі значенням `localhost` за замовчуванням для запуску без Docker.
+
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files

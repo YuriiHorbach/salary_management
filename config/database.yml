@@ -9,8 +9,8 @@ default: &default
 development:
   <<: *default
   database: salary_management_development
-  # host: db
-  host: localhost
+  # Default to localhost for non-Docker runs; Docker Compose passes DB_HOST=db.
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
   username: postgres
   password: password
   # The specified database role being used to connect to PostgreSQL.
@@ -75,4 +75,3 @@ production:
   database: salary_management_production
   username: salary_management
   password: <%= ENV["SALARY_MANAGEMENT_DATABASE_PASSWORD"] %>
-  database: salary_management_test

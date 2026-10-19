@@ -1,0 +1,7 @@
+<div id="sick_days_list">
+  <% if sick_days.any? %>
+    <%= render 'table', sick_days: sick_days, sick_days_summaries: sick_days_summaries %>
+  <% else %>
+    <p class="text-gray-500 italic">Записів про лікарняні поки що немає.</p>
+  <% end %>
+</div>

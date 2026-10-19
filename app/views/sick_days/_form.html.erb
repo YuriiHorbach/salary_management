@@ -7,26 +7,31 @@
     <p>Select month</p>
     <%= f.month_field :period,
         class: input_classes,
-        value: f.object.period&.strftime("%Y-%m") %>
+        value: f.object.period&.strftime("%Y-%m"),
+        required: true %>
   </div>
 
   <div class="px-4">
-    <p>PFU</p>
+    <p>PFU <span class="text-xs font-normal text-gray-500">(1000,00)</span></p>
     <% if f.object.pfu_amount.to_f > 0 || f.object.new_record? %>
-      <%= f.number_field :pfu_amount, step: 0.01, class: "#{input_classes} text-right" %>
+      <%= f.number_field :pfu_amount,
+          value: (f.object.pfu_amount if f.object.pfu_amount_cents.to_i.positive?),
+          min: 0, step: 0.01, class: "#{input_classes} text-right" %>
     <% else %>
       <%= f.hidden_field :pfu_amount %>
-      <span class="text-gray-400 text-sm">0.00</span>
+      <span class="text-gray-400 text-sm"></span>
     <% end %>
   </div>
 
   <div class="px-4">
-    <p>Enterprise</p>
+    <p>Enterprise <span class="text-xs font-normal text-gray-500">(1000,00)</span></p>
     <% if f.object.enterprise_amount.to_f > 0 || f.object.new_record? %>
-      <%= f.number_field :enterprise_amount, step: 0.01, class: "#{input_classes} text-right" %>
+      <%= f.number_field :enterprise_amount,
+          value: (f.object.enterprise_amount if f.object.enterprise_amount_cents.to_i.positive?),
+          min: 0, step: 0.01, class: "#{input_classes} text-right" %>
     <% else %>
       <%= f.hidden_field :enterprise_amount %>
-      <span class="text-gray-400 text-sm">0.00</span>
+      <span class="text-gray-400 text-sm"></span>
     <% end %>
   </div>
 

@@ -13,6 +13,18 @@ class SickDay < ApplicationRecord
   monetize :military_tax_cents
   monetize :net_amount_cents
 
+  alias set_pfu_amount pfu_amount=
+  alias set_enterprise_amount enterprise_amount=
+
+  # A blank amount input means zero, not an invalid number.
+  def pfu_amount=(value)
+    set_pfu_amount(value.presence || 0)
+  end
+
+  def enterprise_amount=(value)
+    set_enterprise_amount(value.presence || 0)
+  end
+
   validates :period, presence: true
   validates :pfu_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :enterprise_amount, numericality: { greater_than_or_equal_to: 0 }

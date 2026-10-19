@@ -40,6 +40,30 @@ RSpec.describe 'SickDays', type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('data-turbo-frame="new_sick_day"')
     end
+
+    it 'renders empty amount inputs with a format hint and no negative values' do
+      get new_employee_sick_day_path(employee)
+
+      page = Nokogiri::HTML(response.body)
+      pfu_input = page.at_css('input[name="sick_day[pfu_amount]"]')
+      enterprise_input = page.at_css('input[name="sick_day[enterprise_amount]"]')
+
+      expect(pfu_input['value'].to_s).to be_empty
+      expect(enterprise_input['value'].to_s).to be_empty
+      expect(pfu_input['min']).to eq('0')
+      expect(enterprise_input['min']).to eq('0')
+      expect(page.text).to include('1000,00')
+    end
+
+    it 'defaults the period to the current month' do
+      get new_employee_sick_day_path(employee)
+
+      page = Nokogiri::HTML(response.body)
+      period_input = page.at_css('input[name="sick_day[period]"]')
+
+      expect(period_input['value']).to eq(Date.current.strftime('%Y-%m'))
+      expect(period_input['required']).to eq('required')
+    end
   end
 
   describe 'POST /employees/:employee_id/sick_days' do
@@ -83,6 +107,21 @@ RSpec.describe 'SickDays', type: :request do
         expect(sick_day.income_tax_cents).to eq(1_800)
         expect(sick_day.military_tax_cents).to eq(500)
         expect(sick_day.net_amount_cents).to eq(7_700)
+      end
+
+      it 'treats a blank amount as zero' do
+        expect do
+          post employee_sick_days_path(employee), params: {
+            sick_day: { pfu_amount: '1000.00', enterprise_amount: '', period: '2026-10' }
+          }
+        end.to change(SickDay, :count).by(1)
+
+        sick_day = SickDay.last
+        expect(sick_day.pfu_amount_cents).to eq(100_000)
+        expect(sick_day.enterprise_amount_cents).to eq(0)
+        expect(sick_day.income_tax_cents).to eq(18_000)
+        expect(sick_day.military_tax_cents).to eq(5_000)
+        expect(sick_day.net_amount_cents).to eq(77_000)
       end
     end
 
@@ -169,6 +208,38 @@ RSpec.describe 'SickDays', type: :request do
       end.to change(SickDay, :count).by(-1)
 
       expect(response).to redirect_to(employee_sick_days_path(employee))
+    end
+
+    context 'with a turbo_stream request' do
+      it 'removes the row and updates the period summary' do
+        create(:sick_day, employee: employee, period: Date.new(2026, 1, 1),
+                          pfu_amount_cents: 1_000, enterprise_amount_cents: 0)
+
+        expect do
+          delete employee_sick_day_path(employee, sick_day), as: :turbo_stream
+        end.to change(SickDay, :count).by(-1)
+
+        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+        expect(response.body).to include(%(action="remove" target="sick_day_#{sick_day.id}"))
+        expect(response.body).to include(%(target="summary_2026-01"))
+        expect(response.body).to include('РАЗОМ ЗА')
+      end
+
+      it 'removes the summary row when no records are left in that period' do
+        create(:sick_day, employee: employee, period: Date.new(2026, 2, 1))
+
+        delete employee_sick_day_path(employee, sick_day), as: :turbo_stream
+
+        expect(response.body).to include(%(action="remove" target="summary_2026-01"))
+        expect(response.body).not_to include(%(target="summary_2026-02"))
+      end
+
+      it 'replaces the whole list with the empty state when the last record is deleted' do
+        delete employee_sick_day_path(employee, sick_day), as: :turbo_stream
+
+        expect(response.body).to include('turbo-stream action="replace" target="sick_days_list"')
+        expect(response.body).to include('Записів про лікарняні поки що немає')
+      end
     end
   end
 end

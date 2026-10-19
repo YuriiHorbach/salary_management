@@ -33,6 +33,14 @@ RSpec.describe SickDay, type: :model do
 
       expect(valid_sick_day).to be_valid
     end
+
+    it 'treats blank amount inputs as zero' do
+      sick_day = build(:sick_day, pfu_amount: '', enterprise_amount: '', period: Date.new(2026, 1, 1))
+
+      expect(sick_day).to be_valid
+      expect(sick_day.pfu_amount_cents).to eq(0)
+      expect(sick_day.enterprise_amount_cents).to eq(0)
+    end
   end
 
   describe 'financial logic' do

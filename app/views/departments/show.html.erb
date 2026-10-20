@@ -3,17 +3,17 @@
 <table class="w-full table-fixed border-collapse text-sm">
   <thead>
     <tr class="bg-gray-100">
-      <th class="w-[100px] px-3 py-2 border border-gray-300 text-left">ID</th>
-      <th class="px-3 py-2 border border-gray-300 text-left">Last name</th>
-      <th class="px-3 py-2 border border-gray-300 text-left">First name</th>
-      <th class="px-3 py-2 border border-gray-300 text-left">Patronic name</th>
+      <th class="w-[100px] px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :id_code, "ID") %></th>
+      <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :last_name, "Last name") %></th>
+      <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :first_name, "First name") %></th>
+      <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :patronic_name, "Patronic name") %></th>
       <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">Add salary</th>
       <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">View salary</th>
       <th class="w-[70px] px-3 py-2 border border-gray-300 text-center">Remove employee</th>
     </tr>
   </thead>
   <tbody>
-    <% @department&.employees&.each do |employee| %>
+    <% @employees.each do |employee| %>
       <tr class="hover:bg-gray-50">
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= link_to employee.id_code, employee_path(employee), class: "underline text-blue-600 hover:text-blue-800 text-xs" %>

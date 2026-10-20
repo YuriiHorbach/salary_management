@@ -13,7 +13,8 @@ class DepartmentsController < ApplicationController
   end
 
   def show
-    @department = Department.find(params[:id])
+    @q = @department.employees.ransack(params[:q])
+    @employees = @q.result(distinct: true)
     @department_total = @department.monthly_total
   end
 

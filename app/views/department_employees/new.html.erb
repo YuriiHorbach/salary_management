@@ -30,7 +30,8 @@
   <% end %>
 </div>
 
-<%= form_with(url: department_employees_path, method: :post, local: true) do |form| %>
+<%= form_with(url: department_employees_path, method: :post, local: true,
+              data: { controller: "bulk-select" }) do |form| %>
   <%= hidden_field_tag :department_id, @department.id %>
 
   <table class="min-w-full table-auto border-collapse border border-gray-200">
@@ -40,7 +41,16 @@
       <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :last_name, "Last name") %></th>
       <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :first_name, "First name") %></th>
       <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :patronic_name, "Patronic name") %></th>
-      <th class="px-4 py-2 border border-gray-300">Add</th>
+      <th class="px-4 py-2 border border-gray-300">
+        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+          <%= check_box_tag "select_all", "1", false,
+                            id: "select_all_employees",
+                            class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer",
+                            data: { bulk_select_target: "toggleAll",
+                                    action: "change->bulk-select#toggleAll" } %>
+          <span>Add all</span>
+        </label>
+      </th>
     </tr>
     </thead>
     <tbody>
@@ -52,13 +62,22 @@
         <td class="px-4 py-2 border border-gray-300"><%= employee.last_name %></td>
         <td class="px-4 py-2 border border-gray-300"><%= employee.first_name %></td>
         <td class="px-4 py-2 border border-gray-300"><%= employee.patronic_name %></td>
-        <td class="px-4 py-2 border border-gray-300"> <%= check_box_tag "employee_ids[]", employee.id, false, id: "employee_#{employee.id}" %></td>
+        <td class="px-4 py-2 border border-gray-300">
+          <%= check_box_tag "employee_ids[]", employee.id, false,
+                            id: "employee_#{employee.id}",
+                            class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer",
+                            data: { bulk_select_target: "checkbox",
+                                    action: "change->bulk-select#update" } %>
+        </td>
       </tr>
     <% end %>
     </tbody>
   </table>
 
-  <div class="mt-2">
-    <%= form.submit "Add Employees", class: "btn btn-primary mt-4 px-4 py-2 rounded hover:bg-blue-700" %>
+  <div class="mt-2 flex items-center gap-3">
+    <%= form.submit "Add Employees",
+                    class: "btn btn-primary mt-4 px-4 py-2 rounded hover:bg-blue-700",
+                    data: { bulk_select_target: "submit" } %>
+    <span class="text-sm text-gray-600" data-bulk-select-target="count">0 selected</span>
   </div>
 <% end %>

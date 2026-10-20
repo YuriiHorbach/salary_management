@@ -35,3 +35,8 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+
+# Ignore Electron desktop dependencies and build output.
+/desktop/node_modules
+/desktop/dist
+/desktop/out

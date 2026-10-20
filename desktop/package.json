@@ -1,0 +1,18 @@
+{
+  "name": "salary-management-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron shell that runs the Salary Management Rails app via Docker Compose",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.js && node --check lib.js",
+    "test": "node --test test"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

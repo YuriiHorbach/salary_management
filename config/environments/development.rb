@@ -19,6 +19,10 @@ Rails.application.configure do
   # Enable server timing
   config.server_timing = true
 
+  # Let maintenance scripts (bin/restore-db) migrate a database without
+  # rewriting db/schema.rb from potentially different data.
+  config.active_record.dump_schema_after_migration = false if ENV['SKIP_SCHEMA_DUMP'] == '1'
+
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   if Rails.root.join('tmp/caching-dev.txt').exist?

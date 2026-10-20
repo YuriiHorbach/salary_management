@@ -44,6 +44,55 @@ Tailwind CSS збирається гемом `tailwindcss-rails` (`tailwindcss-r
 
 Параметри підключення до БД задаються у `docker-compose.yml` (`DB_HOST=db`, `DB_USERNAME=postgres`, `DB_PASSWORD=password`), тому `config/database.yml` використовує `DB_HOST` зі значенням `localhost` за замовчуванням для запуску без Docker.
 
+## Бекап і відновлення БД
+
+Скрипти працюють через Docker Compose і не потребують локального `psql`.
+
+Створити дамп (типово у `backups/`):
+
+    bin/backup-db
+    bin/backup-db my-backup.sql
+
+Відновити базу з дампу:
+
+    bin/restore-db backups/salary-management-20261020-120000.sql
+    bin/restore-db my-backup.sql --yes
+
+Важливо:
+
+- `restore-db` **видаляє поточну базу й створює заново**, тому спершу питає підтвердження; прапорець `--yes` пропускає питання;
+- підтримуються звичайні SQL-дампи та custom/tar формати `pg_dump`;
+- після відновлення автоматично застосовуються міграції;
+- типово використовується база `salary_management_development`; іншу можна вказати через `DB_NAME`;
+- на Windows запускай скрипти через Git Bash або WSL.
+
+Приклад відновлення в окрему базу (не чіпаючи робочу):
+
+    DB_NAME=salary_management_restore_test bin/restore-db dump.sql --yes
+
+## Десктопна оболонка (Electron)
+
+Обгортка запускає Rails-застосунок через Docker Compose і відкриває його у вікні Electron. Працює на macOS, Windows і Linux; потрібні Node.js 22+ і запущений Docker.
+
+    cd desktop
+    npm install
+    npm start
+
+Що робить оболонка:
+
+- перевіряє, що Docker запущений;
+- виконує `docker compose up -d`;
+- чекає, поки `http://localhost:3000` почне відповідати;
+- відкриває застосунок у вікні (сесія зберігається між запусками);
+- при виході виконує `docker compose stop` (дані у томі зберігаються).
+
+Меню **Файл → Бекап бази…** зберігає дамп у `~/Documents/SalaryManagement/backups`.
+
+Тести оболонки (без запуску Electron):
+
+    cd desktop
+    npm test
+
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files

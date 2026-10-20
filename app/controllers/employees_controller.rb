@@ -1,12 +1,19 @@
 # frozen_string_literal: true
 
 class EmployeesController < ApplicationController
+  SEARCH_KEYS = %i[
+    id_code_eq last_name_cont first_name_cont patronic_name_cont
+    territory_info_cont children_count_gt disability_group_eq
+    chaes_true contract_true s
+  ].freeze
+  CHECKBOX_FILTER_KEYS = %w[chaes_true contract_true].freeze
+
   before_action :authenticate_user!
   before_action :set_employee, only: %i[edit update destroy]
   before_action :load_form_collections, only: %i[new edit create update]
 
   def index
-    @q = Employee.ransack(params[:q])
+    @q = Employee.ransack(employee_search_params)
     @employees = @q.result(distinct: true)
   end
 
@@ -83,6 +90,17 @@ class EmployeesController < ApplicationController
   def load_form_collections
     @account_book_codes = AccountBook.available_codes
     @territory_signs = TerritorySign.ordered
+  end
+
+  # Unchecked checkboxes still submit "0" via Rails' hidden field. Passing that
+  # to Ransack turns it into `chaes != TRUE`, which also drops NULL values
+  # (imported employees have chaes = NULL). Treat "0" as "no filter" instead.
+  def employee_search_params
+    return {} if params[:q].blank?
+
+    params[:q].permit(*SEARCH_KEYS).to_h.tap do |search|
+      CHECKBOX_FILTER_KEYS.each { |key| search.delete(key) if search[key] == '0' }
+    end
   end
 
   def employee_params

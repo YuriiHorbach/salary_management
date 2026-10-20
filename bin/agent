@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Переходимо в корінь проєкту
+cd "$(dirname "$0")/.."
+
+# 1. Запускаємо ізольовану базу даних для агента та чекаємо на її готовність
+docker compose --profile agent up -d --wait agent_db
+
+# 2. Очищаємо середовище (env -i) і запускаємо OpenCode з параметрами для агентської бази
+exec env -i HOME="$HOME" PATH="$PATH" TERM="$TERM" \
+  DB_HOST=localhost \
+  DB_PORT=5434 \
+  DB_NAME=salary_management_agent \
+  DB_USERNAME=sm_agent \
+  DB_PASSWORD=agent_password \
+  opencode

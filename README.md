@@ -93,6 +93,24 @@ Tailwind CSS збирається гемом `tailwindcss-rails` (`tailwindcss-r
     cd desktop
     npm test
 
+### Ярлик на Робочому столі
+
+Одна кросплатформна команда сама визначає ОС і створює відповідний запускач:
+
+    cd desktop
+    npm run shortcut
+
+- macOS — `~/Desktop/Salary Management.command`;
+- Windows — `~/Desktop/Salary Management.cmd`;
+- Linux — запис у меню застосунків і `~/Desktop/Salary Management.desktop` (якщо є тека Desktop).
+
+Видалити створені ярлики:
+
+    cd desktop
+    npm run shortcut:remove
+
+Після створення ярлик можна перетягнути в Dock (macOS) або закріпити на панелі задач (Windows/Linux).
+
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files

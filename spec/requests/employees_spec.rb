@@ -111,6 +111,36 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'POST /employees' do
+    it 'creates an employee with a passport book id_code and normalizes it' do
+      post employees_path, params: {
+        employee: {
+          id_code: '  аа123456 ',
+          first_name: 'Іван',
+          last_name: 'Петренко',
+          patronic_name: 'Іванович'
+        }
+      }
+
+      expect(response).to have_http_status(:redirect)
+      expect(Employee.find_by(id_code: 'АА123456')).to be_present
+    end
+
+    it 'creates an employee with an id card number and preserves leading zero' do
+      post employees_path, params: {
+        employee: {
+          id_code: '0123456789',
+          first_name: 'Марія',
+          last_name: 'Іваненко',
+          patronic_name: 'Петрівна'
+        }
+      }
+
+      expect(response).to have_http_status(:redirect)
+      expect(Employee.find_by(id_code: '0123456789')).to be_present
+    end
+  end
+
   describe 'GET /employees/new' do
     it 'shows the book code selector with available codes' do
       create(:account_book, code: 'А11')

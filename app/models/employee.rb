@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 class Employee < ApplicationRecord
+  # 10-digit RNOKPP, 9-digit ID-card number, or a 2-letter + 6-digit passport book number.
+  ID_CODE_PATTERNS = [
+    /\A\d{9,10}\z/,
+    /\A[А-ЯҐІЇЄA-Z]{2}\d{6}\z/
+  ].freeze
+
+  before_validation :normalize_id_code
   before_validation :set_birthdate_from_id_code, if: :id_code_changed?
 
   has_many :department_employees
@@ -13,7 +20,8 @@ class Employee < ApplicationRecord
   belongs_to :territory_sign, optional: true
   accepts_nested_attributes_for :account_book, reject_if: ->(attributes) { attributes['code'].blank? }
 
-  validates :id_code, presence: true, length: { minimum: 10, maximum: 10 }, uniqueness: true
+  validates :id_code, presence: true, uniqueness: { case_sensitive: false }
+  validate :id_code_format
   validates :first_name, presence: true
   validates :patronic_name, presence: true
   validates :last_name, presence: true
@@ -114,9 +122,20 @@ class Employee < ApplicationRecord
   end
 
   def set_birthdate_from_id_code
-    return if id_code.blank?
+    return unless id_code.to_s.match?(/\A\d{10}\z/)
 
-    id_code.to_s[0..4].to_i
-    Date.new(1899, 12, 31)
+    # RNOKPP starts with the number of days since 31.12.1899.
+    self.birthday = Date.new(1899, 12, 31) + id_code.to_s.first(5).to_i
+  end
+
+  def normalize_id_code
+    self.id_code = id_code.to_s.strip.upcase.presence
+  end
+
+  def id_code_format
+    return if id_code.blank?
+    return if ID_CODE_PATTERNS.any? { |pattern| id_code.match?(pattern) }
+
+    errors.add(:id_code, 'має містити 9–10 цифр або 2 літери та 6 цифр')
   end
 end

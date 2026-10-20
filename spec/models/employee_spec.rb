@@ -12,8 +12,46 @@ RSpec.describe Employee, type: :model do
       expect(build(:employee, id_code: nil)).to be_invalid
     end
 
-    it 'is invalid when id_code length is not 10' do
-      expect(build(:employee, id_code: 1_111_111_11)).to be_invalid
+    it 'is valid with a 10-digit tax id code' do
+      expect(build(:employee, id_code: '1234567890')).to be_valid
+    end
+
+    it 'is valid with a 9-digit id card number' do
+      expect(build(:employee, id_code: '012345678')).to be_valid
+    end
+
+    it 'is valid with a passport book number' do
+      expect(build(:employee, id_code: 'АА123456')).to be_valid
+    end
+
+    it 'normalizes id_code by stripping whitespace and upcasing letters' do
+      employee = build(:employee, id_code: '  аа123456 ')
+
+      employee.valid?
+
+      expect(employee.id_code).to eq('АА123456')
+    end
+
+    it 'is invalid when id_code is too short' do
+      expect(build(:employee, id_code: '12345678')).to be_invalid
+    end
+
+    it 'is invalid when id_code is too long' do
+      expect(build(:employee, id_code: '12345678901')).to be_invalid
+    end
+
+    it 'is invalid when id_code has unsupported characters' do
+      expect(build(:employee, id_code: '12345abcde')).to be_invalid
+    end
+
+    it 'is invalid when a passport book number has the wrong number of digits' do
+      expect(build(:employee, id_code: 'АА12345')).to be_invalid
+    end
+
+    it 'is invalid when id_code duplicates an existing one case-insensitively' do
+      create(:employee, id_code: 'АА123456')
+
+      expect(build(:employee, id_code: 'аа123456')).to be_invalid
     end
 
     it 'is invalid without first_name' do
@@ -26,6 +64,56 @@ RSpec.describe Employee, type: :model do
 
     it 'is invalid without patronic_name' do
       expect(build(:employee, patronic_name: nil)).to be_invalid
+    end
+  end
+
+  describe 'id_code storage' do
+    it 'preserves leading zeros' do
+      employee = create(:employee, id_code: '0123456789')
+
+      expect(employee.reload.id_code).to eq('0123456789')
+    end
+
+    it 'stores passport book numbers as text' do
+      employee = create(:employee, id_code: 'АА123456')
+
+      expect(employee.reload.id_code).to eq('АА123456')
+    end
+  end
+
+  describe 'birthday derived from id_code' do
+    it 'sets birthday from the first five digits of a 10-digit id code' do
+      employee = create(:employee, id_code: '2862103695')
+
+      expect(employee.birthday).to eq(Date.new(1978, 5, 12))
+    end
+
+    it 'updates birthday when the id_code changes' do
+      employee = create(:employee, id_code: '2862103695')
+
+      employee.update!(id_code: '1234567890')
+
+      expect(employee.reload.birthday).to eq(Date.new(1933, 10, 19))
+    end
+
+    it 'leaves birthday empty for a 9-digit id card number' do
+      employee = create(:employee, id_code: '012345678')
+
+      expect(employee.birthday).to be_nil
+    end
+
+    it 'leaves birthday empty for a passport book number' do
+      employee = create(:employee, id_code: 'АА123456')
+
+      expect(employee.birthday).to be_nil
+    end
+
+    it 'keeps the existing birthday when the id_code changes to a passport' do
+      employee = create(:employee, id_code: '2862103695')
+
+      employee.update!(id_code: 'АА123456')
+
+      expect(employee.reload.birthday).to eq(Date.new(1978, 5, 12))
     end
   end
 

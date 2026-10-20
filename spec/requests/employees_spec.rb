@@ -14,6 +14,48 @@ RSpec.describe 'Employees update', type: :request do
     ActiveJob::Base.queue_adapter = :test
   end
 
+  describe 'GET /employees search' do
+    let!(:maslii) do
+      create(:employee, last_name: 'Маслій', first_name: 'Володимир', patronic_name: 'Павлович',
+                        chaes: nil, contract: false)
+    end
+    let!(:chaes_employee) { create(:employee, last_name: 'Чорнобиль', chaes: true, contract: false) }
+    let!(:contract_employee) { create(:employee, last_name: 'Контрактний', chaes: nil, contract: true) }
+
+    it 'finds an employee by lowercase Cyrillic name when the checkboxes submit 0' do
+      get employees_path, params: {
+        q: {
+          last_name_cont: 'маслій',
+          first_name_cont: 'володимир',
+          patronic_name_cont: 'павлович',
+          chaes_true: '0',
+          contract_true: '0'
+        }
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:employees)).to contain_exactly(maslii)
+    end
+
+    it 'does not exclude CHAES employees when the CHAES checkbox is unchecked' do
+      get employees_path, params: { q: { last_name_cont: 'Чорнобиль', chaes_true: '0', contract_true: '0' } }
+
+      expect(assigns(:employees)).to contain_exactly(chaes_employee)
+    end
+
+    it 'filters by CHAES when the checkbox is checked' do
+      get employees_path, params: { q: { chaes_true: '1', contract_true: '0' } }
+
+      expect(assigns(:employees)).to contain_exactly(chaes_employee)
+    end
+
+    it 'filters by contract when the checkbox is checked' do
+      get employees_path, params: { q: { chaes_true: '0', contract_true: '1' } }
+
+      expect(assigns(:employees)).to contain_exactly(contract_employee)
+    end
+  end
+
   describe 'GET /employees/:id with salary search' do
     let!(:salary_1200_40) { create(:salary, employee: employee, amount_cents: 120_040) }
     let!(:salary_500) { create(:salary, employee: employee, amount_cents: 50_000) }

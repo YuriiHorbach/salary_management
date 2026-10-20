@@ -11,18 +11,35 @@ class DepartmentEmployeesController < ApplicationController
   end
 
   def create
-    employee_ids = params[:employee_ids]
-    if employee_ids&.any?
-      employees = Employee.where(id: employee_ids)
-      employees.each do |employee|
-        @department.employees << employee unless @department.employees.exists?(id: employee.id)
-      end
-      flash[:notice] = 'Employees were successfully added to the department.'
-    else
-      flash[:alert] = 'No employees selected.'
+    ids = selected_employee_ids
+
+    if ids.empty?
+      redirect_to @department, alert: 'No employees selected.'
+      return
     end
 
-    redirect_to @department
+    employee_ids = Employee.where(id: ids).pluck(:id)
+
+    if employee_ids.empty?
+      redirect_to @department, alert: 'No employees selected.'
+      return
+    end
+
+    new_ids = employee_ids - @department.department_employees.where(employee_id: employee_ids).pluck(:employee_id)
+
+    if new_ids.empty?
+      redirect_to @department, alert: 'Selected employees are already in this department.'
+      return
+    end
+
+    now = Time.current
+    DepartmentEmployee.insert_all(
+      new_ids.map do |employee_id|
+        { department_id: @department.id, employee_id: employee_id, created_at: now, updated_at: now }
+      end
+    )
+
+    redirect_to @department, notice: "Employees added to the department: #{new_ids.size}."
   end
 
   def destroy
@@ -40,8 +57,8 @@ class DepartmentEmployeesController < ApplicationController
 
   private
 
-  def department_employee_params
-    params.require(:department_employee).permit(employee_ids: [])
+  def selected_employee_ids
+    Array(params[:employee_ids]).filter_map { |id| Integer(id.to_s, exception: false) }.uniq
   end
 
   def set_department

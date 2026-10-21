@@ -166,6 +166,86 @@ RSpec.describe 'Reports', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    describe 'position filter' do
+      let(:filter_department) { create(:department, name: 'Відділ Посад') }
+      let(:engineer_position) { create(:position, department: filter_department, position_name: 'Інженер') }
+      let(:manager_position) { create(:position, department: filter_department, position_name: 'Менеджер') }
+      let(:engineer) do
+        create(:employee, id_code: '3333333333', first_name: 'Інженер', last_name: 'Працівник')
+      end
+      let(:manager) do
+        create(:employee, id_code: '4444444444', first_name: 'Менеджер', last_name: 'Працівник')
+      end
+
+      def position_filter_report_ids
+        rows = Nokogiri::HTML(response.body).css('table tbody tr').select do |row|
+          row.css('td').size == Reports::EmployeeDetailedQuery::COLUMN_LABELS.size
+        end
+
+        rows.map { |row| row.css('td').first.text.strip }
+      end
+
+      before do
+        create(:department_employee, employee: engineer, department: filter_department,
+                                     position: engineer_position)
+        create(:department_employee, employee: manager, department: filter_department,
+                                     position: manager_position)
+        create(:salary, employee: engineer, department: filter_department)
+        create(:salary, employee: manager, department: filter_department)
+      end
+
+      it 'filters the detailed report rows by position' do
+        get detailed_reports_path(position: engineer_position.id)
+
+        expect(position_filter_report_ids).to include(engineer.id_code.to_s)
+        expect(position_filter_report_ids).not_to include(manager.id_code.to_s)
+      end
+
+      it 'renders a position selector with the available positions' do
+        get detailed_reports_path
+
+        selector = Nokogiri::HTML(response.body).at_css('select[name="position"]')
+
+        expect(selector).to be_present
+        expect(selector.text).to include('Інженер', 'Менеджер')
+      end
+
+      it 'keeps the position filter in the CSV export link' do
+        get detailed_reports_path(position: engineer_position.id)
+
+        href = Nokogiri::HTML(response.body).at_css('a[href*=".csv"]')['href']
+
+        expect(href).to include("position=#{engineer_position.id}")
+      end
+
+      it 'filters the CSV export by position' do
+        get detailed_reports_path(format: :csv), params: { position: engineer_position.id }
+
+        ids = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')[1..].map(&:first)
+
+        expect(ids).to include(engineer.id_code.to_s)
+        expect(ids).not_to include(manager.id_code.to_s)
+      end
+
+      it 'scopes the position filter to the selected department' do
+        other_department = create(:department, name: 'Інший відділ')
+        create(:department_employee, employee: engineer, department: other_department)
+
+        get detailed_reports_path(department: other_department.id, position: engineer_position.id)
+
+        expect(position_filter_report_ids).not_to include(engineer.id_code.to_s)
+      end
+
+      it 'does not duplicate an employee with several positions' do
+        create(:department_employee, employee: engineer, department: filter_department,
+                                     position: manager_position)
+
+        get detailed_reports_path(position: engineer_position.id)
+
+        expect(position_filter_report_ids.count(engineer.id_code.to_s)).to eq(1)
+      end
+    end
+
     it 'renders one header cell per data column so every column has a label' do
       get detailed_reports_path
 
@@ -489,6 +569,19 @@ RSpec.describe 'Reports', type: :request do
       link = parsed_doc.at_css('a[href*="page=2"]')
 
       expect(link['href']).to include("brigade=#{brigade.id}")
+    end
+
+    it 'keeps the position filter in the pagination links' do
+      position = create(:position, department: department)
+      employees.each do |employee|
+        create(:department_employee, employee: employee, department: department, position: position)
+      end
+
+      get detailed_reports_path(position: position.id)
+
+      link = parsed_doc.at_css('a[href*="page=2"]')
+
+      expect(link['href']).to include("position=#{position.id}")
     end
 
     it 'keeps the active sort in the pagination links' do

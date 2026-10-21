@@ -34,6 +34,21 @@
               data: { controller: "bulk-select" }) do |form| %>
   <%= hidden_field_tag :department_id, @department.id %>
 
+  <div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
+    <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+      <div class="flex flex-col">
+        <%= form.label :position_id, "Посада", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= form.select :position_id,
+                        options_from_collection_for_select(@positions, :id, :position_name, params[:position_id]),
+                        { include_blank: 'Без посади' },
+                        class: "border border-gray-300 rounded-lg p-2 text-sm" %>
+      </div>
+      <p class="text-xs text-gray-500 sm:pb-2">
+        Обрана посада буде додана всім вибраним працівникам. Працівник може мати кілька посад.
+      </p>
+    </div>
+  </div>
+
   <table class="min-w-full table-auto border-collapse border border-gray-200">
     <thead>
     <tr>

@@ -2,7 +2,8 @@
 
 class Department < ApplicationRecord
   has_many :department_employees
-  has_many :employees, through: :department_employees
+  has_many :employees, -> { distinct }, through: :department_employees
+  has_many :positions, dependent: :destroy
   has_many :salaries
 
   def self.ransackable_attributes(*)

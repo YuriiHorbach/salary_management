@@ -7,13 +7,34 @@ RSpec.describe DepartmentEmployee, type: :model do
     let(:employee) { create(:employee) }
     let(:department) { create(:department) }
 
-    it 'do not allow add the same employee to one department' do
+    it 'does not allow adding the same employee to one department twice without a position' do
       create(:department_employee, employee: employee, department: department)
 
       duplicate = build(:department_employee, employee: employee, department: department)
 
       expect(duplicate.valid?).to eq(false)
-      expect(duplicate.errors[:employee_id]).to include('employee alredy exists in this department')
+      expect(duplicate.errors[:employee_id]).to include('вже має цю посаду в цьому підрозділі')
+    end
+
+    it 'allows the same employee to have several positions in one department' do
+      first_position = create(:position, department: department)
+      second_position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: first_position)
+
+      assignment = build(:department_employee, employee: employee, department: department,
+                                               position: second_position)
+
+      expect(assignment).to be_valid
+    end
+
+    it 'does not allow assigning the same position to the same employee twice' do
+      position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      duplicate = build(:department_employee, employee: employee, department: department, position: position)
+
+      expect(duplicate.valid?).to eq(false)
+      expect(duplicate.errors[:employee_id]).to include('вже має цю посаду в цьому підрозділі')
     end
 
     it 'allows adding the same employee to a different department' do

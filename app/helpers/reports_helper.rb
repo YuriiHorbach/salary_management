@@ -4,7 +4,7 @@ module ReportsHelper
   START_YEAR = 2000
 
   DETAILED_FILTER_PARAMS = %i[
-    date_from date_to department brigade account_book employee_search
+    date_from date_to department brigade account_book employee_search position
   ].freeze
 
   # Builds the detailed report CSV path, keeping the active filters as query

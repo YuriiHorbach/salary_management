@@ -134,6 +134,7 @@ module Reports
       scope = scope.where(territory_sign_id: @params[:brigade]) if @params[:brigade].present?
       scope = scope.where(departments: { id: @params[:department] }) if @params[:department].present?
       scope = scope.where(account_books: { code: @params[:account_book] }) if @params[:account_book].present?
+      scope = filter_by_position(scope)
 
       if @params[:employee_search].present?
         search = "%#{@params[:employee_search]}%"
@@ -144,6 +145,15 @@ module Reports
       end
 
       scope
+    end
+
+    def filter_by_position(scope)
+      return scope if @params[:position].blank?
+
+      assignments = DepartmentEmployee.where(position_id: @params[:position])
+      assignments = assignments.where(department_id: @params[:department]) if @params[:department].present?
+
+      scope.where(id: assignments.select(:employee_id))
     end
 
     def salary_aggregates

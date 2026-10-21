@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Керування базою агента. Змінні DB_* задані тут, тож зачепити реальну базу випадково неможливо.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+agent_env=(DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent
+           DB_USERNAME=sm_agent DB_PASSWORD=agent_password)
+
+case "${1:-}" in
+  start)   docker compose --profile agent up -d --wait agent_db ;;
+  setup)   "$0" start && env "${agent_env[@]}" bin/rails db:create db:schema:load db:seed ;;
+  reset)   "$0" start && env "${agent_env[@]}" bin/rails db:schema:load db:seed ;;
+  check)   env "${agent_env[@]}" bin/rails runner \
+             'p ActiveRecord::Base.connection_db_config.database, Employee.count, Salary.count' ;;
+  console) env "${agent_env[@]}" bin/rails console ;;
+  stop)    docker compose --profile agent stop agent_db ;;
+  nuke)    docker compose --profile agent rm -sf agent_db
+           docker volume rm salary_management_agent_db_data ;;
+  *)       echo 'Використання: bin/agent-db {start|setup|reset|check|console|stop|nuke}'; exit 1 ;;
+esac

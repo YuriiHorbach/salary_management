@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: salary_management_development
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
 
   web:
     build: .
@@ -25,8 +25,7 @@ services:
     depends_on:
       - db
 
-  # DB for agent with fake data
-  # docker compose up run this only with  --profile agent.
+  # База з ФЕЙКОВИМИ даними для AI-агентів. Стартує лише з --profile agent.
   agent_db:
     image: postgres:16-alpine
     profiles: ["agent"]

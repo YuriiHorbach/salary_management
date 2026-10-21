@@ -5,10 +5,10 @@ require 'csv'
 
 FULLY_POPULATED_ROW = [
   '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Петренко Іван Testovich',
-  '1000.00', '180.00', '50.00', '770.00',
+  '1000.00', '0.00', '50.00', '950.00',
   '300.00', '54.00', '15.00',
   '300.00', '54.00', '15.00',
-  '1300.00', '1600.00', '288.00', '80.00', '1232.00'
+  '1300.00', '1600.00', '108.00', '80.00', '1412.00'
 ].freeze
 
 RSpec.shared_context 'with a fully populated employee' do
@@ -98,13 +98,22 @@ RSpec.describe 'Reports', type: :request do
         expect(link['data-turbo']).to eq('false')
       end
 
-      it 'does not append any query parameters to the summary CSV export link' do
-        get summary_reports_path, params: { brigade: 123 }
+      it 'keeps the selected period in the summary CSV export link' do
+        get summary_reports_path, params: { period: '2025-05' }
 
         doc = Nokogiri::HTML(response.body)
         href = doc.at_css('a[href*="/reports/summary.csv"]')['href']
 
-        expect(href).to eq('/reports/summary.csv')
+        expect(href).to include('period=2025-05')
+      end
+
+      it 'renders a period filter on the summary report' do
+        get summary_reports_path, params: { period: '2025-05' }
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="period"]')
+
+        expect(period_input).to be_present
+        expect(period_input['value']).to eq('2025-05')
       end
     end
 

@@ -116,10 +116,37 @@ RSpec.describe Reports::SalarySummaryQuery do
     end
 
     it 'has correct column keys and labels' do
-      expect(described_class::COLUMN_KEYS).to include(:total_income, :total_tax, :total_military)
+      expect(described_class::COLUMN_KEYS).to include(
+        :salary_amount,
+        :salary_gross_vacation,
+        :salary_vacation_income_tax,
+        :total_salary,
+        :total_income,
+        :total_tax,
+        :total_military
+      )
       expect(described_class::COLUMN_LABELS[:total_income]).to eq('Загальний дохід (зп+вп+лік)')
       expect(described_class::COLUMN_LABELS[:total_tax]).to eq('Загальний податок (зп+вп+лік)')
-      expect(described_class::COLUMN_LABELS[:total_military]).to eq('Загальний вз (зп+вп+лік)')
+      expect(described_class::COLUMN_LABELS[:total_military]).to eq('Загальний ВЗ (зп+вп+лік)')
+    end
+
+    it 'scopes every aggregate to the requested period' do
+      result = described_class.new(period: 1.month.ago.strftime('%Y-%m')).call
+
+      expect(result[:period]).to eq(1.month.ago.beginning_of_month)
+      expect(result[:grand_total][:total_income]).to eq(0.0)
+    end
+
+    it 'uses the aggregated period incomes instead of per-record taxes' do
+      result = described_class.new.call
+      book_row = result[:brigades]['Бригада 1'][:books]['Б11']
+
+      expected_tax = EmployeePeriodIncome
+                     .for_period(Date.current.beginning_of_month)
+                     .where(employee_id: [emp1.id, emp2.id])
+                     .sum(:income_tax_cents) / 100.0
+
+      expect(book_row[:total_tax]).to be_within(0.01).of(expected_tax)
     end
   end
 end

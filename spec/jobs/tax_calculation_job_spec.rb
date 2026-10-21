@@ -51,7 +51,8 @@ RSpec.describe TaxCalculationJob, type: :job do
 
     it 'is enqueued when salary is created' do
       expect do
-        create(:salary, employee: employee, amount_cents: 500_00)
+        create(:salary, employee: employee, amount_cents: 500_00,
+                        period: 1.month.from_now.beginning_of_month)
       end.to have_enqueued_job(described_class)
     end
   end

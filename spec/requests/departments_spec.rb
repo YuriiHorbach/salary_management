@@ -11,6 +11,10 @@ RSpec.describe 'Departments', type: :request do
             .filter_map { |row| row.css('td')[1]&.text&.strip }
   end
 
+  def employee_row(last_name)
+    Nokogiri::HTML(response.body).css('tbody tr').find { |row| row.text.include?(last_name) }
+  end
+
   describe 'GET /index' do
     context 'when user is authorized' do
       it 'shows a departments list' do
@@ -78,6 +82,25 @@ RSpec.describe 'Departments', type: :request do
         expect(response.body).not_to include('Outsider')
       end
 
+      it 'lets the browser size the columns dynamically' do
+        get department_path(department)
+
+        table = Nokogiri::HTML(response.body).at_css('table')
+        fixed_width_headers = table.css('thead th[class*="w-["]')
+
+        expect(table['class']).to include('table-auto')
+        expect(table['class']).not_to include('table-fixed')
+        expect(fixed_width_headers).to be_empty
+      end
+
+      it 'does not render a separate salary history column' do
+        get department_path(department)
+
+        headers = Nokogiri::HTML(response.body).css('thead th').map { |header| header.text.strip }
+
+        expect(headers).not_to include('View salary')
+      end
+
       it 'renders sortable headers for the employee columns' do
         get department_path(department)
 
@@ -85,6 +108,90 @@ RSpec.describe 'Departments', type: :request do
 
         expect(headers.map(&:text)).to include('ID', 'Last name', 'First name', 'Patronic name')
         expect(headers.map { |link| link['href'] }).to all(include('q%5Bs%5D'))
+      end
+
+      it 'defaults the selected period to the current month' do
+        get department_path(department)
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="period"]')
+
+        expect(period_input['value']).to eq(Date.current.strftime('%Y-%m'))
+      end
+
+      it 'keeps the selected period in the period selector' do
+        get department_path(department, period: '2025-03')
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="period"]')
+
+        expect(period_input['value']).to eq('2025-03')
+      end
+
+      it 'shows the selected period in the salary column header' do
+        get department_path(department, period: '2025-03')
+
+        headers = Nokogiri::HTML(response.body).css('thead th').map { |header| header.text.strip }
+
+        expect(headers).to include('Зарплата за 03-2025')
+      end
+
+      it 'shows the salary for the selected period instead of the last salary' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, amount_cents: 900_000,
+                        period: Date.new(2025, 4, 1))
+
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Alpha')
+        expect(row.text).to include('1,000.00')
+        expect(row.text).not_to include('9,000.00')
+      end
+
+      it 'opens the salary history outside the department turbo frame' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03')
+
+        link = employee_row('Alpha').at_css("a[href='#{employee_salaries_path(alpha)}']")
+
+        expect(link['data-turbo-frame']).to eq('_top')
+      end
+
+      it 'does not render an add link for an employee that already has a salary in the period' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Alpha')
+        expect(row.at_css("a[href*='/employees/#{alpha.id}/salaries/new']")).to be_nil
+      end
+
+      it 'passes the selected period to the add salary link' do
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Zeta')
+        link = row.at_css("a[href*='/employees/#{zeta.id}/salaries/new']")
+
+        expect(link).to be_present
+        query = Rack::Utils.parse_query(URI.parse(link['href']).query)
+        expect(query['period']).to eq('2025-03')
+        expect(query['department_id']).to eq(department.id.to_s)
+      end
+
+      it 'shows the department total for the selected period only' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, amount_cents: 50_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, amount_cents: 900_000,
+                        period: Date.new(2025, 4, 1))
+
+        get department_path(department, period: '2025-03')
+
+        expect(response.body).to include('1,500.00')
+        expect(response.body).not_to include('10,500.00')
       end
     end
 

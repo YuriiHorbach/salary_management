@@ -4,8 +4,15 @@ class Salary < ApplicationRecord
   belongs_to :employee
   belongs_to :department, optional: true
 
+  before_validation :derive_period_from_paid_on
+  before_validation :derive_paid_on_from_period
+  before_validation :normalize_period
+  before_validation :sync_paid_on_with_period, if: :period_changed_on_persisted_record?
+
   monetize :amount_cents, as: :amount
   validates :amount_cents, presence: true
+  validates :period, presence: true,
+                     uniqueness: { scope: :employee_id, message: 'за цей період уже додано зарплату' }
   validates :income_tax_cents, :military_tax_cents, :net_amount_cents,
             numericality: { greater_than_or_equal_to: 0 },
             allow_nil: true
@@ -29,7 +36,7 @@ class Salary < ApplicationRecord
   }
 
   def self.ransackable_attributes(*)
-    %w[amount_cents created_at department_id employee_id id paid_on updated_at]
+    %w[amount_cents created_at department_id employee_id id paid_on period updated_at]
   end
 
   def self.ransackable_associations(*)
@@ -40,12 +47,18 @@ class Salary < ApplicationRecord
     %i[by_month by_year by_department]
   end
 
+  # The standalone form submits the month input as "YYYY-MM".
+  def period=(value)
+    value = Date.strptime(value, '%Y-%m') if value.is_a?(String) && /\A\d{4}-\d{2}\z/.match?(value)
+    super
+  end
+
   def month
-    paid_on&.strftime('%Y-%m')
+    period&.strftime('%Y-%m')
   end
 
   def year
-    paid_on&.year
+    period&.year
   end
 
   def self.monthly_sum_for_employee(employee_id)
@@ -61,6 +74,26 @@ class Salary < ApplicationRecord
   end
 
   private
+
+  def derive_period_from_paid_on
+    self.period ||= paid_on&.beginning_of_month
+  end
+
+  def derive_paid_on_from_period
+    self.paid_on ||= period
+  end
+
+  def normalize_period
+    self.period = period.beginning_of_month if period.present?
+  end
+
+  def period_changed_on_persisted_record?
+    persisted? && will_save_change_to_period?
+  end
+
+  def sync_paid_on_with_period
+    self.paid_on = period
+  end
 
   def update_employee_total_salary
     employee.update(total_salary: employee.salaries.sum(:amount_cents) / 100.0)

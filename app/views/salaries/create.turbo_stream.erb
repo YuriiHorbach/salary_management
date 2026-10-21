@@ -1,9 +1,9 @@
 <%= turbo_stream.replace "salary_amount_employee_#{@employee.id}" do %>
   <%= turbo_frame_tag "salary_amount_employee_#{@employee.id}" do %>
-    <%= link_to new_employee_salary_path(@employee, department_id: @salary.department_id),
-                class: "text-blue-600 hover:underline font-mono" do %>
-      <%= @salary.amount %>
-    <% end %>
+    <%= link_to number_to_currency(@salary.amount, unit: '₴'),
+                employee_salaries_path(@employee),
+                data: { turbo_frame: '_top' },
+                class: "text-blue-600 hover:underline font-mono" %>
   <% end %>
 <% end %>
 

@@ -24,6 +24,59 @@ RSpec.describe Salary, type: :model do
     it { should belong_to(:department).optional }
   end
 
+  describe 'period' do
+    it { should validate_presence_of(:period) }
+
+    it 'derives the period from paid_on when it is not provided' do
+      record = build(:salary, employee: employee, paid_on: Date.new(2025, 5, 15), period: nil)
+
+      record.valid?
+
+      expect(record.period).to eq(Date.new(2025, 5, 1))
+    end
+
+    it 'normalizes the period to the beginning of its month' do
+      record = build(:salary, employee: employee, period: Date.new(2025, 5, 15))
+
+      record.valid?
+
+      expect(record.period).to eq(Date.new(2025, 5, 1))
+    end
+
+    it 'accepts a YYYY-MM string period from the month input' do
+      record = build(:salary, employee: employee, period: '2025-05')
+
+      record.valid?
+
+      expect(record.period).to eq(Date.new(2025, 5, 1))
+    end
+
+    it 'allows only one salary per employee and period' do
+      create(:salary, employee: employee, period: Date.new(2025, 5, 1))
+
+      duplicate = build(:salary, employee: employee, period: Date.new(2025, 5, 20))
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату')
+    end
+
+    it 'allows the same period for another employee' do
+      create(:salary, employee: employee, period: Date.new(2025, 5, 1))
+
+      other_salary = build(:salary, employee: create(:employee), period: Date.new(2025, 5, 1))
+
+      expect(other_salary).to be_valid
+    end
+
+    it 'allows another period for the same employee' do
+      create(:salary, employee: employee, period: Date.new(2025, 5, 1))
+
+      next_salary = build(:salary, employee: employee, period: Date.new(2025, 6, 1))
+
+      expect(next_salary).to be_valid
+    end
+  end
+
   describe '#month' do
     it 'returns YYYY-MM string' do
       expect(salary.month).to eq('2025-05')

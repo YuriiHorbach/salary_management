@@ -1,10 +1,17 @@
 <%= turbo_frame_tag "salary_amount_employee_#{@employee.id}" do %>
   <%= form_with model: [@employee, @salary],
-                url: employee_salaries_path(@employee, department_id: params[:department_id]),
+                url: employee_salaries_path(@employee, department_id: @salary.department_id,
+                                                       period: @salary.month),
                 method: :post,
                 class: "inline-block" do |form| %>
 
-    <%= form.hidden_field :paid_on, value: Date.today %>
+    <%= form.hidden_field :department_id %>
+    <%= form.hidden_field :paid_on, value: @salary.period %>
+    <%= form.hidden_field :period, value: @salary.month %>
+
+    <% if @salary.errors.any? %>
+      <p class="text-xs text-red-600"><%= @salary.errors.full_messages.to_sentence %></p>
+    <% end %>
 
     <%= form.number_field :amount,
                           step: :any,

@@ -1,15 +1,27 @@
 <h1><%= @department.name %></h1>
 
-<table class="w-full table-fixed border-collapse text-sm">
+<%= form_with url: department_path(@department), method: :get,
+    class: "my-4 flex flex-wrap items-end gap-3" do |form| %>
+  <div>
+    <%= form.label :period, "Період", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= form.month_field :period, value: @period.strftime('%Y-%m'),
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
+  </div>
+
+  <%= form.submit "Показати", class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm" %>
+<% end %>
+
+<table class="w-full table-auto border-collapse text-sm">
   <thead>
     <tr class="bg-gray-100">
-      <th class="w-[100px] px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :id_code, "ID") %></th>
+      <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :id_code, "ID") %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :last_name, "Last name") %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :first_name, "First name") %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :patronic_name, "Patronic name") %></th>
-      <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">Add salary</th>
-      <th class="w-[120px] px-3 py-2 border border-gray-300 text-left">View salary</th>
-      <th class="w-[70px] px-3 py-2 border border-gray-300 text-center">Remove employee</th>
+      <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">
+        Зарплата за <%= @period.strftime('%m-%Y') %>
+      </th>
+      <th class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap">Remove employee</th>
     </tr>
   </thead>
   <tbody>
@@ -23,14 +35,17 @@
         <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.patronic_name %></td>
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
-            <%= link_to new_employee_salary_path(employee, department_id: @department.id),
-                        class: "text-blue-600 hover:underline font-mono" do %>
-              <%= employee.last_salary_display %>
+            <% if (salary = @period_salaries[employee.id]) %>
+              <%= link_to number_to_currency(salary.amount, unit: '₴'), employee_salaries_path(employee),
+                          data: { turbo_frame: '_top' },
+                          class: "text-blue-600 hover:underline font-mono" %>
+            <% else %>
+              <%= link_to '+ Додати',
+                          new_employee_salary_path(employee, department_id: @department.id,
+                                                             period: @period.strftime('%Y-%m')),
+                          class: "text-blue-600 hover:underline font-mono" %>
             <% end %>
           <% end %>
-        </td>
-        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
-          <%= link_to "Salary", employee_salaries_path(employee, department_id: @department.id), class: "text-blue-600 hover:underline" %>
         </td>
         <td class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap">
           <%= link_to '❌', remove_department_employee_path(department_id: @department.id, id: employee.id),
@@ -44,14 +59,14 @@
   <tfoot>
     <tr class="bg-gray-50 font-medium">
       <td colspan="4" class="px-3 py-2 border border-gray-300 text-right">
-        Всього за <%= l(Date.current, format: :short) %>:
+        Всього за <%= l(@period, format: :short) %>:
       </td>
       <td class="px-3 py-2 border border-gray-300 whitespace-nowrap font-mono">
         <span id="department_total">
           <%= number_to_currency(@department_total, unit: '₴') %>
         </span>
       </td>
-      <td colspan="2"></td>
+      <td class="px-3 py-2 border border-gray-300"></td>
     </tr>
   </tfoot>
 </table>

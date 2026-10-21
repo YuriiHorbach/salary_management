@@ -35,6 +35,9 @@ Rails.application.routes.draw do
   end
 
   get '/home_pages/', to: 'home_pages#index'
+  patch '/home_pages/current_working_month',
+        to: 'home_pages#update_current_working_month',
+        as: :current_working_month
 
   namespace :settings do
     root to: 'dashboard#index'

@@ -30,6 +30,18 @@ RSpec.describe 'Vacations', type: :request do
       expect(amount_input['value']).to be_blank
       expect(response.body).to include('1000,00')
     end
+
+    context 'when a current working month is selected' do
+      let(:user) { create(:user, current_working_month: Date.new(2025, 4, 1)) }
+
+      it 'defaults the vacation period to the current working month' do
+        get new_employee_vacation_path(employee)
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="vacation[period]"]')
+
+        expect(period_input['value']).to eq('2025-04-01')
+      end
+    end
   end
 
   describe 'POST /employees/:employee_id/vacations' do

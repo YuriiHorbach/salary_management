@@ -73,6 +73,18 @@ RSpec.describe 'SickDayEntries', type: :request do
       expect(link.text.strip).to eq('Лікарняні')
       expect(doc.text).to include('Додатково')
     end
+
+    context 'when a current working month is selected' do
+      let(:user) { create(:user, current_working_month: Date.new(2025, 4, 1)) }
+
+      it 'defaults the sick day period to the current working month' do
+        get new_sick_day_entry_path
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="sick_day[period]"]')
+
+        expect(period_input['value']).to eq('2025-04')
+      end
+    end
   end
 
   describe 'POST /sick_day_entries' do

@@ -1,8 +1,3 @@
-<p>
-  <div class="mb-4">
-    <%= link_to 'Add a new employee', new_employee_path, class: 'btn btn-primary btn-xs font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
-  </div>
-</p>
 <div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
   <%= search_form_for @q, url: employees_path, method: :get do |f| %>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -60,6 +55,16 @@
     </div>
   <% end %>
 </div>
+
+<div id="employees_actions" class="m-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+  <%= link_to 'Add a new employee', new_employee_path, class: 'btn btn-primary btn-xs font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
+
+  <%= render 'shared/pagination',
+        pagy: @pagy,
+        pagination_id: 'employees_pagination_top',
+        margin_class: '' %>
+</div>
+
 <div class="m-5 overflow-x-auto">
   <%= turbo_frame_tag "employees_list" do %>
     <% grid_layout = "grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;" %>
@@ -79,6 +84,13 @@
       <%= render partial: 'employee', collection: @employees, as: :employee %>
     </div>
   <% end %>
+</div>
+
+<div class="m-5">
+  <%= render 'shared/pagination',
+        pagy: @pagy,
+        pagination_id: 'employees_pagination_bottom',
+        margin_class: '' %>
 </div>
 
 <div class="m-5">

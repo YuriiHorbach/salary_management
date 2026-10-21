@@ -91,7 +91,7 @@ class Employee < ApplicationRecord
   end
 
   def full_name
-    "#{first_name} #{last_name}"
+    [last_name, first_name, patronic_name].compact_blank.join(' ')
   end
 
   def full_name_with_id_code

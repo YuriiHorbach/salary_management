@@ -11,6 +11,7 @@ class SalariesController < ApplicationController
     @salaries = @salaries.where(period: @period) if @period
     @period_incomes = EmployeePeriodIncome.where(employee: @employee).order(period: :desc)
     @period_incomes = @period_incomes.for_period(@period) if @period
+    @departments = @employee.departments.distinct.order(:name)
   end
 
   def show; end

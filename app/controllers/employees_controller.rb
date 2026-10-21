@@ -7,6 +7,7 @@ class EmployeesController < ApplicationController
     chaes_true contract_true s
   ].freeze
   CHECKBOX_FILTER_KEYS = %w[chaes_true contract_true].freeze
+  EMPLOYEES_PER_PAGE = 15
 
   before_action :authenticate_user!
   before_action :set_employee, only: %i[edit update destroy]
@@ -14,7 +15,7 @@ class EmployeesController < ApplicationController
 
   def index
     @q = Employee.ransack(employee_search_params)
-    @employees = @q.result(distinct: true)
+    @pagy, @employees = pagy(:offset, @q.result(distinct: true), limit: EMPLOYEES_PER_PAGE)
   end
 
   def show
@@ -141,7 +142,7 @@ class EmployeesController < ApplicationController
 
   def prepare_monthly_totals(q)
     @monthly_totals = q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
-                              .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+                       .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

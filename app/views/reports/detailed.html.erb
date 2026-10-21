@@ -56,7 +56,8 @@
 <% end %>
 
 <%= turbo_frame_tag "detailed_report_table" do %>
-  <%= render 'pagination',
+  <%= render 'shared/pagination',
+        pagy: @pagy,
         pagination_id: 'detailed_report_pagination_top',
         margin_class: 'mb-4' %>
 
@@ -103,7 +104,8 @@
     </table>
   </div>
 
-  <%= render 'pagination',
+  <%= render 'shared/pagination',
+        pagy: @pagy,
         pagination_id: 'detailed_report_pagination_bottom',
         margin_class: 'mt-4' %>
 <% end %>

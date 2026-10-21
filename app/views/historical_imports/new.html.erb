@@ -1,0 +1,49 @@
+<% content_for :title, "Імпорт старих даних" %>
+
+<h1 class="text-2xl font-bold mb-6">Імпорт старих даних</h1>
+
+<div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
+  <%= form_with url: historical_imports_path, method: :post, multipart: true, class: "space-y-4" do |f| %>
+    <div class="flex flex-col">
+      <%= f.label :file, "CSV-файл", class: "text-xs font-bold text-gray-600 mb-1" %>
+      <%= f.file_field :file, accept: ".csv,text/csv", class: "border border-gray-300 rounded-lg p-2 text-sm" %>
+    </div>
+
+    <div class="flex flex-col">
+      <%= f.label :data_type, "Тип даних (якщо у файлі немає колонки type)",
+            class: "text-xs font-bold text-gray-600 mb-1" %>
+      <%= f.select :data_type,
+            [["Автоматично (за колонкою type)", ""],
+             ["Зарплата", "salary"],
+             ["Лікарняні", "sick_day"],
+             ["Відпускні", "vacation"]],
+            {},
+            class: "border border-gray-300 rounded-lg p-2 text-sm" %>
+    </div>
+
+    <%= f.submit "Імпортувати",
+          class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600 cursor-pointer" %>
+  <% end %>
+</div>
+
+<div class="m-5 bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-sm text-gray-700">
+  <h2 class="text-lg font-bold mb-2">Формат файлу</h2>
+  <p class="mb-2">
+    CSV з розділювачем <code>;</code> або <code>,</code>. Працівник шукається за
+    <code>id_code</code>/<code>passport</code> (ІПН, РНОКПП або номер паспорта) чи за
+    <code>identifier</code> (код книги).
+  </p>
+  <ul class="list-disc pl-5 space-y-1">
+    <li><strong>Спільні колонки:</strong> <code>type</code> (salary / sick_day / vacation),
+      <code>id_code</code>, <code>period</code> (YYYY-MM), необов'язково
+      <code>department</code> (назва або id підрозділу), <code>income_tax</code>,
+      <code>military_tax</code>, <code>net_amount</code>.</li>
+    <li><strong>Зарплата:</strong> <code>amount</code>, необов'язково <code>paid_on</code>.</li>
+    <li><strong>Лікарняні:</strong> <code>pfu_amount</code>, <code>enterprise_amount</code>.</li>
+    <li><strong>Відпускні:</strong> <code>vacation_amount</code>.</li>
+  </ul>
+  <p class="mt-3">
+    Податки з файлу зберігаються без перерахунку податковим калькулятором. Якщо
+    <code>net_amount</code> не вказано, він обчислюється як сума мінус податки.
+  </p>
+</div>

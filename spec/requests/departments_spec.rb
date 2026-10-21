@@ -93,12 +93,26 @@ RSpec.describe 'Departments', type: :request do
         expect(fixed_width_headers).to be_empty
       end
 
-      it 'does not render a separate salary history column' do
+      it 'renders a salary history column with a link for every employee' do
+        get department_path(department)
+
+        rows = Nokogiri::HTML(response.body).css('tbody tr')
+
+        [alpha, zeta].each do |employee|
+          row = rows.find { |r| r.text.include?(employee.last_name) }
+          link = row.at_css("a[href='#{employee_salaries_path(employee, department_id: department.id)}']")
+
+          expect(link).to be_present
+          expect(link.text.strip).to eq('Salary')
+        end
+      end
+
+      it 'renders the salary history column header' do
         get department_path(department)
 
         headers = Nokogiri::HTML(response.body).css('thead th').map { |header| header.text.strip }
 
-        expect(headers).not_to include('View salary')
+        expect(headers).to include('View salary')
       end
 
       it 'renders sortable headers for the employee columns' do

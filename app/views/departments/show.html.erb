@@ -21,6 +21,7 @@
       <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">
         Зарплата за <%= @period.strftime('%m-%Y') %>
       </th>
+      <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">View salary</th>
       <th class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap">Remove employee</th>
     </tr>
   </thead>
@@ -47,6 +48,10 @@
             <% end %>
           <% end %>
         </td>
+        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
+          <%= link_to "Salary", employee_salaries_path(employee, department_id: @department.id),
+                      class: "text-blue-600 hover:underline" %>
+        </td>
         <td class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap">
           <%= link_to '❌', remove_department_employee_path(department_id: @department.id, id: employee.id),
               data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' },
@@ -66,6 +71,7 @@
           <%= number_to_currency(@department_total, unit: '₴') %>
         </span>
       </td>
+      <td class="px-3 py-2 border border-gray-300"></td>
       <td class="px-3 py-2 border border-gray-300"></td>
     </tr>
   </tfoot>

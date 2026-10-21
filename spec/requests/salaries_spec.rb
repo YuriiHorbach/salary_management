@@ -62,16 +62,17 @@ RSpec.describe 'Salaries', type: :request do
       end
     end
 
-    it 'renders the positions assigned to the employee in the selected department' do
+    it 'does not render a position selector in the inline add form' do
       position = create(:position, department: department, position_name: 'Інженер')
       create(:department_employee, employee: employee, department: department, position: position)
 
       get urls.new_employee_salary_path(employee, department_id: department.id)
 
-      selector = Nokogiri::HTML(response.body).at_css('select[name="salary[position_id]"]')
+      page = Nokogiri::HTML(response.body)
 
-      expect(selector).to be_present
-      expect(selector.text).to include('Інженер', 'Без посади')
+      expect(page.at_css('select[name="salary[position_id]"]')).to be_nil
+      expect(page.at_css('input[name="salary[amount]"]')).to be_present
+      expect(page.at_css('input[name="salary[department_id]"]')['value']).to eq(department.id.to_s)
     end
   end
 
@@ -140,8 +141,19 @@ RSpec.describe 'Salaries', type: :request do
       expect(response).to have_http_status(:found)
       expect(employee.salaries.last.amount_cents).to eq(5000)
       expect(employee.salaries.last.department_id).to eq(department.id)
+      expect(employee.salaries.last.position_id).to be_nil
       expect(employee.salaries.last.period).to eq(Date.new(2025, 10, 1))
       expect(response).to redirect_to(department_path(department, period: '2025-10'))
+    end
+
+    it 'creates the salary without a position even when the employee has one' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id), department_id: department.id }
+
+      expect(employee.salaries.last.position_id).to be_nil
     end
 
     it 'responds with turbo_stream format' do

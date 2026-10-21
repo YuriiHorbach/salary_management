@@ -18,7 +18,6 @@ class SalariesController < ApplicationController
 
   def new
     @salary = @employee.salaries.new(period: requested_period, department_id: params[:department_id])
-    load_positions
   end
 
   def create
@@ -35,7 +34,6 @@ class SalariesController < ApplicationController
         format.turbo_stream
       end
     else
-      load_positions
       render :new, status: :unprocessable_content
     end
   end

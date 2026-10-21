@@ -75,6 +75,54 @@ This automatically detects your OS and creates a launcher (`.command` on macOS, 
 3. **Agent Permission Boundaries:** AI agents are restricted from modifying infrastructure configuration files (`config/database.yml`, `docker-compose.yml`, `bin/agent`) to ensure safe operations.
 
 ---
+Testing Guide / Інструкція з запуску тестів
+
+### Part 1: English Version
+
+#### 1. Concept: Why Separate Test Databases?
+Even though the project test suite (RSpec code) is identical for both human developers and AI agents, **the underlying test databases MUST be isolated**.
+
+* **Developer Environment (Port 5433):** Runs on `salary_management_test`. RSpec automatically truncates/prepares this database during test runs without touching your development data.
+* **AI Agent Environment (Port 5434):** Runs on `salary_management_agent_test`. When the AI agent tests code modifications or experimental migrations, it must be constrained to port `5434` to prevent altering the developer's test state or schema.
+
+---
+
+#### 2. Developer Test Execution (Real / Main Setup)
+
+##### A. Inside Docker Container (Recommended)
+This is the cleanest method as it uses the containerized environment matching production:
+```bash
+docker compose exec web bundle exec rspec
+```
+
+##### B. Locally on Host Machine (Without Docker)
+Ensure the Docker Postgres container on port `5433` (or local Postgres) is running:
+```bash
+RAILS_ENV=test DB_PORT=5433 bundle exec rspec
+```
+
+---
+
+#### 3. AI Agent Test Execution (Isolated Sandbox)
+
+##### A. Inside the Agent Wrapper (`bin/agent`) — Recommended
+When operating inside the `./bin/agent` wrapper session, the environment is sanitized via `env -i`, and connection variables point strictly to port `5434`. You or the agent can simply run:
+```bash
+bundle exec rspec
+```
+
+##### B. Explicitly from Host Machine against Agent Database
+If you need to execute tests against the agent's sandbox database directly from your host terminal:
+```bash
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+```
+
+---
+
+#### 4. Safety Checklist
+- [x] Never run `bundle exec rspec` with `DB_PORT=5432` if you have system Postgres running locally.
+- [x] Ensure `.env` is ignored by git so test execution parameters do not leak sensitive host keys.
+
 ---
 
 ## Частина 2: Українська версія
@@ -146,3 +194,52 @@ npm run shortcut
 1. **Конфіденційні дані:** Ніколи не вписуйте паролі в код. Використовуйте локальний файл `.env` у корені проєкту (він захищений `.gitignore`).
 2. **Захист від деструктивних команд:** Спеціальні Rake-захисти (`lib/tasks/protect_real_db.rake`) блокують випадкове очищення чи скидання робочої бази даних при помилковому запуску команд з хоста.
 3. **Обмеження прав AI-агентів:** Правила безпеки забороняють агентам редагувати інфраструктурні конфігурації (`config/database.yml`, `docker-compose.yml`, `bin/agent`), що гарантує незмінність захисних контурів.
+
+
+
+
+### Частина 2: Українська версія
+
+#### 1. Концепція: Чому тестові бази даних мають бути розділені?
+Хоча сам набір тестів (код RSpec) є єдиним для всього проєкту, **бази даних для запуску тестів розробником та AI-агентом ПОВИННІ бути ізольованими**.
+
+* **Середовище розробника (Порт 5433):** Працює з базою `salary_management_test`. Під час запуску RSpec Rails автоматично очищує та підготовлює цю базу, не чіпаючи ваші робочі дані розробки.
+* **Середовище AI-агента (Порт 5434):** Працює з базою `salary_management_agent_test`. Якщо AI-агент перевіряє свої експерименти з кодом або нові міграції, він повинен бути обмежений портом `5434`, щоб не пошкодити схему чи стан тестів розробника.
+
+---
+
+#### 2. Запуск тестів розробником (Основна база)
+
+##### А. Усередині контейнера Docker (Рекомендовано)
+Найбільш ізольований та надійний спосіб розробки:
+```bash
+docker compose exec web bundle exec rspec
+```
+
+##### Б. Локально на хості (Без Docker)
+Переконайся, що контейнер PostgreSQL на порту `5433` (або локальний Postgres) запущений:
+```bash
+RAILS_ENV=test DB_PORT=5433 bundle exec rspec
+```
+
+---
+
+#### 3. Запуск тестів AI-агентом (Ізольована пісочниця)
+
+##### А. Усередині сесії обгортки (`bin/agent`) — Рекомендовано
+Усередині сеансу, запущеного через `./bin/agent`, середовище автоматично очищено через `env -i`, а змінні підключення вказують на порт `5434`. Ви або агент просто виконуєте:
+```bash
+bundle exec rspec
+```
+
+##### Б. Явно з термінала хоста для бази агента
+Якщо потрібно виконати тести для бази агента напряму з вашого термінала:
+```bash
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+```
+
+---
+
+#### 4. Чек-лист безпеки
+- [x] Ніколи не запускайте `bundle exec rspec` з `DB_PORT=5432`, якщо у вас локально працює системний Postgres.
+- [x] Переконайтеся, що файл `.env` заігнорований у git, щоб тестові параметри не компрометували секрети.

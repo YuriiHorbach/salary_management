@@ -1,53 +1,63 @@
 # frozen_string_literal: true
 
 module Reports
-  # Aggregates salary, vacation and sick-day data grouped by brigade (territory)
-  # and account book, producing a pivot-table-ready structure for the Summary Report.
+  # Builds the pivot data for the Summary Report.
+  #
+  # Data comes from +EmployeePeriodIncome+, where gross amounts and taxes are
+  # already aggregated per employee, month and income type. Rows are grouped by
+  # brigade (territory sign) and account book, with brigade and grand totals.
+  # The report always scopes to one month; +period+ defaults to the current one.
   class SalarySummaryQuery
-    # All monetary columns in UAH (already divided by 100 from cents).
+    # All monetary columns in UAH (converted from cents).
     COLUMN_KEYS = %i[
-      salary_gross_vacation
+      salary_amount
       salary_income_tax
       salary_military_tax
       salary_net
-      salary_net_income_tax
-      salary_net_military_tax
       vacation_amount
       vacation_income_tax
       vacation_military_tax
       sick_total
       sick_pdfo
       sick_military
+      total_salary
       total_income
       total_tax
       total_military
+      salary_gross_vacation
+      salary_vacation_income_tax
     ].freeze
 
     COLUMN_LABELS = {
-      salary_gross_vacation: 'зарплата зп+відп',
-      salary_income_tax: 'зп_нараховано податку',
-      salary_military_tax: 'зп_військовий збір',
-      salary_net: 'чиста_зп',
-      salary_net_income_tax: 'чиста_зп_податок',
-      salary_net_military_tax: 'чиста_зп_вз',
-      vacation_amount: 'відпускні',
-      vacation_income_tax: 'відп_нараховано податку',
-      vacation_military_tax: 'відп_військовий збір',
-      sick_total: 'лікарняні',
-      sick_pdfo: 'лік_нараховано податку',
-      sick_military: 'лік_військовий збір',
+      salary_amount: 'Зарплата',
+      salary_income_tax: 'ПДФО із зарплати',
+      salary_military_tax: 'ВЗ із зарплати',
+      salary_net: 'Зарплата на руки',
+      vacation_amount: 'Відпускні',
+      vacation_income_tax: 'ПДФО з відпускних',
+      vacation_military_tax: 'ВЗ з відпускних',
+      sick_total: 'Лікарняні',
+      sick_pdfo: 'ПДФО з лікарняних',
+      sick_military: 'ВЗ з лікарняних',
+      total_salary: 'Всього зарплат',
       total_income: 'Загальний дохід (зп+вп+лік)',
       total_tax: 'Загальний податок (зп+вп+лік)',
-      total_military: 'Загальний вз (зп+вп+лік)'
+      total_military: 'Загальний ВЗ (зп+вп+лік)',
+      salary_gross_vacation: 'Зарплата + відпускні (брутто)',
+      salary_vacation_income_tax: 'ПДФО із зп + відпускних'
     }.freeze
+
+    attr_reader :period
 
     def initialize(params = {})
       @params = params || {}
+      @period = selected_period
     end
 
     def call
       brigades, grand_total = build_data
       {
+        period: period,
         brigades: brigades,
         grand_total: grand_total
       }
@@ -55,137 +65,109 @@ module Reports
 
     private
 
+    def selected_period
+      Date.strptime(@params[:period].to_s, '%Y-%m').beginning_of_month
+    rescue ArgumentError, TypeError
+      Date.current.beginning_of_month
+    end
+
     def build_data
-      employees = Employee.includes(:account_book, :territory_sign).all
-
-      salary_agg = salary_aggregates
-      vacation_agg = vacation_aggregates
-      sick_agg = sick_day_aggregates
-
-      grouped = employees.group_by { |e| [e.territory_sign&.name.to_s, e.account_book&.code.to_s] }
-
+      incomes_by_employee = EmployeePeriodIncome.for_period(period).group_by(&:employee_id)
       brigades = {}
       grand_total = zero_hash
 
-      grouped.each do |(brigade, book_code), emps|
-        brigades[brigade] ||= { books: {}, total: zero_hash }
-        brigades[brigade][:books][book_code] ||= zero_hash
-
-        emps.each do |emp|
-          s = salary_agg[emp.id] || salary_zero
-          v = vacation_agg[emp.id] || vacation_zero
-          sk = sick_agg[emp.id] || sick_zero
-
-          row = compute_row(s, v, sk)
-
-          brigades[brigade][:books][book_code] = add_hashes(brigades[brigade][:books][book_code], row)
-          brigades[brigade][:total] = add_hashes(brigades[brigade][:total], row)
-          grand_total = add_hashes(grand_total, row)
-        end
+      grouped_employees.each do |(brigade, book_code), employees|
+        group_total = append_group(brigades, brigade, book_code, employees, incomes_by_employee)
+        grand_total = add_hashes(grand_total, group_total)
       end
 
       [brigades, grand_total]
     end
 
-    def salary_aggregates
-      Salary
-        .group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(military_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(net_amount_cents), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            gross: v[1] / 100.0,
-            income_tax: v[2] / 100.0,
-            military_tax: v[3] / 100.0,
-            net: v[4] / 100.0
-          }
-        end
+    def grouped_employees
+      Employee.includes(:account_book, :territory_sign)
+              .group_by { |employee| [employee.territory_sign&.name.to_s, employee.account_book&.code.to_s] }
     end
 
-    def vacation_aggregates
-      Vacation
-        .group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(vacation_amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM(income_tax_cents), 0)'),
-          Arel.sql('COALESCE(SUM(military_tax_cents), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            amount: v[1] / 100.0,
-            income_tax: v[2] / 100.0,
-            military_tax: v[3] / 100.0
-          }
-        end
+    def append_group(brigades, brigade_name, book_code, employees, incomes_by_employee)
+      brigade_data = (brigades[brigade_name] ||= { books: {}, total: zero_hash })
+      brigade_data[:books][book_code] ||= zero_hash
+
+      group_total = zero_hash
+      employees.each do |employee|
+        row = row_for(employee, incomes_by_employee)
+        accumulate!(brigade_data, book_code, row)
+        group_total = add_hashes(group_total, row)
+      end
+      group_total
     end
 
-    def sick_day_aggregates
-      SickDay
-        .group(:employee_id)
-        .pluck(
-          :employee_id,
-          Arel.sql('COALESCE(SUM(pfu_amount_cents + enterprise_amount_cents), 0)'),
-          Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.18), 0)'),
-          Arel.sql('COALESCE(SUM((pfu_amount_cents + enterprise_amount_cents) * 0.05), 0)')
-        )
-        .index_by(&:first)
-        .transform_values do |v|
-          {
-            total: v[1] / 100.0,
-            pdfo: v[2] / 100.0,
-            military: v[3] / 100.0
-          }
-        end
+    def row_for(employee, incomes_by_employee)
+      rows = (incomes_by_employee[employee.id] || []).index_by(&:income_type)
+      compute_row(rows)
     end
 
-    def compute_row(salary, vacation, sick)
-      salary_gross_vacation = salary[:gross] + vacation[:amount]
+    def accumulate!(brigade_data, book_code, row)
+      brigade_data[:books][book_code] = add_hashes(brigade_data[:books][book_code], row)
+      brigade_data[:total] = add_hashes(brigade_data[:total], row)
+    end
 
+    def compute_row(rows)
+      salary = income_values(rows['salary'])
+      vacation = income_values(rows['vacation'])
+      sick = income_values(rows['sick_day'])
+
+      base_columns(salary, vacation, sick).merge(total_columns(salary, vacation, sick))
+    end
+
+    def income_values(income)
       {
-        salary_gross_vacation: salary_gross_vacation,
-        salary_income_tax: salary[:income_tax],
-        salary_military_tax: salary[:military_tax],
-        salary_net: salary[:net],
-        salary_net_income_tax: salary[:income_tax],
-        salary_net_military_tax: salary[:military_tax],
-        vacation_amount: vacation[:amount],
-        vacation_income_tax: vacation[:income_tax],
-        vacation_military_tax: vacation[:military_tax],
-        sick_total: sick[:total],
-        sick_pdfo: sick[:pdfo],
-        sick_military: sick[:military],
-        total_income: salary_gross_vacation + sick[:total],
-        total_tax: salary[:income_tax] + vacation[:income_tax] + sick[:pdfo],
-        total_military: salary[:military_tax] + vacation[:military_tax] + sick[:military]
+        gross: uah(income&.gross_cents),
+        income_tax: uah(income&.income_tax_cents),
+        military_tax: uah(income&.military_tax_cents),
+        net: uah(income&.net_amount_cents)
       }
     end
 
-    def salary_zero
-      { gross: 0.0, income_tax: 0.0, military_tax: 0.0, net: 0.0 }
+    def base_columns(salary, vacation, sick)
+      {
+        salary_amount: salary[:gross],
+        salary_income_tax: salary[:income_tax],
+        salary_military_tax: salary[:military_tax],
+        salary_net: salary[:net],
+        vacation_amount: vacation[:gross],
+        vacation_income_tax: vacation[:income_tax],
+        vacation_military_tax: vacation[:military_tax],
+        sick_total: sick[:gross],
+        sick_pdfo: sick[:income_tax],
+        sick_military: sick[:military_tax]
+      }
     end
 
-    def vacation_zero
-      { amount: 0.0, income_tax: 0.0, military_tax: 0.0 }
+    def total_columns(salary, vacation, sick)
+      salary_gross_vacation = salary[:gross] + vacation[:gross]
+      salary_vacation_income_tax = salary[:income_tax] + vacation[:income_tax]
+
+      {
+        total_salary: salary[:gross],
+        total_income: salary_gross_vacation + sick[:gross],
+        total_tax: salary_vacation_income_tax + sick[:income_tax],
+        total_military: salary[:military_tax] + vacation[:military_tax] + sick[:military_tax],
+        salary_gross_vacation: salary_gross_vacation,
+        salary_vacation_income_tax: salary_vacation_income_tax
+      }
     end
 
-    def sick_zero
-      { total: 0.0, pdfo: 0.0, military: 0.0 }
+    def uah(cents)
+      cents.to_i / 100.0
     end
 
     def zero_hash
       COLUMN_KEYS.index_with { 0.0 }
     end
 
-    def add_hashes(h1, h2)
-      h1.merge(h2) { |_, v1, v2| v1 + v2 }
+    def add_hashes(first, second)
+      first.merge(second) { |_key, left, right| left + right }
     end
   end
 end

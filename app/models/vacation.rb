@@ -1,7 +1,14 @@
+# Vacation payment for an employee.
+#
+# Per-record taxes are kept for display, while +Incomes::PeriodRecalculator+
+# calculates the authoritative taxes on the total vacation amount of a month.
 class Vacation < ApplicationRecord
   belongs_to :employee
 
   before_validation :calculate_and_assign_taxes, if: :vacation_amount_changed?
+
+  after_destroy :refresh_period_income
+  after_save :refresh_period_income
 
   monetize :vacation_amount_cents
   monetize :income_tax_cents
@@ -24,6 +31,15 @@ class Vacation < ApplicationRecord
   end
 
   private
+
+  def refresh_period_income
+    periods = [period]
+    periods << period_before_last_save if saved_change_to_period?
+
+    periods.compact.uniq.each do |changed_period|
+      Incomes::PeriodRecalculator.call(employee: employee, period: changed_period, income_type: 'vacation')
+    end
+  end
 
   def calculate_and_assign_taxes
     return if vacation_amount_cents.blank? || vacation_amount_cents.to_i.zero?

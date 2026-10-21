@@ -5,7 +5,7 @@ class VacationEntriesController < ApplicationController
 
   def new
     load_form_data
-    @vacation = Vacation.new
+    @vacation = Vacation.new(period: current_working_month)
   end
 
   def create

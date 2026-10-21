@@ -142,7 +142,9 @@ RSpec.describe 'Departments', type: :request do
 
         [alpha, zeta].each do |employee|
           row = rows.find { |r| r.text.include?(employee.last_name) }
-          link = row.at_css("a[href='#{employee_salaries_path(employee, department_id: department.id)}']")
+          expected_path = employee_salaries_path(employee, department_id: department.id,
+                                                           period: Date.current.strftime('%Y-%m'))
+          link = row.at_css("a[href='#{expected_path}']")
 
           expect(link).to be_present
           expect(link.text.strip).to eq('Salary')
@@ -174,6 +176,16 @@ RSpec.describe 'Departments', type: :request do
         expect(period_input['value']).to eq(Date.current.strftime('%Y-%m'))
       end
 
+      it 'defaults the selected period to the current working month' do
+        user.update!(current_working_month: Date.new(2025, 4, 1))
+        get department_path(department)
+
+        period_input = Nokogiri::HTML(response.body).at_css('input[name="period"]')
+
+        expect(assigns(:period)).to eq(Date.new(2025, 4, 1))
+        expect(period_input['value']).to eq('2025-04')
+      end
+
       it 'keeps the selected period in the period selector' do
         get department_path(department, period: '2025-03')
 
@@ -203,13 +215,25 @@ RSpec.describe 'Departments', type: :request do
         expect(row.text).not_to include('9,000.00')
       end
 
+      it 'sums all salaries in this department for an employee with several positions' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03')
+
+        expect(employee_row('Alpha').text).to include('1,500.00')
+      end
+
       it 'opens the salary history outside the department turbo frame' do
         create(:salary, employee: alpha, department: department, amount_cents: 100_000,
                         period: Date.new(2025, 3, 1))
 
         get department_path(department, period: '2025-03')
 
-        link = employee_row('Alpha').at_css("a[href='#{employee_salaries_path(alpha)}']")
+        link = employee_row('Alpha').at_css("a[href='#{employee_salaries_path(alpha, period: '2025-03')}']")
 
         expect(link['data-turbo-frame']).to eq('_top')
       end

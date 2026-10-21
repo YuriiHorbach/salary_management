@@ -5,7 +5,7 @@ class SickDayEntriesController < ApplicationController
 
   def new
     load_form_data
-    @sick_day = SickDay.new(period: Date.current.beginning_of_month)
+    @sick_day = SickDay.new(period: current_working_month)
   end
 
   def create

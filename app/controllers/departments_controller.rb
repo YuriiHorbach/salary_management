@@ -23,7 +23,9 @@ class DepartmentsController < ApplicationController
     @positions = @department.positions.order(:position_name)
     @employee_positions = positions_by_employee
     @period = selected_period
-    @period_salaries = Salary.where(employee_id: @employees.map(&:id), period: @period).index_by(&:employee_id)
+    @period_salaries = Salary.where(employee_id: @employees.map(&:id), department_id: @department.id, period: @period)
+                             .group(:employee_id)
+                             .sum(:amount_cents)
     @department_total = @department.monthly_total(@period)
   end
 
@@ -65,7 +67,7 @@ class DepartmentsController < ApplicationController
   def selected_period
     Date.strptime(params[:period].to_s, '%Y-%m').beginning_of_month
   rescue ArgumentError
-    Date.current.beginning_of_month
+    current_working_month
   end
 
   def filtered_employees

@@ -12,7 +12,7 @@ class SickDaysController < ApplicationController
   end
 
   def new
-    @sick_day = @employee.sick_days.build(period: Date.current.beginning_of_month)
+    @sick_day = @employee.sick_days.build(period: current_working_month)
   end
 
   def create

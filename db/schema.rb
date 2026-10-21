@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_21_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -46,6 +46,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "employee_period_incomes", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.date "period", null: false
+    t.string "income_type", null: false
+    t.integer "gross_cents", default: 0, null: false
+    t.integer "income_tax_cents", default: 0, null: false
+    t.integer "military_tax_cents", default: 0, null: false
+    t.integer "net_amount_cents", default: 0, null: false
+    t.string "tax_settings_digest"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id", "period", "income_type"], name: "index_employee_period_incomes_unique", unique: true
+    t.index ["employee_id"], name: "index_employee_period_incomes_on_employee_id"
   end
 
   create_table "employees", force: :cascade do |t|
@@ -95,9 +110,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
     t.datetime "taxes_calculated_at"
     t.integer "amount_cents", default: 0, null: false
     t.date "period", null: false
+    t.bigint "position_id"
     t.index ["department_id"], name: "index_salaries_on_department_id"
-    t.index ["employee_id", "period"], name: "index_salaries_on_employee_id_and_period", unique: true
+    t.index ["employee_id", "period", "department_id"], name: "index_salaries_unique_department_per_period", unique: true, where: "(position_id IS NULL)"
+    t.index ["employee_id", "period", "position_id"], name: "index_salaries_unique_position_per_period", unique: true, where: "(position_id IS NOT NULL)"
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
+    t.index ["position_id"], name: "index_salaries_on_position_id"
   end
 
   create_table "sick_days", force: :cascade do |t|
@@ -110,6 +128,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
     t.integer "income_tax_cents", default: 0, null: false
     t.integer "military_tax_cents", default: 0, null: false
     t.integer "net_amount_cents", default: 0, null: false
+    t.bigint "department_id"
+    t.index ["department_id"], name: "index_sick_days_on_department_id"
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
   end
 
@@ -137,6 +157,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
     t.datetime "remember_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "current_working_month"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -150,6 +171,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
     t.integer "income_tax_cents"
     t.integer "military_tax_cents"
     t.integer "net_amount_cents"
+    t.bigint "department_id"
+    t.index ["department_id"], name: "index_vacations_on_department_id"
     t.index ["employee_id"], name: "index_vacations_on_employee_id"
   end
 
@@ -158,10 +181,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_120000) do
   add_foreign_key "department_employees", "departments", on_delete: :cascade
   add_foreign_key "department_employees", "employees", on_delete: :cascade
   add_foreign_key "department_employees", "positions", on_delete: :cascade
+  add_foreign_key "employee_period_incomes", "employees", on_delete: :cascade
   add_foreign_key "employees", "territory_signs"
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"
+  add_foreign_key "salaries", "positions", on_delete: :nullify
+  add_foreign_key "sick_days", "departments"
   add_foreign_key "sick_days", "employees"
+  add_foreign_key "vacations", "departments"
   add_foreign_key "vacations", "employees"
 end

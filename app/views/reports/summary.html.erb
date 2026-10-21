@@ -3,8 +3,17 @@
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
   <h1 class="text-2xl font-bold">Зведений звіт по зарплатах (Pivot)</h1>
 
+  <%= form_with url: summary_reports_path, method: :get, class: "flex flex-wrap items-end gap-3" do |form| %>
+    <div>
+      <%= form.label :period, "Період", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.month_field :period, value: @result[:period].strftime('%Y-%m'),
+          class: "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
+    </div>
+    <%= form.submit "Показати", class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded" %>
+  <% end %>
+
   <%= link_to "Експорт CSV",
-      summary_reports_path(format: :csv),
+      summary_reports_path(format: :csv, period: @result[:period].strftime('%Y-%m')),
       class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded",
       data: { turbo: false } %>
 </div>

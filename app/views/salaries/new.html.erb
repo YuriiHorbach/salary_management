@@ -20,5 +20,9 @@
                           autofocus: true,
                           data: { controller: "auto-submit", action: "blur->auto-submit#submit" },
                           class: "w-20 p-1 text-xs border rounded border-blue-500 outline-none focus:ring-1 focus:ring-blue-500 font-mono" %>
+
+    <%= form.collection_select :position_id, @positions || [], :id, :position_name,
+                               { include_blank: 'Без посади' },
+                               { class: "p-1 text-xs border rounded border-blue-500 outline-none focus:ring-1 focus:ring-blue-500" } %>
   <% end %>
 <% end %>

@@ -15,7 +15,7 @@ class VacationsController < ApplicationController
   end
 
   def new
-    @vacation = @employee.vacations.build
+    @vacation = @employee.vacations.build(period: current_working_month)
   end
 
   def create

@@ -26,6 +26,7 @@
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :last_name, "Last name") %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :first_name, "First name") %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :patronic_name, "Patronic name") %></th>
+      <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">Посада</th>
       <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">
         Зарплата за <%= @period.strftime('%m-%Y') %>
       </th>
@@ -42,6 +43,12 @@
         <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.last_name %></td>
         <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.first_name %></td>
         <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.patronic_name %></td>
+        <td class="px-3 py-2 border border-gray-300">
+          <% employee_positions = @employee_positions.fetch(employee.id, []) %>
+          <%= link_to employee_positions.any? ? employee_positions.map(&:position_name).join(', ') : 'Додати посаду',
+                      edit_department_employee_positions_path(department_id: @department.id, employee_id: employee.id),
+                      class: "text-blue-600 hover:underline text-xs" %>
+        </td>
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
             <% if (salary = @period_salaries[employee.id]) %>
@@ -71,7 +78,7 @@
   </tbody>
   <tfoot>
     <tr class="bg-gray-50 font-medium">
-      <td colspan="4" class="px-3 py-2 border border-gray-300 text-right">
+      <td colspan="5" class="px-3 py-2 border border-gray-300 text-right">
         Всього за <%= l(@period, format: :short) %>:
       </td>
       <td class="px-3 py-2 border border-gray-300 whitespace-nowrap font-mono">

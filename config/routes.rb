@@ -13,7 +13,10 @@ Rails.application.routes.draw do
   resources :department_employees, only: %i[new create destroy]
 
   resources :departments do
+    resources :positions, only: %i[create], controller: 'department_positions'
+
     resources :employees, only: [] do
+      resource :positions, only: %i[edit update], controller: 'department_employee_positions'
       delete 'remove', on: :member, to: 'department_employees#destroy'
     end
   end

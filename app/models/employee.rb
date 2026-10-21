@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# Employee master record with tax settings and associations to income records.
+#
+# Tax-affecting attribute changes trigger +RecalculateEmployeeTaxes+ for the
+# current month only. Period aggregates are removed together with the employee.
 class Employee < ApplicationRecord
   # 10-digit RNOKPP, 9-digit ID-card number, or a 2-letter + 6-digit passport book number.
   ID_CODE_PATTERNS = [
@@ -14,6 +18,7 @@ class Employee < ApplicationRecord
   has_many :departments, through: :department_employees
   has_many :positions, through: :department_employees
   has_many :salaries, dependent: :destroy
+  has_many :employee_period_incomes, dependent: :destroy
   has_many :sick_days, class_name: 'SickDay', dependent: :destroy
   has_many :vacations, dependent: :destroy # Added association for vacations
   has_one :account_book, dependent: :destroy

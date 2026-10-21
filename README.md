@@ -75,6 +75,29 @@ This automatically detects your OS and creates a launcher (`.command` on macOS, 
 3. **Agent Permission Boundaries:** AI agents are restricted from modifying infrastructure configuration files (`config/database.yml`, `docker-compose.yml`, `bin/agent`) to ensure safe operations.
 
 ---
+
+### 7. Period Income Aggregates
+Salary, vacation and sick-day taxes are calculated once per employee, month and income type. The results live in `employee_period_incomes` and power the summary report.
+
+After deploying this feature over existing data, a data migration backfills the aggregates. To rebuild them later (for example after changing tax settings), run:
+```bash
+bin/rails incomes:recalculate
+```
+The task is idempotent and can be run again at any time.
+
+---
+
+### 8. Current Working Month
+Each user can select a **current working month** on the home page. It is stored per user and intentionally may differ from the calendar month.
+
+The selected month is used as the default period when adding:
+- salaries;
+- vacations;
+- sick days.
+
+The home page shows a reminder until a month is selected. The setting can be changed at any time and affects only the signed-in user.
+
+---
 Testing Guide / Інструкція з запуску тестів
 
 ### Part 1: English Version
@@ -243,3 +266,26 @@ RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_te
 #### 4. Чек-лист безпеки
 - [x] Ніколи не запускайте `bundle exec rspec` з `DB_PORT=5432`, якщо у вас локально працює системний Postgres.
 - [x] Переконайтеся, що файл `.env` заігнорований у git, щоб тестові параметри не компрометували секрети.
+
+---
+
+### 7. Агрегати доходів за період
+Податки із зарплати, відпускних і лікарняних рахуються один раз на працівника, місяць і тип доходу. Результати зберігаються в `employee_period_incomes` і використовуються у зведеному звіті.
+
+Після розгортання цієї функції на наявних даних агрегати заповнюються міграцією. Щоб перерахувати їх повторно (наприклад, після зміни податкових налаштувань), виконайте:
+```bash
+bin/rails incomes:recalculate
+```
+Задача ідемпотентна — її можна запускати повторно.
+
+---
+
+### 8. Поточний робочий місяць
+Кожен користувач може обрати **поточний робочий місяць** на головній сторінці. Значення зберігається для користувача і може відрізнятися від календарного місяця.
+
+Обраний місяць використовується як період за замовчуванням під час додавання:
+- зарплат;
+- відпускних;
+- лікарняних.
+
+Доки місяць не обрано, на головній сторінці відображається нагадування. Налаштування можна змінити будь-коли; воно стосується лише поточного користувача.

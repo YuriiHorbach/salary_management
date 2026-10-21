@@ -10,7 +10,6 @@ class Department < ApplicationRecord
   end
 
   def monthly_total(date = Date.current)
-    range = date.beginning_of_month..date.end_of_month
-    salaries.where(paid_on: range).sum(:amount_cents) / 100.0
+    salaries.where(period: date.to_date.beginning_of_month).sum(:amount_cents) / 100.0
   end
 end

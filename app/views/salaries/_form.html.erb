@@ -2,6 +2,9 @@
   <div class="space-y-4">
     <%= form_with model: [@employee, @salary], local: true, class: 'm-5 mx-auto border-4 p-3 rounded-lg' do |form| %>
     <%= form.hidden_field :department_id %>
+  <% if @salary.errors.any? %>
+    <p class="text-sm text-red-600"><%= @salary.errors.full_messages.to_sentence %></p>
+  <% end %>
   <div class="mb-5">
     <div class="grid grid-cols-6 gap-x-3">
       <div class="col-span-3">
@@ -9,8 +12,8 @@
         <%= form.number_field :amount, step: 0.01, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
       </div>
       <div class="col-span-3">
-        <%= form.label :paid_on, class: "block text-sm font-medium text-gray-700" %>
-        <%= form.date_select :paid_on, discard_day: true, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
+        <%= form.label :period, "Період", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.month_field :period, value: @salary.month, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
       </div>
     </div>
   </div>

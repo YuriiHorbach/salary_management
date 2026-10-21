@@ -14,8 +14,10 @@ class DepartmentsController < ApplicationController
 
   def show
     @q = @department.employees.ransack(params[:q])
-    @employees = @q.result(distinct: true)
-    @department_total = @department.monthly_total
+    @employees = @q.result(distinct: true).to_a
+    @period = selected_period
+    @period_salaries = Salary.where(employee_id: @employees.map(&:id), period: @period).index_by(&:employee_id)
+    @department_total = @department.monthly_total(@period)
   end
 
   def edit; end
@@ -51,5 +53,11 @@ class DepartmentsController < ApplicationController
 
   def department_params
     params.require(:department).permit(:name)
+  end
+
+  def selected_period
+    Date.strptime(params[:period].to_s, '%Y-%m').beginning_of_month
+  rescue ArgumentError
+    Date.current.beginning_of_month
   end
 end

@@ -8,45 +8,35 @@ class DepartmentEmployeesController < ApplicationController
   def new
     @q = Employee.ransack(params[:q])
     @employees = @q.result(distinct: true)
+    @positions = @department.positions.order(:position_name)
   end
 
   def create
     ids = selected_employee_ids
-
-    if ids.empty?
-      redirect_to @department, alert: 'No employees selected.'
-      return
-    end
+    return redirect_with_alert('No employees selected.') if ids.empty?
 
     employee_ids = Employee.where(id: ids).pluck(:id)
+    return redirect_with_alert('No employees selected.') if employee_ids.empty?
 
-    if employee_ids.empty?
-      redirect_to @department, alert: 'No employees selected.'
-      return
+    position = selected_position
+
+    if params[:position_id].present? && position.nil?
+      return redirect_with_alert('Посаду не знайдено в цьому підрозділі.')
     end
 
-    new_ids = employee_ids - @department.department_employees.where(employee_id: employee_ids).pluck(:employee_id)
+    new_ids = employee_ids.reject { |employee_id| assignment_exists?(employee_id, position) }
+    return redirect_with_alert(duplicate_message(position)) if new_ids.empty?
 
-    if new_ids.empty?
-      redirect_to @department, alert: 'Selected employees are already in this department.'
-      return
-    end
-
-    now = Time.current
-    DepartmentEmployee.insert_all(
-      new_ids.map do |employee_id|
-        { department_id: @department.id, employee_id: employee_id, created_at: now, updated_at: now }
-      end
-    )
+    insert_assignments(new_ids, position)
 
     redirect_to @department, notice: "Employees added to the department: #{new_ids.size}."
   end
 
   def destroy
-    department_employee = DepartmentEmployee.find_by(department_id: params[:department_id], employee_id: params[:id])
+    assignments = DepartmentEmployee.where(department_id: params[:department_id], employee_id: params[:id])
 
-    if department_employee
-      department_employee.destroy
+    if assignments.exists?
+      assignments.delete_all
       flash[:notice] = 'Employee was successfully removed from the department.'
     else
       flash[:alert] = 'Employee not found in the department.'
@@ -59,6 +49,47 @@ class DepartmentEmployeesController < ApplicationController
 
   def selected_employee_ids
     Array(params[:employee_ids]).filter_map { |id| Integer(id.to_s, exception: false) }.uniq
+  end
+
+  def selected_position
+    return if params[:position_id].blank?
+
+    @department.positions.find_by(id: params[:position_id])
+  end
+
+  def assignment_exists?(employee_id, position)
+    assignments = @department.department_employees.where(employee_id: employee_id)
+
+    position ? assignments.exists?(position_id: position.id) : assignments.exists?
+  end
+
+  # rubocop:disable Rails/SkipsModelValidations
+  def insert_assignments(employee_ids, position)
+    now = Time.current
+    DepartmentEmployee.insert_all(
+      employee_ids.map do |employee_id|
+        {
+          department_id: @department.id,
+          employee_id: employee_id,
+          position_id: position&.id,
+          created_at: now,
+          updated_at: now
+        }
+      end
+    )
+  end
+  # rubocop:enable Rails/SkipsModelValidations
+
+  def duplicate_message(position)
+    if position
+      'Selected employees already have this position in the department.'
+    else
+      'Selected employees are already in this department.'
+    end
+  end
+
+  def redirect_with_alert(message)
+    redirect_to @department, alert: message
   end
 
   def set_department

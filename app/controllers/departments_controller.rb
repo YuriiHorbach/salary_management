@@ -14,7 +14,15 @@ class DepartmentsController < ApplicationController
 
   def show
     @q = @department.employees.ransack(params[:q])
-    @employees = @q.result(distinct: true).to_a
+    employees = @q.result(distinct: true)
+
+    if params[:position].present?
+      employee_ids = @department.department_employees.where(position_id: params[:position]).select(:employee_id)
+      employees = employees.where(id: employee_ids)
+    end
+
+    @employees = employees.to_a
+    @positions = @department.positions.order(:position_name)
     @period = selected_period
     @period_salaries = Salary.where(employee_id: @employees.map(&:id), period: @period).index_by(&:employee_id)
     @department_total = @department.monthly_total(@period)

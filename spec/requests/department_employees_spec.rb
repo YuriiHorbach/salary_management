@@ -9,6 +9,8 @@ RSpec.describe 'DepartmentEmployees', type: :request do
   let!(:employee1) { create(:employee) }
   let!(:employee2) { create(:employee) }
   let(:department) { create(:department) }
+  let!(:position) { create(:position, department: department) }
+  let!(:other_position) { create(:position, department: department) }
 
   describe 'POST /department_employees' do
     context 'when authorized' do
@@ -29,6 +31,56 @@ RSpec.describe 'DepartmentEmployees', type: :request do
         }
 
         expect(department.employees.reload).to contain_exactly(employee1, employee2)
+      end
+
+      it 'adds the selected position to the employees' do
+        post department_employees_path, params: {
+          department_id: department.id,
+          employee_ids: [employee1.id],
+          position_id: position.id
+        }
+
+        assignment = department.department_employees.find_by(employee_id: employee1.id)
+
+        expect(assignment.position).to eq(position)
+      end
+
+      it 'adds another position to an employee who is already in the department' do
+        create(:department_employee, employee: employee1, department: department, position: position)
+
+        post department_employees_path, params: {
+          department_id: department.id,
+          employee_ids: [employee1.id],
+          position_id: other_position.id
+        }
+
+        assignments = department.department_employees.where(employee_id: employee1.id)
+
+        expect(assignments.count).to eq(2)
+        expect(assignments.map(&:position)).to contain_exactly(position, other_position)
+      end
+
+      it 'does not add the same position to the same employee twice' do
+        create(:department_employee, employee: employee1, department: department, position: position)
+
+        post department_employees_path, params: {
+          department_id: department.id,
+          employee_ids: [employee1.id],
+          position_id: position.id
+        }
+
+        assignments = department.department_employees.where(employee_id: employee1.id, position: position)
+
+        expect(assignments.count).to eq(1)
+      end
+
+      it 'renders a position selector with the department positions' do
+        get new_department_employee_path(department_id: department.id)
+
+        selector = Nokogiri::HTML(response.body).at_css('select[name="position_id"]')
+
+        expect(selector).to be_present
+        expect(selector.text).to include(position.position_name, other_position.position_name)
       end
 
       it 'ignores employees that are already in the department' do

@@ -32,18 +32,22 @@ class ReportsController < ApplicationController
     @result = Reports::EmployeeDetailedQuery.new(params).call
 
     respond_to do |format|
-      format.html do
-        @q = Employee.ransack(params[:q])
-        @departments = Department.all
-        @brigades = TerritorySign.all.order(:name)
-        @account_book_codes = AccountBook.available_codes
-        @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
-      end
+      format.html { prepare_detailed_html }
       format.csv { send_csv(Reports::EmployeeDetailedCsvExporter.new(@result).call, 'detailed') }
     end
   end
 
   private
+
+  def prepare_detailed_html
+    @q = Employee.ransack(params[:q])
+    @departments = Department.all
+    @positions = Position.order(:position_name)
+    @positions = @positions.where(department_id: params[:department]) if params[:department].present?
+    @brigades = TerritorySign.all.order(:name)
+    @account_book_codes = AccountBook.available_codes
+    @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
+  end
 
   def send_csv(content, prefix)
     send_data content,

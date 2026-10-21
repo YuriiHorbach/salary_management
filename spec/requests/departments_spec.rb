@@ -36,6 +36,8 @@ RSpec.describe 'Departments', type: :request do
   describe 'GET /show' do
     context 'when authorized' do
       let(:department) { create(:department) }
+      let!(:manager_position) { create(:position, department: department, position_name: 'Manager') }
+      let!(:engineer_position) { create(:position, department: department, position_name: 'Engineer') }
       let!(:alpha) do
         create(:employee, id_code: '1000000001', last_name: 'Alpha', first_name: 'Anna', patronic_name: 'Andriivna')
       end
@@ -44,7 +46,8 @@ RSpec.describe 'Departments', type: :request do
       end
 
       before do
-        department.employees << [zeta, alpha]
+        create(:department_employee, employee: alpha, department: department, position: manager_position)
+        create(:department_employee, employee: zeta, department: department, position: engineer_position)
         sign_in(user)
       end
 
@@ -80,6 +83,45 @@ RSpec.describe 'Departments', type: :request do
 
         expect(rendered_last_names).to contain_exactly('Alpha', 'Zeta')
         expect(response.body).not_to include('Outsider')
+      end
+
+      it 'filters employees by position' do
+        get department_path(department, position: engineer_position.id)
+
+        expect(rendered_last_names).to contain_exactly('Zeta')
+      end
+
+      it 'renders a position filter with the department positions' do
+        get department_path(department)
+
+        selector = Nokogiri::HTML(response.body).at_css('select[name="position"]')
+
+        expect(selector).to be_present
+        expect(selector.text).to include('Manager', 'Engineer')
+      end
+
+      it 'keeps the selected position in the filter' do
+        get department_path(department, position: engineer_position.id)
+
+        selected = Nokogiri::HTML(response.body).at_css('select[name="position"] option[selected]')
+
+        expect(selected['value']).to eq(engineer_position.id.to_s)
+      end
+
+      it 'keeps the position filter in the sort links' do
+        get department_path(department, position: engineer_position.id)
+
+        link = Nokogiri::HTML(response.body).at_css('thead th a')
+
+        expect(link['href']).to include("position=#{engineer_position.id}")
+      end
+
+      it 'does not duplicate an employee who has several positions' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+
+        get department_path(department)
+
+        expect(rendered_last_names.count('Alpha')).to eq(1)
       end
 
       it 'lets the browser size the columns dynamically' do

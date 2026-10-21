@@ -22,6 +22,7 @@ RSpec.describe Salary, type: :model do
   describe 'associations' do
     it { should belong_to(:employee) }
     it { should belong_to(:department).optional }
+    it { should belong_to(:position).optional }
   end
 
   describe 'period' do
@@ -51,13 +52,70 @@ RSpec.describe Salary, type: :model do
       expect(record.period).to eq(Date.new(2025, 5, 1))
     end
 
-    it 'allows only one salary per employee and period' do
-      create(:salary, employee: employee, period: Date.new(2025, 5, 1))
+    it 'allows only one salary without a position per employee, period and department' do
+      create(:salary, employee: employee, department: department, period: Date.new(2025, 5, 1))
 
-      duplicate = build(:salary, employee: employee, period: Date.new(2025, 5, 20))
+      duplicate = build(:salary, employee: employee, department: department, period: Date.new(2025, 5, 20))
 
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату')
+      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату для цієї посади/підрозділу')
+    end
+
+    it 'allows salaries in different departments for the same employee and period' do
+      create(:salary, employee: employee, department: department, period: Date.new(2025, 5, 1))
+
+      other_department_salary = build(:salary, employee: employee, department: create(:department),
+                                               period: Date.new(2025, 5, 1))
+
+      expect(other_department_salary).to be_valid
+    end
+
+    it 'allows only one salary per position for the same employee and period' do
+      position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: position)
+      create(:salary, employee: employee, department: department, position: position,
+                      period: Date.new(2025, 5, 1))
+
+      duplicate = build(:salary, employee: employee, department: department, position: position,
+                                 period: Date.new(2025, 5, 20))
+
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату для цієї посади/підрозділу')
+    end
+
+    it 'allows different positions in the same department for the same period' do
+      first_position = create(:position, department: department)
+      second_position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: first_position)
+      create(:department_employee, employee: employee, department: department, position: second_position)
+      create(:salary, employee: employee, department: department, position: first_position,
+                      period: Date.new(2025, 5, 1))
+
+      second_salary = build(:salary, employee: employee, department: department, position: second_position,
+                                     period: Date.new(2025, 5, 1))
+
+      expect(second_salary).to be_valid
+    end
+
+    it 'rejects a position that belongs to another department' do
+      other_position = create(:position, department: create(:department))
+      create(:department_employee, employee: employee, department: department, position: other_position)
+
+      record = build(:salary, employee: employee, department: department, position: other_position,
+                              period: Date.new(2025, 5, 1))
+
+      expect(record).not_to be_valid
+      expect(record.errors[:position]).to include('належить іншому підрозділу')
+    end
+
+    it 'rejects a position that is not assigned to the employee' do
+      position = create(:position, department: department)
+
+      record = build(:salary, employee: employee, department: department, position: position,
+                              period: Date.new(2025, 5, 1))
+
+      expect(record).not_to be_valid
+      expect(record.errors[:position]).to include('не призначена цьому працівнику')
     end
 
     it 'allows the same period for another employee' do

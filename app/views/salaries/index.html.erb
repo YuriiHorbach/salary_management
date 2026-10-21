@@ -17,7 +17,7 @@
 <% if @period_incomes.any? %>
   <div class="m-5 overflow-x-auto">
     <h2 class="text-lg font-semibold mb-2">Підсумки за періодами</h2>
-    <% money = ->(cents) { number_to_currency(cents.to_i / 100.0, unit: '₴') } %>
+    <% money = ->(cents) { number_to_currency(cents.to_i / 100.0) } %>
     <table class="min-w-full border-collapse text-sm">
       <thead class="bg-gray-100">
         <tr>

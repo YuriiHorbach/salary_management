@@ -40,7 +40,7 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
     submit_vacation(petrenko, period: '2026-10-01', amount: '100.00')
 
     expect(page).to have_current_path(employee_vacations_path(petrenko), wait: 10)
-    expect(page).to have_text('100.00')
+    expect(page).to have_text('100,00')
   end
 
   it 'opens the form from the additional navigation menu' do

@@ -28,7 +28,8 @@ RSpec.describe 'SickDays', type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('РАЗОМ ЗА')
-        expect(response.body).to include('$60.00', '$40.00', '$100.00')
+        expect(response.body).to include('60,00', '40,00', '100,00')
+        expect(response.body).not_to include('$60,00', '₴60,00')
       end
     end
   end
@@ -211,9 +212,9 @@ RSpec.describe 'SickDays', type: :request do
 
         expect(response.media_type).to eq('text/vnd.turbo-stream.html')
         expect(response.body).to include('target="sick_days_list"')
-        expect(response.body).to include('$300.00')
-        expect(response.body).to include('$310.00')
-        expect(response.body).not_to include('$110.00')
+        expect(response.body).to include('300,00')
+        expect(response.body).to include('310,00')
+        expect(response.body).not_to include('110,00')
       end
 
       it 'moves the row to the new month and recalculates both totals' do
@@ -225,7 +226,7 @@ RSpec.describe 'SickDays', type: :request do
         expect(response.body).to include('target="sick_days_list"')
         expect(response.body).not_to include('January 2026')
         expect(response.body).to include('February 2026')
-        expect(response.body).to include('$300.00')
+        expect(response.body).to include('300,00')
       end
     end
 

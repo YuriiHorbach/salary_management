@@ -101,6 +101,16 @@ RSpec.describe 'Salaries', type: :request do
       expect(response.body).to include('Всього доходу')
     end
 
+    it 'formats amounts without thousands separators and with a comma decimal' do
+      create(:salary, employee: employee, department: department, amount_cents: 1_832_420,
+                      period: Date.new(2025, 10, 1))
+
+      get urls.employee_salaries_path(employee, period: '2025-10')
+
+      expect(response.body).to include('18324,20')
+      expect(response.body).not_to include('18,324.20', '₴18324,20', '18324,20 ₴', '$18324,20')
+    end
+
     it 'renders links to every department the employee belongs to' do
       second_department = create(:department, name: 'Другий підрозділ')
       unrelated_department = create(:department, name: 'Не свій підрозділ')

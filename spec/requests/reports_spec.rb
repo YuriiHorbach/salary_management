@@ -5,10 +5,10 @@ require 'csv'
 
 FULLY_POPULATED_ROW = [
   '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Петренко Іван Testovich',
-  '1000.00', '0.00', '50.00', '950.00',
-  '300.00', '54.00', '15.00',
-  '300.00', '54.00', '15.00',
-  '1300.00', '1600.00', '108.00', '80.00', '1412.00'
+  '1000,00', '0,00', '50,00', '950,00',
+  '300,00', '54,00', '15,00',
+  '300,00', '54,00', '15,00',
+  '1300,00', '1600,00', '108,00', '80,00', '1412,00'
 ].freeze
 
 RSpec.shared_context 'with a fully populated employee' do
@@ -45,6 +45,16 @@ RSpec.describe 'Reports', type: :request do
   before do
     sign_in user
     ActiveJob::Base.queue_adapter = :test
+  end
+
+  describe 'GET /reports' do
+    it 'renders money values without currency symbols' do
+      get reports_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('3000,00')
+      expect(response.body).not_to include('$3000,00', '₴3000,00', '3000,00 ₴')
+    end
   end
 
   describe 'GET /reports/summary' do
@@ -548,7 +558,7 @@ RSpec.describe 'Reports', type: :request do
 
       get detailed_reports_path
 
-      expect(totals_row.text).to include('25000.00')
+      expect(totals_row.text).to include('25000,00')
     end
 
     it 'renders the pagination navigation inside the report turbo frame' do

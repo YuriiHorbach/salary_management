@@ -41,7 +41,7 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     submit_sick_day(petrenko, period: '2026-10', pfu: '60.00', enterprise: '40.00')
 
     expect(page).to have_current_path(employee_sick_days_path(petrenko), wait: 10)
-    expect(page).to have_text('$100.00')
+    expect(page).to have_text('100,00')
   end
 
   it 'opens the form from the additional navigation menu' do

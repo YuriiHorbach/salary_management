@@ -98,7 +98,7 @@
           <tr class="bg-gray-100 font-bold">
             <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= Reports::EmployeeDetailedQuery::TEXT_COLUMNS.size %>">Загалом</td>
             <% (Reports::EmployeeDetailedQuery::COLUMN_LABELS.keys - Reports::EmployeeDetailedQuery::TEXT_COLUMNS).each do |key| %>
-              <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"><%= "%.2f" % @result[:totals][key] %></td>
+              <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"><%= number_with_precision(@result[:totals][key], precision: 2) %></td>
             <% end %>
           </tr>
         <% else %>

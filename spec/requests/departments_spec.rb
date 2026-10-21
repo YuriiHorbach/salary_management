@@ -211,8 +211,8 @@ RSpec.describe 'Departments', type: :request do
         get department_path(department, period: '2025-03')
 
         row = employee_row('Alpha')
-        expect(row.text).to include('1,000.00')
-        expect(row.text).not_to include('9,000.00')
+        expect(row.text).to include('1000,00')
+        expect(row.text).not_to include('9000,00')
       end
 
       it 'sums all salaries in this department for an employee with several positions' do
@@ -224,7 +224,7 @@ RSpec.describe 'Departments', type: :request do
 
         get department_path(department, period: '2025-03')
 
-        expect(employee_row('Alpha').text).to include('1,500.00')
+        expect(employee_row('Alpha').text).to include('1500,00')
       end
 
       it 'opens the salary history outside the department turbo frame' do
@@ -270,8 +270,8 @@ RSpec.describe 'Departments', type: :request do
 
         get department_path(department, period: '2025-03')
 
-        expect(response.body).to include('1,500.00')
-        expect(response.body).not_to include('10,500.00')
+        expect(response.body).to include('1500,00')
+        expect(response.body).not_to include('10500,00')
       end
     end
 

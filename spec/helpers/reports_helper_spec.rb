@@ -26,7 +26,7 @@ RSpec.describe ReportsHelper, type: :helper do
   describe '#detailed_report_cell_value' do
     it 'returns text as-is and formats numbers to two decimals' do
       expect(helper.detailed_report_cell_value(:full_name, { full_name: 'Іван Петренко' })).to eq('Іван Петренко')
-      expect(helper.detailed_report_cell_value(:net_pay, { net_pay: 1232.0 })).to eq('1232.00')
+      expect(helper.detailed_report_cell_value(:net_pay, { net_pay: 1232.0 })).to eq('1232,00')
     end
   end
 end

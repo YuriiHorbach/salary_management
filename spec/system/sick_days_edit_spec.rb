@@ -18,7 +18,7 @@ RSpec.describe 'Sick days editing', :js, type: :system do
   end
 
   it 'recalculates the period total after editing a sick day' do
-    expect(page).to have_text('$110.00')
+    expect(page).to have_text('110,00')
 
     within("#sick_day_#{sick_day.id}") do
       click_link '✏️'
@@ -30,8 +30,8 @@ RSpec.describe 'Sick days editing', :js, type: :system do
       click_button '✅'
     end
 
-    expect(page).to have_text('$300.00')
-    expect(page).to have_text('$310.00')
-    expect(page).not_to have_text('$110.00')
+    expect(page).to have_text('300,00')
+    expect(page).to have_text('310,00')
+    expect(page).not_to have_text('110,00')
   end
 end

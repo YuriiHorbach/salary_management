@@ -15,8 +15,8 @@ RSpec.describe 'Vacations', type: :request do
 
       get employee_vacations_path(employee)
 
-      expect(response.body).to include('10,000')
-      expect(response.body).not_to include('Загальна сума відпускних: ₴5,000')
+      expect(response.body).to include('Загальна сума відпускних: 10000,00')
+      expect(response.body).not_to include('Загальна сума відпускних: 5000,00', '₴10000,00', '$10000,00')
     end
   end
 

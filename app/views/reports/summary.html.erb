@@ -37,7 +37,7 @@
             <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= brigade_name %></td>
             <td class="border border-gray-300 px-3 py-2 text-sm pl-8"><%= book_code %></td>
             <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
-              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (book_row[key] || 0) %></td>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= number_with_precision(book_row[key] || 0, precision: 2) %></td>
             <% end %>
           </tr>
         <% end %>
@@ -45,7 +45,7 @@
         <tr class="bg-gray-100 font-bold">
           <td class="border border-gray-300 px-3 py-2 text-sm" colspan="2"><%= brigade_name %> — Підсумок</td>
           <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
-            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (brigade_data[:total][key] || 0) %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= number_with_precision(brigade_data[:total][key] || 0, precision: 2) %></td>
           <% end %>
         </tr>
       <% end %>
@@ -53,7 +53,7 @@
       <tr class="bg-gray-200 font-bold">
         <td class="border border-gray-300 px-3 py-2 text-sm" colspan="2">Всього</td>
         <% Reports::SalarySummaryQuery::COLUMN_KEYS.each do |key| %>
-          <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= "%.2f" % (@result[:grand_total][key] || 0) %></td>
+          <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= number_with_precision(@result[:grand_total][key] || 0, precision: 2) %></td>
         <% end %>
       </tr>
     </tbody>

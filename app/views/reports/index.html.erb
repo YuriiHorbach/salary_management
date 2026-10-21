@@ -64,16 +64,16 @@
                 <%= department_name %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:gross], "UAH")) %>
+                <%= humanized_money(Money.from_cents(department_totals[:gross], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:net], "UAH")) %>
+                <%= humanized_money(Money.from_cents(department_totals[:net], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:pdfo], "UAH")) %>
+                <%= humanized_money(Money.from_cents(department_totals[:pdfo], "UAH")) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                <%= humanized_money_with_symbol(Money.from_cents(department_totals[:military_tax], "UAH")) %>
+                <%= humanized_money(Money.from_cents(department_totals[:military_tax], "UAH")) %>
               </td>
             </tr>
           <% end %>
@@ -93,19 +93,19 @@
           </th>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:gross], "UAH")) %>
+            <%= humanized_money(Money.from_cents(@total_records[:gross], "UAH")) %>
           </td>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:net], "UAH")) %>
+            <%= humanized_money(Money.from_cents(@total_records[:net], "UAH")) %>
           </td>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:income_tax], "UAH")) %>
+            <%= humanized_money(Money.from_cents(@total_records[:income_tax], "UAH")) %>
           </td>
 
           <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right">
-            <%= humanized_money_with_symbol(Money.from_cents(@total_records[:military_tax], "UAH")) %>
+            <%= humanized_money(Money.from_cents(@total_records[:military_tax], "UAH")) %>
           </td>
         </tr>
       </tfoot>

@@ -123,8 +123,8 @@ RSpec.describe 'Employees update', type: :request do
       get employee_path(employee)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('$1,000.00')
-      expect(response.body).not_to include('$100,000.00')
+      expect(response.body).to include('1000,00')
+      expect(response.body).not_to include('100000,00')
     end
   end
 

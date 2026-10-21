@@ -38,7 +38,7 @@ module ReportsHelper
   def detailed_report_cell_value(key, row)
     return row[key] if detailed_report_text_column?(key)
 
-    format('%.2f', row[key])
+    number_with_precision(row[key], precision: 2)
   end
 
   private

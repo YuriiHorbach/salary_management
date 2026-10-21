@@ -1,6 +1,6 @@
 <%= turbo_stream.replace "salary_amount_employee_#{@employee.id}" do %>
   <%= turbo_frame_tag "salary_amount_employee_#{@employee.id}" do %>
-    <%= link_to number_to_currency(@salary.amount, unit: '₴'),
+    <%= link_to number_to_currency(@salary.amount),
                 employee_salaries_path(@employee),
                 data: { turbo_frame: '_top' },
                 class: "text-blue-600 hover:underline font-mono" %>
@@ -9,6 +9,6 @@
 
 <% if @department_total %>
   <%= turbo_stream.update "department_total" do %>
-    <%= number_to_currency(@department_total, unit: '₴') %>
+    <%= number_to_currency(@department_total) %>
   <% end %>
 <% end %>

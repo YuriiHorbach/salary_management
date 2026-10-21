@@ -130,8 +130,8 @@ RSpec.describe Employee, type: :model do
     end
 
     it 'returns sum of salaries' do
-      create(:salary, employee: employee, amount_cents: 100_000)
-      create(:salary, employee: employee, amount_cents: 200_000)
+      create(:salary, employee: employee, amount_cents: 100_000, period: Date.new(2025, 1, 1))
+      create(:salary, employee: employee, amount_cents: 200_000, period: Date.new(2025, 2, 1))
 
       expect(employee.total_salary).to eq(3000)
     end

@@ -57,8 +57,12 @@ RSpec.describe 'Employees update', type: :request do
   end
 
   describe 'GET /employees/:id with salary search' do
-    let!(:salary_1200_40) { create(:salary, employee: employee, amount_cents: 120_040) }
-    let!(:salary_500) { create(:salary, employee: employee, amount_cents: 50_000) }
+    let!(:salary_1200_40) do
+      create(:salary, employee: employee, amount_cents: 120_040, period: Date.new(2025, 1, 1))
+    end
+    let!(:salary_500) do
+      create(:salary, employee: employee, amount_cents: 50_000, period: Date.new(2025, 2, 1))
+    end
 
     it 'finds salary by amount entered in hryvnia format with comma' do
       get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200,40' } }

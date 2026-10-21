@@ -42,6 +42,34 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(checked).to contain_exactly(engineer_position.id.to_s)
       end
 
+      it 'renders the assigned positions with edit and delete links' do
+        create(:department_employee, employee: employee, department: department, position: engineer_position)
+
+        get edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+
+        row = Nokogiri::HTML(response.body).at_css("#assigned_position_#{engineer_position.id}")
+
+        expect(row).to be_present
+        expect(row.text).to include('Engineer')
+        expect(row.at_css("a[href*='position_id=#{engineer_position.id}']")).to be_present
+        expect(row.at_css("a[data-turbo-method='delete']")).to be_present
+        expect(response.body).not_to include("assigned_position_#{manager_position.id}")
+      end
+
+      it 'highlights the position requested for editing' do
+        create(:department_employee, employee: employee, department: department, position: engineer_position)
+
+        get edit_department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: engineer_position.id
+        )
+
+        highlighted = Nokogiri::HTML(response.body).at_css("#position_label_#{engineer_position.id}.ring-2")
+
+        expect(highlighted).to be_present
+      end
+
       it 'pre-selects a newly created position' do
         get edit_department_employee_positions_path(
           department_id: department.id,
@@ -129,6 +157,99 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
       it 'redirects to the login page' do
         patch department_employee_positions_path(department_id: department.id, employee_id: employee.id),
               params: { position_ids: [manager_position.id] }
+
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+  end
+
+  describe 'DELETE /destroy' do
+    context 'when authorized' do
+      before { sign_in user }
+
+      it 'removes the selected position and redirects to the department' do
+        create(:department_employee, employee: employee, department: department, position: manager_position)
+        create(:department_employee, employee: employee, department: department, position: engineer_position)
+
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: manager_position.id
+        )
+
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+        )
+        expect(flash[:notice]).to eq('Посаду працівника видалено.')
+        expect(assigned_position_ids).to contain_exactly(engineer_position.id)
+      end
+
+      it 'keeps the employee in the department when the last position is removed' do
+        create(:department_employee, employee: employee, department: department, position: manager_position)
+
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: manager_position.id
+        )
+
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+        )
+        expect(department.employees).to include(employee)
+        expect(assigned_position_ids).to eq([nil])
+      end
+
+      it 'does not remove a position from another department' do
+        create(:department_employee, employee: employee, department: department, position: manager_position)
+
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: foreign_position.id
+        )
+
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+        )
+        expect(flash[:alert]).to eq('Посаду не знайдено в цьому підрозділі.')
+        expect(assigned_position_ids).to contain_exactly(nil, manager_position.id)
+      end
+
+      it 'alerts when the position is not assigned to the employee' do
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: manager_position.id
+        )
+
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+        )
+        expect(flash[:alert]).to eq('Посаду не знайдено в цьому підрозділі.')
+      end
+
+      it 'returns not found when the employee is not a member of the department' do
+        outsider = create(:employee)
+
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: outsider.id,
+          position_id: manager_position.id
+        )
+
+        expect(response).to have_http_status(:not_found)
+        expect(department.department_employees.where(employee_id: outsider.id)).to be_empty
+      end
+    end
+
+    context 'when unauthorized' do
+      it 'redirects to the login page' do
+        delete department_employee_positions_path(
+          department_id: department.id,
+          employee_id: employee.id,
+          position_id: manager_position.id
+        )
 
         expect(response).to redirect_to(new_user_session_path)
       end

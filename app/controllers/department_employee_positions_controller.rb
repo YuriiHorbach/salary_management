@@ -2,11 +2,14 @@
 
 # Manages the positions of one employee inside one department.
 #
-# The department page links to +edit+, where all positions of that department
-# are rendered as checkboxes. +update+ delegates the synchronization to
-# +DepartmentEmployees::PositionSync+, which validates that every submitted
-# position belongs to the current department and keeps the department
-# membership intact when all positions are cleared.
+# The department page only links to +edit+. That page lists the positions the
+# employee already has (each with its own edit and delete link) and renders all
+# positions of the department as checkboxes. +update+ delegates the
+# synchronization to +DepartmentEmployees::PositionSync+, which validates that
+# every submitted position belongs to the current department and keeps the
+# department membership intact when all positions are cleared. +destroy+ removes
+# one position assignment through +DepartmentEmployees::PositionRemoval+, which
+# also keeps the membership when the removed position was the last one.
 class DepartmentEmployeePositionsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_department
@@ -15,7 +18,10 @@ class DepartmentEmployeePositionsController < ApplicationController
 
   def edit
     @positions = @department.positions.order(:position_name)
-    @selected_position_ids = current_position_ids
+    assigned_ids = current_position_ids
+    @selected_position_ids = assigned_ids.dup
+    @assigned_positions = @positions.where(id: assigned_ids)
+    @highlighted_position_id = Integer(params[:position_id].to_s, exception: false)
     preselect_new_position
   end
 
@@ -31,7 +37,25 @@ class DepartmentEmployeePositionsController < ApplicationController
     end
   end
 
+  def destroy
+    position = @department.positions.find_by(id: params[:position_id])
+
+    if DepartmentEmployees::PositionRemoval.call(
+      department: @department,
+      employee: @employee,
+      position: position
+    )
+      redirect_to edit_positions_path, notice: 'Посаду працівника видалено.'
+    else
+      redirect_to edit_positions_path, alert: 'Посаду не знайдено в цьому підрозділі.'
+    end
+  end
+
   private
+
+  def edit_positions_path
+    edit_department_employee_positions_path(department_id: @department.id, employee_id: @employee.id)
+  end
 
   def set_department
     @department = Department.find(params[:department_id])

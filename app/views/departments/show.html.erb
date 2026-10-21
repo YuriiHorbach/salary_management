@@ -36,7 +36,7 @@
   </thead>
   <tbody>
     <% @employees.each do |employee| %>
-      <tr class="hover:bg-gray-50">
+      <tr id="department_employee_<%= employee.id %>" class="hover:bg-gray-50">
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= link_to employee.id_code, employee_path(employee), class: "underline text-blue-600 hover:text-blue-800 text-xs" %>
         </td>
@@ -45,9 +45,22 @@
         <td class="px-3 py-2 border border-gray-300 truncate"><%= employee.patronic_name %></td>
         <td class="px-3 py-2 border border-gray-300">
           <% employee_positions = @employee_positions.fetch(employee.id, []) %>
-          <%= link_to employee_positions.any? ? employee_positions.map(&:position_name).join(', ') : 'Додати посаду',
-                      edit_department_employee_positions_path(department_id: @department.id, employee_id: employee.id),
-                      class: "text-blue-600 hover:underline text-xs" %>
+          <% if employee_positions.any? %>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <% employee_positions.each do |position| %>
+                <%= link_to position.position_name,
+                            edit_department_employee_positions_path(department_id: @department.id,
+                                                                    employee_id: employee.id),
+                            class: "text-blue-600 hover:underline text-xs",
+                            title: "Редагувати посади" %>
+              <% end %>
+            </div>
+          <% else %>
+            <%= link_to 'Додати посаду',
+                        edit_department_employee_positions_path(department_id: @department.id,
+                                                                employee_id: employee.id),
+                        class: "text-blue-600 hover:underline text-xs" %>
+          <% end %>
         </td>
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>

@@ -128,8 +128,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_180000) do
     t.integer "income_tax_cents", default: 0, null: false
     t.integer "military_tax_cents", default: 0, null: false
     t.integer "net_amount_cents", default: 0, null: false
-    t.bigint "department_id"
-    t.index ["department_id"], name: "index_sick_days_on_department_id"
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
   end
 
@@ -171,8 +169,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_180000) do
     t.integer "income_tax_cents"
     t.integer "military_tax_cents"
     t.integer "net_amount_cents"
-    t.bigint "department_id"
-    t.index ["department_id"], name: "index_vacations_on_department_id"
     t.index ["employee_id"], name: "index_vacations_on_employee_id"
   end
 
@@ -187,8 +183,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_21_180000) do
   add_foreign_key "salaries", "departments"
   add_foreign_key "salaries", "employees"
   add_foreign_key "salaries", "positions", on_delete: :nullify
-  add_foreign_key "sick_days", "departments"
   add_foreign_key "sick_days", "employees"
-  add_foreign_key "vacations", "departments"
   add_foreign_key "vacations", "employees"
 end

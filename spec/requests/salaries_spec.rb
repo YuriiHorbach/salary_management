@@ -99,6 +99,35 @@ RSpec.describe 'Salaries', type: :request do
       expect(response.body).to include('Підсумки за періодами')
       expect(response.body).to include('Всього доходу')
     end
+
+    it 'renders links to every department the employee belongs to' do
+      second_department = create(:department, name: 'Другий підрозділ')
+      unrelated_department = create(:department, name: 'Не свій підрозділ')
+      create(:department_employee, employee: employee, department: second_department)
+
+      get urls.employee_salaries_path(employee, period: '2025-10')
+
+      page = Nokogiri::HTML(response.body)
+      link_texts = page.css('a').map { |link| link.text.strip }
+      link_paths = page.css('a').map { |link| link['href'] }
+
+      expect(link_texts).to include(department.name, second_department.name)
+      expect(link_paths).to include(
+        urls.department_path(department, period: '2025-10'),
+        urls.department_path(second_department, period: '2025-10')
+      )
+      expect(page.text).not_to include(unrelated_department.name)
+    end
+
+    it 'shows a link back to the employee when there are no departments' do
+      employee.department_employees.destroy_all
+
+      get urls.employee_salaries_path(employee)
+
+      page = Nokogiri::HTML(response.body)
+
+      expect(page.at_css("a[href='#{urls.employee_path(employee)}']").text.strip).to eq('Back to employee')
+    end
   end
 
   describe 'POST /create' do

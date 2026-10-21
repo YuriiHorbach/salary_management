@@ -82,9 +82,15 @@
   <%= render partial: 'salary', collection: @salaries, as: :salary %>
 </div>
 
-<% if params[:department_id].present? %>
-  <%= link_to "Back to department", department_path(params[:department_id], period: @period&.strftime('%Y-%m')),
-                                      class: "btn btn-primary btn-xs mt-4 rounded" %>
+<% if @departments.any? %>
+  <div class="m-5 mt-4 flex flex-wrap items-center gap-2">
+    <span class="text-sm font-medium text-gray-700">Повернутися до підрозділу:</span>
+    <% @departments.each do |department| %>
+      <%= link_to department.name,
+                  department_path(department, period: @period&.strftime('%Y-%m')),
+                  class: "btn btn-primary btn-xs rounded" %>
+    <% end %>
+  </div>
 <% else %>
   <%= link_to "Back to employee", employee_path(@employee),
                                       class: "btn btn-primary btn-xs mt-4 rounded" %>

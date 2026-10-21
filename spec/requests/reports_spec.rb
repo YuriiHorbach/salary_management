@@ -472,6 +472,17 @@ RSpec.describe 'Reports', type: :request do
       expect(frame.at_css('a[href*="page=2"]')).to be_present
     end
 
+    it 'renders the pagination navigation above the table' do
+      get detailed_reports_path
+
+      frame = parsed_doc.at_css('turbo-frame#detailed_report_table')
+      top_pagination = frame.at_css('#detailed_report_pagination_top')
+
+      expect(top_pagination).to be_present
+      expect(top_pagination.at_css('nav.pagy')).to be_present
+      expect(frame.to_html.index(top_pagination.to_html)).to be < frame.to_html.index('<table')
+    end
+
     it 'keeps the active filters in the pagination links' do
       get detailed_reports_path(brigade: brigade.id)
 

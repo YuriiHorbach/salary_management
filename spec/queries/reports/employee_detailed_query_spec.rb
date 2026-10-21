@@ -81,7 +81,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
 
       emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
       expect(emp_row).not_to be_nil
-      expect(emp_row[:full_name]).to eq('Іван Петренко')
+      expect(emp_row[:full_name]).to eq('Петренко Іван Testovich')
       expect(emp_row[:brigade]).to eq('Бригада 1')
       expect(emp_row[:department]).to eq('Відділ A')
       expect(emp_row[:book_code]).to eq('Б11')
@@ -144,7 +144,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       result = described_class.new(employee_search: 'Марія').call
 
       expect(result[:employees].size).to eq(1)
-      expect(result[:employees].first[:full_name]).to eq('Марія Іваненко')
+      expect(result[:employees].first[:full_name]).to eq('Іваненко Марія Testovich')
     end
 
     it 'filters by date range' do
@@ -180,12 +180,12 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       end
 
       it 'sorts text columns case-insensitively' do
-        emp1.update!(first_name: 'apple', last_name: 'z')
-        emp2.update!(first_name: 'Banana', last_name: 'y')
+        emp1.update!(first_name: 'z', last_name: 'apple')
+        emp2.update!(first_name: 'y', last_name: 'Banana')
 
         result = described_class.new(q: { s: 'full_name asc' }).call
 
-        expect(result[:employees].map { |e| e[:full_name] }).to eq(['apple z', 'Banana y'])
+        expect(result[:employees].map { |e| e[:full_name] }).to eq(['apple z Testovich', 'Banana y Testovich'])
       end
 
       it 'accepts string keys from request params' do

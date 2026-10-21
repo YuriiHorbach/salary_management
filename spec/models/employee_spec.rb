@@ -254,6 +254,14 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe '#full_name' do
+    it 'returns the last name, first name and patronymic in that order' do
+      employee = build(:employee, last_name: 'Петренко', first_name: 'Іван', patronic_name: 'Іванович')
+
+      expect(employee.full_name).to eq('Петренко Іван Іванович')
+    end
+  end
+
   describe '#full_name_with_id_code' do
     it 'returns the id code followed by the full name' do
       employee = build(:employee, id_code: '1234567890', last_name: 'Петренко',

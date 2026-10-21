@@ -1,208 +1,245 @@
-# salary_management
+# Salary Management
 
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Стилі (Tailwind)
-
-Tailwind CSS збирається гемом `tailwindcss-rails` (`tailwindcss-ruby`), тому `node`/`npm` встановлювати не обов'язково. Після зміни класів у в'юхах згенеруйте стилі заново:
-
-    bin/rails tailwindcss:build
-
-У режимі розробки можна використовувати автоматичне відслідковування:
-
-    bin/rails tailwindcss:watch
-
-Оновлений `app/assets/builds/tailwind.css` коммітьте разом із змінами в в'юхах, щоб стилі були доступні після `git clone`.
-
-## Запуск у Docker
-
-Потрібен запущений Docker Desktop. Усе піднімається однією командою:
-
-    docker compose up --build
-
-- застосунок — http://localhost:3000
-- PostgreSQL — localhost:5433 (щоб не конфліктувати з локальним Postgres на 5432)
-
-При першому старті контейнер `web` через `bin/docker-entrypoint` сам виконає `db:prepare` (створить базу та застосує схему).
-
-Зупинити без втрати даних:
-
-    docker compose down
-
-Повністю скинути базу (видалить том із даними):
-
-    docker compose down -v
-
-Корисні команди:
-
-    docker compose exec web bin/rails console
-    docker compose exec web bin/rails tailwindcss:build   # після зміни класів Tailwind
-
-Параметри підключення до БД задаються у `docker-compose.yml` (`DB_HOST=db`, `DB_USERNAME=postgres`, `DB_PASSWORD=password`), тому `config/database.yml` використовує `DB_HOST` зі значенням `localhost` за замовчуванням для запуску без Docker.
-
-## Бекап і відновлення БД
-
-Скрипти працюють через Docker Compose і не потребують локального `psql`.
-
-Створити дамп (типово у `backups/`):
-
-    bin/backup-db
-    bin/backup-db my-backup.sql
-
-Відновити базу з дампу:
-
-    bin/restore-db backups/salary-management-20261020-120000.sql
-    bin/restore-db my-backup.sql --yes
-
-Важливо:
-
-- `restore-db` **видаляє поточну базу й створює заново**, тому спершу питає підтвердження; прапорець `--yes` пропускає питання;
-- підтримуються звичайні SQL-дампи та custom/tar формати `pg_dump`;
-- після відновлення автоматично застосовуються міграції;
-- типово використовується база `salary_management_development`; іншу можна вказати через `DB_NAME`;
-- на Windows запускай скрипти через Git Bash або WSL.
-
-Приклад відновлення в окрему базу (не чіпаючи робочу):
-
-    DB_NAME=salary_management_restore_test bin/restore-db dump.sql --yes
-
-## Десктопна оболонка (Electron)
-
-Обгортка запускає Rails-застосунок через Docker Compose і відкриває його у вікні Electron. Працює на macOS, Windows і Linux; потрібні Node.js 22+ і запущений Docker.
-
-    cd desktop
-    npm install
-    npm start
-
-Що робить оболонка:
-
-- перевіряє, що Docker запущений;
-- виконує `docker compose up -d`;
-- чекає, поки `http://localhost:3000` почне відповідати;
-- відкриває застосунок у вікні (сесія зберігається між запусками);
-- при виході виконує `docker compose stop` (дані у томі зберігаються).
-
-Меню **Файл → Бекап бази…** зберігає дамп у `~/Documents/SalaryManagement/backups`.
-
-Тести оболонки (без запуску Electron):
-
-    cd desktop
-    npm test
-
-### Ярлик на Робочому столі
-
-Одна кросплатформна команда сама визначає ОС і створює відповідний запускач:
-
-    cd desktop
-    npm run shortcut
-
-- macOS — `~/Desktop/Salary Management.command`;
-- Windows — `~/Desktop/Salary Management.cmd`;
-- Linux — запис у меню застосунків і `~/Desktop/Salary Management.desktop` (якщо є тека Desktop).
-
-Видалити створені ярлики:
-
-    cd desktop
-    npm run shortcut:remove
-
-Після створення ярлик можна перетягнути в Dock (macOS) або закріпити на панелі задач (Windows/Linux).
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/southl/salary_management.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.com/southl/salary_management/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+[English Version](#part-1-english-version) | [Українська версія](#частина-2-українська-версія)
 
 ---
 
-# Editing this README
+## Part 1: English Version
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### 1. Overview & Tech Stack
+- **Backend/Frontend:** Ruby on Rails, PostgreSQL, Tailwind CSS (`tailwindcss-rails`).
+- **Desktop Shell:** Electron (cross-platform desktop wrapper).
+- **Isolation & Safety:** Dedicated environment guards to prevent accidental data loss in production/development databases.
 
-## Suggestions for a good README
+---
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### 2. Styling (Tailwind CSS)
+Tailwind CSS is compiled via the `tailwindcss-rails` gem, meaning `node`/`npm` installation is optional for basic Rails development. After modifying views, compile styles using:
+```bash
+bin/rails tailwindcss:build
+```
+In development mode, watch for changes automatically:
+```bash
+bin/rails tailwindcss:watch
+```
+*Commit compiled assets (`app/assets/builds/tailwind.css`) along with view changes so styles are available after `git clone`.*
 
-## Name
+---
 
-Choose a self-explaining name for your project.
+### 3. Running via Docker
+Requires Docker Desktop. Start the application with a single command:
+```bash
+docker compose up --build
+```
+- **App URL:** http://localhost:3000
+- **PostgreSQL:** `127.0.0.1:5433:5432` (bound locally to prevent external exposure).
 
-## Description
+On first startup, the `web` container automatically runs `db:prepare` via `bin/docker-entrypoint`.
 
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- Stop without losing data: `docker compose down`
+- Completely reset database (removes data volume): `docker compose down -v`
 
-## Badges
+---
 
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### 4. Database Backup & Restore Safety
+Backup scripts run via Docker Compose without requiring a local `psql` installation.
 
-## Visuals
+- **Create a backup:**
+  ```bash
+  bin/backup-db
+  ```
+- **Restore a database:**
+  ```bash
+  bin/restore-db backups/salary-management-dump.sql --yes
+  ```
+*Warning: `restore-db` deletes and recreates the target database. Always verify target database names to prevent data loss.*
 
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
+### 5. Desktop Shell & Shortcuts
+The application can run as a standalone desktop app via Electron.
 
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+#### Create Desktop Shortcut:
+```bash
+cd desktop
+npm install
+npm run shortcut
+```
+This automatically detects your OS and creates a launcher (`.command` on macOS, `.cmd` on Windows, `.desktop` on Linux).
 
-## Usage
+---
 
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### 6. Security & Environment Best Practices
+1. **Credentials Management:** Never hardcode passwords or secrets. Use a local `.env` file in the project root (ignored by git).
+2. **Database Protection:** Built-in Rake guards (`lib/tasks/protect_real_db.rake`) prevent destructive accidental execution on active development databases.
+3. **Agent Permission Boundaries:** AI agents are restricted from modifying infrastructure configuration files (`config/database.yml`, `docker-compose.yml`, `bin/agent`) to ensure safe operations.
 
-## Support
+---
+Testing Guide / Інструкція з запуску тестів
 
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Part 1: English Version
 
-## Roadmap
+#### 1. Concept: Why Separate Test Databases?
+Even though the project test suite (RSpec code) is identical for both human developers and AI agents, **the underlying test databases MUST be isolated**.
 
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+* **Developer Environment (Port 5433):** Runs on `salary_management_test`. RSpec automatically truncates/prepares this database during test runs without touching your development data.
+* **AI Agent Environment (Port 5434):** Runs on `salary_management_agent_test`. When the AI agent tests code modifications or experimental migrations, it must be constrained to port `5434` to prevent altering the developer's test state or schema.
 
-## Contributing
+---
 
-State if you are open to contributions and what your requirements are for accepting them.
+#### 2. Developer Test Execution (Real / Main Setup)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+##### A. Inside Docker Container (Recommended)
+This is the cleanest method as it uses the containerized environment matching production:
+```bash
+docker compose exec web bundle exec rspec
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+##### B. Locally on Host Machine (Without Docker)
+Ensure the Docker Postgres container on port `5433` (or local Postgres) is running:
+```bash
+RAILS_ENV=test DB_PORT=5433 bundle exec rspec
+```
 
-## Authors and acknowledgment
+---
 
-Show your appreciation to those who have contributed to the project.
+#### 3. AI Agent Test Execution (Isolated Sandbox)
 
-## License
+##### A. Inside the Agent Wrapper (`bin/agent`) — Recommended
+When operating inside the `./bin/agent` wrapper session, the environment is sanitized via `env -i`, and connection variables point strictly to port `5434`. You or the agent can simply run:
+```bash
+bundle exec rspec
+```
 
-For open source projects, say how it is licensed.
+##### B. Explicitly from Host Machine against Agent Database
+If you need to execute tests against the agent's sandbox database directly from your host terminal:
+```bash
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+```
 
-## Project status
+---
 
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+#### 4. Safety Checklist
+- [x] Never run `bundle exec rspec` with `DB_PORT=5432` if you have system Postgres running locally.
+- [x] Ensure `.env` is ignored by git so test execution parameters do not leak sensitive host keys.
+
+---
+
+## Частина 2: Українська версія
+
+### 1. Огляд та технологічний стек
+- **Бекенд/Фронтенд:** Ruby on Rails, PostgreSQL, Tailwind CSS (`tailwindcss-rails`).
+- **Десктопна оболонка:** Electron (кросплатформна обгортка для запуску у вікні).
+- **Ізоляція та безпека:** Вбудовані механізми захисту від випадкового знищення даних в основній базі.
+
+---
+
+### 2. Стилі (Tailwind CSS)
+Tailwind CSS збирається гемом `tailwindcss-rails`, тому встановлювати `node`/`npm` для цього не обов'язково. Після зміни класів у в'юхах згенеруйте стилі:
+```bash
+bin/rails tailwindcss:build
+```
+У режимі розробки відстежуйте зміни автоматично:
+```bash
+bin/rails tailwindcss:watch
+```
+*Коммітьте змінений `app/assets/builds/tailwind.css` разом із в'юхами, щоб стилі працювали одразу після клонування репозиторію.*
+
+---
+
+### 3. Запуск у Docker
+Потрібен запущений Docker Desktop. Усе піднімається однією командою:
+```bash
+docker compose up --build
+```
+- **Застосунок:** http://localhost:3000
+- **PostgreSQL:** `127.0.0.1:5433:5432` (прив'язано локально для захисту від доступу із зовнішньої мережі).
+
+При першому старті контейнер `web` автоматично виконує `db:prepare`.
+
+- Зупинити без втрати даних: `docker compose down`
+- Повністю скинути базу (видалить том): `docker compose down -v`
+
+---
+
+### 4. Безпека бекапів та відновлення БД
+Скрипти працюють через Docker Compose.
+
+- **Створити дамп:**
+  ```bash
+  bin/backup-db
+  ```
+- **Відновити базу:**
+  ```bash
+  bin/restore-db backups/salary-management-dump.sql --yes
+  ```
+*Увага: скрипт відновлення повністю очищає та перестворює цільову базу даних. Завжди перевіряйте назву бази перед запуском.*
+
+---
+
+### 5. Десктопна оболонка та ярлики
+Застосунок можна запускати подвійним кліком через десктопний ярлик.
+
+#### Створити ярлик на Робочому столі:
+```bash
+cd desktop
+npm install
+npm run shortcut
+```
+Команда автоматично визначає ОС і створює запускач (`.command` на macOS, `.cmd` на Windows, `.desktop` на Linux).
+
+---
+
+### 6. Безпека та правила ізоляції середовища
+1. **Конфіденційні дані:** Ніколи не вписуйте паролі в код. Використовуйте локальний файл `.env` у корені проєкту (він захищений `.gitignore`).
+2. **Захист від деструктивних команд:** Спеціальні Rake-захисти (`lib/tasks/protect_real_db.rake`) блокують випадкове очищення чи скидання робочої бази даних при помилковому запуску команд з хоста.
+3. **Обмеження прав AI-агентів:** Правила безпеки забороняють агентам редагувати інфраструктурні конфігурації (`config/database.yml`, `docker-compose.yml`, `bin/agent`), що гарантує незмінність захисних контурів.
+
+
+
+
+### Частина 2: Українська версія
+
+#### 1. Концепція: Чому тестові бази даних мають бути розділені?
+Хоча сам набір тестів (код RSpec) є єдиним для всього проєкту, **бази даних для запуску тестів розробником та AI-агентом ПОВИННІ бути ізольованими**.
+
+* **Середовище розробника (Порт 5433):** Працює з базою `salary_management_test`. Під час запуску RSpec Rails автоматично очищує та підготовлює цю базу, не чіпаючи ваші робочі дані розробки.
+* **Середовище AI-агента (Порт 5434):** Працює з базою `salary_management_agent_test`. Якщо AI-агент перевіряє свої експерименти з кодом або нові міграції, він повинен бути обмежений портом `5434`, щоб не пошкодити схему чи стан тестів розробника.
+
+---
+
+#### 2. Запуск тестів розробником (Основна база)
+
+##### А. Усередині контейнера Docker (Рекомендовано)
+Найбільш ізольований та надійний спосіб розробки:
+```bash
+docker compose exec web bundle exec rspec
+```
+
+##### Б. Локально на хості (Без Docker)
+Переконайся, що контейнер PostgreSQL на порту `5433` (або локальний Postgres) запущений:
+```bash
+RAILS_ENV=test DB_PORT=5433 bundle exec rspec
+```
+
+---
+
+#### 3. Запуск тестів AI-агентом (Ізольована пісочниця)
+
+##### А. Усередині сесії обгортки (`bin/agent`) — Рекомендовано
+Усередині сеансу, запущеного через `./bin/agent`, середовище автоматично очищено через `env -i`, а змінні підключення вказують на порт `5434`. Ви або агент просто виконуєте:
+```bash
+bundle exec rspec
+```
+
+##### Б. Явно з термінала хоста для бази агента
+Якщо потрібно виконати тести для бази агента напряму з вашого термінала:
+```bash
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+```
+
+---
+
+#### 4. Чек-лист безпеки
+- [x] Ніколи не запускайте `bundle exec rspec` з `DB_PORT=5432`, якщо у вас локально працює системний Postgres.
+- [x] Переконайтеся, що файл `.env` заігнорований у git, щоб тестові параметри не компрометували секрети.

@@ -9,6 +9,7 @@ docker compose --profile agent up -d --wait agent_db
 
 # 2. Очищаємо середовище (env -i) і запускаємо OpenCode з параметрами для агентської бази
 exec env -i HOME="$HOME" PATH="$PATH" TERM="$TERM" \
+  LANG="${LANG:-en_US.UTF-8}" SHELL="${SHELL:-/bin/zsh}" USER="${USER:-}" TMPDIR="${TMPDIR:-/tmp}" \
   DB_HOST=localhost \
   DB_PORT=5434 \
   DB_NAME=salary_management_agent \

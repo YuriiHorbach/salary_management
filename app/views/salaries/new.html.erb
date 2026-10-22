@@ -1,35 +1,5 @@
-<%= turbo_frame_tag "salary_cell_employee_#{@employee.id}" do %>
-  <%= form_with model: [@employee, @salary],
-                url: employee_salaries_path(@employee, department_id: @salary.department_id,
-                                                       period: @salary.month,
-                                                       position: params[:position].presence),
-                method: :post,
-                class: "inline-block" do |form| %>
-
-    <%= form.hidden_field :department_id %>
-    <%= form.hidden_field :paid_on, value: @salary.period %>
-    <%= form.hidden_field :period, value: @salary.month %>
-
-    <% if @positions.any? %>
-      <%= form.collection_select :position_id, @positions, :id, :position_name,
-                                 { include_blank: 'Без посади' },
-                                 class: "p-1 text-xs border rounded border-gray-300 bg-white font-mono" %>
-    <% end %>
-
-    <% if @salary.errors.any? %>
-      <p class="text-xs text-red-600"><%= @salary.errors.full_messages.to_sentence %></p>
-    <% end %>
-
-    <% typed_amount = params.dig(:salary, :amount).presence %>
-    <% persisted_amount = @salary.amount_cents.to_i.positive? ? @salary.amount_cents / 100.0 : nil %>
-    <%= form.number_field :amount,
-                          step: :any,
-                          min: 0,
-                          required: true,
-                          value: typed_amount || persisted_amount,
-                          autofocus: true,
-                          class: "w-20 p-1 text-xs border rounded border-blue-500 outline-none focus:ring-1 focus:ring-blue-500 font-mono" %>
-    <%= form.submit 'Зберегти',
-                    class: "ml-1 px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer" %>
-  <% end %>
-<% end %>
+<%= render 'salaries/inline_form',
+           employee: @employee,
+           salary: @salary,
+           positions: @positions,
+           filter_position_id: @filter_position_id %>

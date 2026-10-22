@@ -69,38 +69,7 @@
   </div>
 <% end %>
 
-<% if @salary_totals_by_position.any? %>
-  <div class="m-5 overflow-x-auto">
-    <h2 class="text-lg font-semibold mb-2">
-      Підсумки за посадами<%= @period ? " за #{@period.strftime('%m-%Y')}" : ' за весь час' %>
-    </h2>
-    <p class="text-xs text-gray-500 mb-2">Лише суми зарплат, без податків.</p>
-    <table class="min-w-full border-collapse text-sm">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="border border-gray-300 px-2 py-2 text-left whitespace-nowrap">Підрозділ</th>
-          <th class="border border-gray-300 px-2 py-2 text-left whitespace-nowrap">Посада</th>
-          <th class="border border-gray-300 px-2 py-2 text-right whitespace-nowrap">Сума</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @salary_totals_by_position.each do |(department_id, position_id), amount_cents| %>
-          <tr class="hover:bg-gray-50">
-            <td class="border border-gray-300 px-2 py-2">
-              <%= @summary_departments[department_id]&.name || '—' %>
-            </td>
-            <td class="border border-gray-300 px-2 py-2">
-              <%= position_id ? (@summary_positions[position_id]&.position_name || '—') : 'Без посади' %>
-            </td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono">
-              <%= number_to_currency(amount_cents / 100.0) %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-<% end %>
+<%= render 'salaries/salary_totals_by_position' %>
 
 <div class="m-5">
   <div class="grid grid-cols-12 gap-x-3 border-b border-gray-300 font-semibold text-sm">

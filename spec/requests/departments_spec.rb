@@ -91,6 +91,21 @@ RSpec.describe 'Departments', type: :request do
         expect(rendered_last_names).to contain_exactly('Zeta')
       end
 
+      it 'ignores a position that belongs to another department' do
+        foreign_position = create(:position, department: create(:department), position_name: 'Foreign')
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, amount_cents: 50_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: foreign_position.id)
+
+        expect(assigns(:position)).to be_nil
+        expect(rendered_last_names).to contain_exactly('Alpha', 'Zeta')
+        expect(assigns(:department_total)).to eq(1500.0)
+        expect(response.body).to include('1500,00')
+      end
+
       it 'renders a position filter with the department positions' do
         get department_path(department)
 

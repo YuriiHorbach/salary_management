@@ -1,5 +1,4 @@
 <%= turbo_frame_tag "salary_cell_employee_#{employee.id}" do %>
-  <% filter_position_id = local_assigns[:filter_position_id] %>
   <div class="space-y-1">
     <% positions.each do |position| %>
       <% amount_cents = period_salaries[[employee.id, position.id]] %>

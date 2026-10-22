@@ -143,7 +143,7 @@ bundle exec rspec
 ##### B. Explicitly from Host Machine against Agent Database
 If you need to execute tests against the agent's sandbox database directly from your host terminal:
 ```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
 ```
 
 ---
@@ -264,7 +264,7 @@ bundle exec rspec
 ##### Б. Явно з термінала хоста для бази агента
 Якщо потрібно виконати тести для бази агента напряму з вашого термінала:
 ```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
 ```
 
 ---

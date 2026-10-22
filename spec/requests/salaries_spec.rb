@@ -23,6 +23,53 @@ RSpec.describe 'Salaries', type: :request do
     sign_in user
   end
 
+  describe 'authentication' do
+    before { sign_out user }
+
+    it 'redirects the index when signed out' do
+      get urls.employee_salaries_path(employee)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'redirects the inline form when signed out' do
+      get urls.new_employee_salary_path(employee, department_id: department.id)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'does not create a salary when signed out' do
+      expect {
+        post urls.employee_salaries_path(employee),
+             params: { salary: valid_attributes.except(:department_id), department_id: department.id }
+      }.not_to change(Salary, :count)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'does not update a salary when signed out' do
+      salary = create(:salary, employee: employee, department: department,
+                               amount_cents: 100_000, period: Date.new(2025, 10, 1))
+
+      expect {
+        patch urls.employee_salary_path(employee, salary), params: { salary: { amount: '999.00' } }
+      }.not_to(change { salary.reload.amount_cents })
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'does not destroy a salary when signed out' do
+      salary = create(:salary, employee: employee, department: department,
+                               amount_cents: 100_000, period: Date.new(2025, 10, 1))
+
+      expect {
+        delete urls.employee_salary_path(employee, salary)
+      }.not_to change(Salary, :count)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+  end
+
   describe 'GET /new' do
     it 'works' do
       get urls.new_employee_salary_path(employee)
@@ -133,7 +180,7 @@ RSpec.describe 'Salaries', type: :request do
                         .map(&:text)
 
       expect(options).to include('Інженер')
-      expect(options).not_to include('Менеджер')
+      expect(options).not_to include('Менеджер', 'Без посади')
     end
 
     it 'ignores a position that does not belong to the employee in this department' do
@@ -172,6 +219,36 @@ RSpec.describe 'Salaries', type: :request do
                         .map(&:text)
 
       expect(options).to include('Без посади', 'Інженер')
+    end
+
+    it 'renders employee positions when the salary has no department' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+      salary = create(:salary, employee: employee, department: nil,
+                               amount_cents: 100_000, period: Date.new(2025, 10, 1))
+
+      get urls.edit_employee_salary_path(employee, salary)
+
+      options = Nokogiri::HTML(response.body)
+                        .css('select[name="salary[position_id]"] option')
+                        .map(&:text)
+
+      expect(options).to include('Інженер')
+    end
+
+    it 'derives the department from the selected position when updating a departmentless salary' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+      salary = create(:salary, employee: employee, department: nil,
+                               amount_cents: 100_000, period: Date.new(2025, 10, 1))
+
+      patch urls.employee_salary_path(employee, salary),
+            params: { salary: { position_id: position.id, amount: '1000.00',
+                                period: '2025-10' } }
+
+      salary.reload
+      expect(salary.position).to eq(position)
+      expect(salary.department).to eq(department)
     end
   end
 
@@ -228,6 +305,42 @@ RSpec.describe 'Salaries', type: :request do
           [other_department.id, nil] => 200_000
         )
       end
+    end
+
+    it 'sorts position totals by department name and position name' do
+      late_department = create(:department, name: 'Ялинка')
+      early_department = create(:department, name: 'Альфа')
+      create(:salary, employee: employee, department: late_department, amount_cents: 100_000,
+                      period: Date.new(2025, 10, 1))
+      create(:salary, employee: employee, department: early_department, amount_cents: 200_000,
+                      period: Date.new(2025, 10, 1))
+
+      get urls.employee_salaries_path(employee, period: '2025-10')
+
+      rows = Nokogiri::HTML(response.body)
+                     .css('#salary_totals_by_position tbody tr')
+      department_names = rows.map { |row| row.css('td').first.text.strip }
+
+      expect(department_names).to eq(%w[Альфа Ялинка])
+    end
+
+    it 'sorts position totals within one department by position name' do
+      alpha = create(:position, department: department, position_name: 'Alpha')
+      beta = create(:position, department: department, position_name: 'Beta')
+      create(:department_employee, employee: employee, department: department, position: alpha)
+      create(:department_employee, employee: employee, department: department, position: beta)
+      create(:salary, employee: employee, department: department, position: beta, amount_cents: 200_000,
+                      period: Date.new(2025, 10, 1))
+      create(:salary, employee: employee, department: department, position: alpha, amount_cents: 100_000,
+                      period: Date.new(2025, 10, 1))
+
+      get urls.employee_salaries_path(employee, period: '2025-10')
+
+      rows = Nokogiri::HTML(response.body)
+                     .css('#salary_totals_by_position tbody tr')
+      position_names = rows.map { |row| row.css('td')[1].text.strip }
+
+      expect(position_names).to eq(%w[Alpha Beta])
     end
 
     it 'limits position totals to the selected period' do
@@ -315,6 +428,79 @@ RSpec.describe 'Salaries', type: :request do
         urls.employee_salaries_path(employee, period: '2025-10')
       )
     end
+
+    it 'ignores a forged employee_id in the salary params' do
+      other_employee = create(:employee)
+      create(:department_employee, employee: other_employee, department: department, position: position)
+
+      patch urls.employee_salary_path(employee, salary),
+            params: { salary: { employee_id: other_employee.id, amount: '1000.00',
+                                position_id: position.id, department_id: department.id,
+                                period: '2025-10' } }
+
+      expect(salary.reload.employee).to eq(employee)
+    end
+
+    it 'refreshes position totals in the turbo_stream response' do
+      patch urls.employee_salary_path(employee, salary),
+            params: { salary: { amount: '2500.00', department_id: department.id, period: '2025-10' } },
+            headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      totals = turbo_stream_content('salary_totals_by_position_section')
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(totals.text).to include('2500,00')
+    end
+
+    it 'renders turbo_stream validation errors for an invalid update' do
+      create(:salary, employee: employee, department: department, amount_cents: 200_000,
+                      period: Date.new(2025, 11, 1))
+
+      patch urls.employee_salary_path(employee, salary),
+            params: { salary: { amount: '1234.56', department_id: department.id,
+                                period: '2025-11' } },
+            headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+
+      page = Nokogiri::HTML(response.body)
+      stream = page.at_css("turbo-stream[action=\"replace\"][target=\"salary_#{salary.id}\"]")
+      form = Nokogiri::HTML.fragment(stream.at_css('template').inner_html)
+
+      expect(form.at_css('input[name="salary[amount]"]')['value'].to_f).to eq(1234.56)
+      expect(form.text).to include('уже додано')
+    end
+  end
+
+  describe 'DELETE /destroy' do
+    let(:engineer) { create(:position, department: department, position_name: 'Інженер') }
+    let(:manager) { create(:position, department: department, position_name: 'Менеджер') }
+    let(:engineer_salary) do
+      create(:salary, employee: employee, department: department, position: engineer,
+                      amount_cents: 100_000, period: Date.new(2025, 10, 1))
+    end
+
+    before do
+      create(:department_employee, employee: employee, department: department, position: engineer)
+      create(:department_employee, employee: employee, department: department, position: manager)
+      engineer_salary
+      create(:salary, employee: employee, department: department, position: manager,
+                      amount_cents: 200_000, period: Date.new(2025, 10, 1))
+    end
+
+    it 'removes the salary and refreshes position totals in the turbo_stream response' do
+      expect {
+        delete urls.employee_salary_path(employee, engineer_salary),
+               headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+      }.to change(Salary, :count).by(-1)
+
+      totals = turbo_stream_content('salary_totals_by_position_section')
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(totals.text).to include('2000,00')
+      expect(totals.text).not_to include('1000,00')
+    end
   end
 
   describe 'POST /create' do
@@ -338,6 +524,17 @@ RSpec.describe 'Salaries', type: :request do
 
       post urls.employee_salaries_path(employee),
            params: { salary: valid_attributes.except(:department_id), department_id: department.id }
+
+      expect(employee.salaries.last.position_id).to be_nil
+    end
+
+    it 'ignores a top-level position_id outside strong params' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id), department_id: department.id,
+                     position_id: position.id }
 
       expect(employee.salaries.last.position_id).to be_nil
     end
@@ -424,6 +621,39 @@ RSpec.describe 'Salaries', type: :request do
       )
     end
 
+    it 'drops the position filter when a positionless salary is created under a filter' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id),
+                     department_id: department.id, position: position.id }
+
+      expect(response).to redirect_to(
+        urls.department_path(department, period: '2025-10')
+      )
+      expect(employee.salaries.last.position_id).to be_nil
+    end
+
+    it 'renders an unfiltered cell without the stale position filter after a positionless inline create' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id),
+                     department_id: department.id, position: position.id },
+           headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      cell = turbo_stream_content("salary_cell_employee_#{employee.id}")
+      total = turbo_stream_content('department_total', action: 'update')
+      add_link = cell.at_css("a[href*='position_id=#{position.id}']")
+
+      expect(cell.text).to include('Без посади', '50,00', 'Інженер')
+      expect(add_link['href']).not_to match(/[?&]position=/)
+      expect(total.text).to include('50,00')
+    end
+
     it 'updates the department total and salary cell after an inline create' do
       position = create(:position, department: department, position_name: 'Інженер')
       create(:department_employee, employee: employee, department: department, position: position)
@@ -463,5 +693,42 @@ RSpec.describe 'Salaries', type: :request do
       expect(amount_input['value'].to_f).to eq(1234.56)
       expect(selected['value']).to eq(position.id.to_s)
     end
+
+    context 'when a duplicate position salary exists' do
+      let(:position) { create(:position, department: department, position_name: 'Інженер') }
+
+      before do
+        create(:department_employee, employee: employee, department: department, position: position)
+        create(:salary, employee: employee, department: department, position: position,
+                        amount_cents: 100_000, period: Date.new(2025, 10, 1))
+      end
+
+      it 'renders turbo_stream validation errors for an inline create' do
+        post_inline_salary(position, amount: '1234.56')
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+
+        form = turbo_stream_content("salary_cell_employee_#{employee.id}")
+        expect(form.at_css('input[name="salary[amount]"]')['value'].to_f).to eq(1234.56)
+        expect(form.at_css('select[name="salary[position_id]"] option[selected]')['value'])
+          .to eq(position.id.to_s)
+        expect(form.text).to include('уже додано')
+      end
+    end
+  end
+
+  def post_inline_salary(position, amount:)
+    post urls.employee_salaries_path(employee),
+         params: { salary: valid_attributes.except(:department_id).merge(position_id: position.id,
+                                                                         amount: amount),
+                   department_id: department.id },
+         headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+  end
+
+  def turbo_stream_content(target, action: 'replace')
+    page = Nokogiri::HTML(response.body)
+    stream = page.at_css("turbo-stream[action=\"#{action}\"][target=\"#{target}\"]")
+    Nokogiri::HTML.fragment(stream.at_css('template').inner_html)
   end
 end

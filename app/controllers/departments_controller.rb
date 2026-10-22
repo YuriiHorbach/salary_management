@@ -22,17 +22,22 @@ class DepartmentsController < ApplicationController
 
   def show
     @q = @department.employees.ransack(params[:q])
-    @employees = filtered_employees.to_a
     @positions = @department.positions.order(:position_name)
     @position = @department.positions.find_by(id: params[:position])
+    @employees = filtered_employees.to_a
     @period = selected_period
     @period_salaries = @department.salary_amounts_by_employee_and_position(
       @period,
-      position: params[:position],
+      position: @position,
       employee_ids: @employees.map(&:id)
     )
-    @employee_positions = positions_by_employee
-    @department_total = @department.monthly_total(@period, position: params[:position])
+    @employee_positions = DepartmentEmployeePositionsQuery.new(
+      @department,
+      employee_ids: @employees.map(&:id),
+      period_salaries: @period_salaries,
+      position: @position
+    ).call
+    @department_total = @department.monthly_total(@period, position: @position)
   end
 
   def edit; end
@@ -78,39 +83,9 @@ class DepartmentsController < ApplicationController
 
   def filtered_employees
     employees = @q.result(distinct: true)
-    return employees if params[:position].blank?
+    return employees unless @position
 
-    employee_ids = @department.department_employees.where(position_id: params[:position]).select(:employee_id)
+    employee_ids = @department.department_employees.where(position_id: @position.id).select(:employee_id)
     employees.where(id: employee_ids)
-  end
-
-  def positions_by_employee
-    grouped = assigned_positions_by_employee
-    merge_salary_positions!(grouped)
-    grouped.transform_values { |positions| positions.sort_by(&:position_name) }
-  end
-
-  def assigned_positions_by_employee
-    assignments = @department.department_employees.where(employee_id: @employees.map(&:id))
-    assignments = assignments.where(position_id: @position.id) if @position
-    assignments.includes(:position)
-               .group_by(&:employee_id)
-               .transform_values { |rows| rows.filter_map(&:position).uniq }
-  end
-
-  def merge_salary_positions!(grouped)
-    salary_positions = @department.positions
-                                  .where(id: @period_salaries.keys.filter_map(&:last).compact.uniq)
-                                  .index_by(&:id)
-
-    @period_salaries.each_key do |employee_id, position_id|
-      next if position_id.blank?
-
-      position = salary_positions[position_id]
-      next unless position
-
-      employee_positions = grouped[employee_id] ||= []
-      employee_positions << position unless employee_positions.any? { |existing| existing.id == position.id }
-    end
   end
 end

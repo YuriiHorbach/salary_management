@@ -6,7 +6,7 @@
                period: @salary.period,
                positions: @employee_salary_positions,
                period_salaries: @period_salaries,
-               filter_position_id: params[:position].presence %>
+               filter_position_id: @filter_position_id %>
   <% end %>
 
   <%= turbo_stream.update "department_total" do %>

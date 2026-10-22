@@ -10,10 +10,13 @@
 # department membership intact when all positions are cleared. +destroy+ removes
 # one position assignment through +DepartmentEmployees::PositionRemoval+, which
 # also keeps the membership when the removed position was the last one.
+# The +period+ and +position+ filter params from the department page are carried
+# through the forms and redirects so the user returns to the same view.
 class DepartmentEmployeePositionsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_department
   before_action :set_employee
+  before_action :set_context
   before_action :ensure_membership
 
   def edit
@@ -31,9 +34,9 @@ class DepartmentEmployeePositionsController < ApplicationController
       employee: @employee,
       position_ids: selected_position_ids
     )
-      redirect_to @department, notice: 'Посади працівника успішно оновлено.'
+      redirect_to department_path(@department, **@context_params), notice: 'Посади працівника успішно оновлено.'
     else
-      redirect_to @department, alert: 'Посаду не знайдено в цьому підрозділі.'
+      redirect_to department_path(@department, **@context_params), alert: 'Посаду не знайдено в цьому підрозділі.'
     end
   end
 
@@ -54,7 +57,8 @@ class DepartmentEmployeePositionsController < ApplicationController
   private
 
   def edit_positions_path
-    edit_department_employee_positions_path(department_id: @department.id, employee_id: @employee.id)
+    edit_department_employee_positions_path(department_id: @department.id, employee_id: @employee.id,
+                                            **@context_params)
   end
 
   def set_department
@@ -63,6 +67,13 @@ class DepartmentEmployeePositionsController < ApplicationController
 
   def set_employee
     @employee = Employee.find(params[:employee_id])
+  end
+
+  def set_context
+    @context_params = {
+      period: params[:period].presence,
+      position: params[:position].presence
+    }.compact
   end
 
   def ensure_membership

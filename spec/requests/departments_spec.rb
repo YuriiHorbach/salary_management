@@ -215,7 +215,7 @@ RSpec.describe 'Departments', type: :request do
         expect(row.text).not_to include('9000,00')
       end
 
-      it 'sums all salaries in this department for an employee with several positions' do
+      it 'renders the salary of every position separately for an employee with several positions' do
         create(:department_employee, employee: alpha, department: department, position: engineer_position)
         create(:salary, employee: alpha, department: department, position: manager_position,
                         amount_cents: 100_000, period: Date.new(2025, 3, 1))
@@ -224,7 +224,13 @@ RSpec.describe 'Departments', type: :request do
 
         get department_path(department, period: '2025-03')
 
-        expect(employee_row('Alpha').text).to include('1500,00')
+        row = employee_row('Alpha')
+        manager_cell = row.at_css("#salary_position_#{alpha.id}_#{manager_position.id}")
+        engineer_cell = row.at_css("#salary_position_#{alpha.id}_#{engineer_position.id}")
+
+        expect(manager_cell.text).to include('Manager', '1000,00')
+        expect(engineer_cell.text).to include('Engineer', '500,00')
+        expect(row.text).not_to include('1500,00')
       end
 
       it 'shows only the salary of the filtered position in the employee row' do
@@ -264,8 +270,23 @@ RSpec.describe 'Departments', type: :request do
 
         get department_path(department, period: '2025-03', position: engineer_position.id)
 
-        expect(assigns(:period_salaries)[alpha.id]).to eq(50_000)
+        expect(assigns(:period_salaries)[[alpha.id, engineer_position.id]]).to eq(50_000)
+        expect(assigns(:period_salaries).keys).to contain_exactly([alpha.id, engineer_position.id])
         expect(assigns(:department_total)).to eq(500.0)
+      end
+
+      it 'renders a salary without a position separately from position salaries' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Alpha')
+        positionless_cell = row.at_css("#salary_position_#{alpha.id}_none")
+        manager_cell = row.at_css("#salary_position_#{alpha.id}_#{manager_position.id}")
+
+        expect(positionless_cell.text).to include('Без посади', '1000,00')
+        expect(manager_cell.text).to include('Manager', '+ Додати')
       end
 
       it 'renders no salary for a position that has no matching salary in the period' do
@@ -298,6 +319,36 @@ RSpec.describe 'Departments', type: :request do
         expect(link).to be_present
         query = Rack::Utils.parse_query(URI.parse(link['href']).query)
         expect(query['position_id']).to eq(engineer_position.id.to_s)
+        expect(query['position']).to eq(engineer_position.id.to_s)
+      end
+
+      it 'passes the only employee position to the add salary link when no filter is selected' do
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Zeta')
+        link = row.at_css("a[href*='/employees/#{zeta.id}/salaries/new']")
+
+        expect(link).to be_present
+        query = Rack::Utils.parse_query(URI.parse(link['href']).query)
+        expect(query['position_id']).to eq(engineer_position.id.to_s)
+      end
+
+      it 'renders an add link for every position without a salary when no filter is selected' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+
+        get department_path(department, period: '2025-03')
+
+        row = employee_row('Alpha')
+        [manager_position, engineer_position].each do |position|
+          link = row.at_css(
+            "#salary_position_#{alpha.id}_#{position.id} a[href*='/employees/#{alpha.id}/salaries/new']"
+          )
+
+          expect(link).to be_present
+          query = Rack::Utils.parse_query(URI.parse(link['href']).query)
+          expect(query['position_id']).to eq(position.id.to_s)
+          expect(query['position']).to be_nil
+        end
       end
 
       it 'opens the salary history outside the department turbo frame' do
@@ -311,14 +362,19 @@ RSpec.describe 'Departments', type: :request do
         expect(link['data-turbo-frame']).to eq('_top')
       end
 
-      it 'does not render an add link for an employee that already has a salary in the period' do
-        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
-                        period: Date.new(2025, 3, 1))
+      it 'renders an add link only for positions that have no salary in the period' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
 
         get department_path(department, period: '2025-03')
 
         row = employee_row('Alpha')
-        expect(row.at_css("a[href*='/employees/#{alpha.id}/salaries/new']")).to be_nil
+        manager_cell = row.at_css("#salary_position_#{alpha.id}_#{manager_position.id}")
+        engineer_cell = row.at_css("#salary_position_#{alpha.id}_#{engineer_position.id}")
+
+        expect(manager_cell.at_css("a[href*='/employees/#{alpha.id}/salaries/new']")).to be_nil
+        expect(engineer_cell.at_css("a[href*='/employees/#{alpha.id}/salaries/new']")).to be_present
       end
 
       it 'passes the selected period to the add salary link' do

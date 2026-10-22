@@ -26,7 +26,8 @@ RSpec.describe 'Department employee positions', :js, type: :system do
     end
 
     expect(page).to have_current_path(
-      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id),
+      ignore_query: true
     )
     expect(page).to have_css("#assigned_position_#{manager_position.id}")
   end
@@ -40,7 +41,7 @@ RSpec.describe 'Department employee positions', :js, type: :system do
     check "position_#{engineer_position.id}"
     click_button 'Зберегти'
 
-    expect(page).to have_current_path(department_path(department))
+    expect(page).to have_current_path(department_path(department), ignore_query: true)
 
     within("#department_employee_#{employee.id}") do
       expect(page).to have_text('Engineer')
@@ -65,7 +66,8 @@ RSpec.describe 'Department employee positions', :js, type: :system do
     delete_position(manager_position)
 
     expect(page).to have_current_path(
-      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id),
+      ignore_query: true
     )
     expect(page).not_to have_css("#assigned_position_#{manager_position.id}")
     expect(page).to have_css("#assigned_position_#{engineer_position.id}")
@@ -73,14 +75,12 @@ RSpec.describe 'Department employee positions', :js, type: :system do
 
   it 'keeps the employee in the department after deleting the last position' do
     visit edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
-
     delete_position(manager_position)
-
     expect(page).to have_current_path(
-      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
+      edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id),
+      ignore_query: true
     )
     expect(page).to have_text('У працівника ще немає посад у цьому підрозділі.')
-
     visit department_path(department)
 
     within("#department_employee_#{employee.id}") do
@@ -89,8 +89,7 @@ RSpec.describe 'Department employee positions', :js, type: :system do
       expect(page).not_to have_text('Manager')
     end
 
-    assignment = department.department_employees.find_by(employee_id: employee.id)
-    expect(assignment.position_id).to be_nil
+    expect(department.department_employees.find_by(employee_id: employee.id).position_id).to be_nil
   end
 
   def delete_position(position)

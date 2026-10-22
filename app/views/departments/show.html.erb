@@ -1,5 +1,8 @@
 <h1><%= @department.name %></h1>
 
+<% position_context = { period: @period.strftime('%Y-%m') } %>
+<% position_context[:position] = @position.id if @position %>
+
 <%= form_with url: department_path(@department), method: :get,
     class: "my-4 flex flex-wrap items-end gap-3" do |form| %>
   <div>
@@ -50,7 +53,8 @@
               <% employee_positions.each do |position| %>
                 <%= link_to position.position_name,
                             edit_department_employee_positions_path(department_id: @department.id,
-                                                                    employee_id: employee.id),
+                                                                    employee_id: employee.id,
+                                                                    **position_context),
                             class: "text-blue-600 hover:underline text-xs",
                             title: "Редагувати посади" %>
               <% end %>
@@ -58,25 +62,19 @@
           <% else %>
             <%= link_to 'Додати посаду',
                         edit_department_employee_positions_path(department_id: @department.id,
-                                                                employee_id: employee.id),
+                                                                employee_id: employee.id,
+                                                                **position_context),
                         class: "text-blue-600 hover:underline text-xs" %>
           <% end %>
         </td>
-        <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
-          <%= turbo_frame_tag "salary_amount_employee_#{employee.id}" do %>
-            <% if (amount_cents = @period_salaries[employee.id]) %>
-              <%= link_to number_to_currency(amount_cents / 100.0),
-                          employee_salaries_path(employee, period: @period.strftime('%Y-%m')),
-                          data: { turbo_frame: '_top' },
-                          class: "text-blue-600 hover:underline font-mono" %>
-            <% else %>
-              <% add_salary_params = { department_id: @department.id, period: @period.strftime('%Y-%m') } %>
-              <% add_salary_params[:position_id] = @position.id if @position %>
-              <%= link_to '+ Додати',
-                          new_employee_salary_path(employee, add_salary_params),
-                          class: "text-blue-600 hover:underline font-mono" %>
-            <% end %>
-          <% end %>
+        <td class="px-3 py-2 border border-gray-300">
+          <%= render 'departments/salary_cell',
+                     employee: employee,
+                     department: @department,
+                     period: @period,
+                     positions: employee_positions,
+                     period_salaries: @period_salaries,
+                     filter_position_id: @position&.id %>
         </td>
         <td class="px-3 py-2 border border-gray-300 whitespace-nowrap">
           <%= link_to "Salary", employee_salaries_path(employee, department_id: @department.id,

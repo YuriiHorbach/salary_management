@@ -1,13 +1,14 @@
-<%= turbo_stream.replace "salary_amount_employee_#{@employee.id}" do %>
-  <%= turbo_frame_tag "salary_amount_employee_#{@employee.id}" do %>
-    <%= link_to number_to_currency(@salary.amount),
-                employee_salaries_path(@employee),
-                data: { turbo_frame: '_top' },
-                class: "text-blue-600 hover:underline font-mono" %>
+<% if @department %>
+  <%= turbo_stream.replace "salary_cell_employee_#{@employee.id}" do %>
+    <%= render 'departments/salary_cell',
+               employee: @employee,
+               department: @department,
+               period: @salary.period,
+               positions: @employee_salary_positions,
+               period_salaries: @period_salaries,
+               filter_position_id: params[:position].presence %>
   <% end %>
-<% end %>
 
-<% if @department_total %>
   <%= turbo_stream.update "department_total" do %>
     <%= number_to_currency(@department_total) %>
   <% end %>

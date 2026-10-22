@@ -41,6 +41,17 @@ RSpec.describe 'DepartmentPositions', type: :request do
         )
       end
 
+      it 'preserves the department period and position filter after creating a position' do
+        post department_positions_path(department_id: department.id),
+             params: { position: { position_name: 'Manager' }, employee_id: employee.id,
+                       return_period: '2025-03', return_position: 123 }
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                  new_position_id: Position.last.id, period: '2025-03',
+                                                  position: 123)
+        )
+      end
+
       it 'returns to the department page when employee_id is missing' do
         post department_positions_path(department_id: department.id), params: {
           position: { position_name: 'Manager' }

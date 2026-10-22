@@ -66,6 +66,19 @@ class Employee < ApplicationRecord
     salaries.sum(:amount_cents) / 100.0
   end
 
+  # Gross salary amounts grouped by department and position.
+  # Keys are +[department_id, position_id]+; either value may be +nil+.
+  # This is a salary-only breakdown; taxes remain aggregated per period by
+  # +EmployeePeriodIncome+ and are not allocated to positions here.
+  #
+  # @param period [Date, String, nil] optional month to restrict the result
+  # @return [Hash{Array(Integer, Integer, nil) => Integer}] amounts in cents
+  def salary_totals_by_department_and_position(period: nil)
+    scope = salaries
+    scope = scope.where(period: period) if period
+    scope.group(:department_id, :position_id).sum(:amount_cents)
+  end
+
   def addition_income_summaries(income)
     income.group_by(&:period).transform_values do |days|
       first_item = days.first

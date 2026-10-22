@@ -27,4 +27,19 @@ class Department < ApplicationRecord
   def monthly_total(date = Date.current, position: nil)
     period_salaries(date, position: position).sum(:amount_cents) / 100.0
   end
+
+  # Salary amounts for the given month grouped by employee and position.
+  # Keys are +[employee_id, position_id]+; +position_id+ is +nil+ for salaries
+  # without a position. Pass +employee_ids+ to restrict the result to the rows
+  # currently rendered on the department page.
+  #
+  # @param date [Date, String] any date inside the target month
+  # @param position [Position, Integer, nil] optional position filter
+  # @param employee_ids [Array<Integer>, nil] optional employee restriction
+  # @return [Hash{Array(Integer, Integer, nil) => Integer}] amounts in cents
+  def salary_amounts_by_employee_and_position(date = Date.current, position: nil, employee_ids: nil)
+    scope = period_salaries(date, position: position)
+    scope = scope.where(employee_id: employee_ids) if employee_ids
+    scope.group(:employee_id, :position_id).sum(:amount_cents)
+  end
 end

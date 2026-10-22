@@ -84,6 +84,20 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(checked).to contain_exactly(engineer_position.id.to_s)
       end
 
+      it 'keeps the department period and position filter in the forms and links' do
+        create(:department_employee, employee: employee, department: department, position: engineer_position)
+        get edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                    period: '2025-03', position: engineer_position.id)
+        page = Nokogiri::HTML(response.body)
+        patch_form = page.at_css('form[action*="/employees/"]')
+        back_link = page.css('a').find { |link| link.text.strip == 'Назад' }
+        create_form = page.at_css('input[name="position[position_name]"]').ancestors('form').first
+        expect(patch_form['action']).to include('period=2025-03', "position=#{engineer_position.id}")
+        expect(back_link['href']).to include('period=2025-03', "position=#{engineer_position.id}")
+        expect(create_form.at_css('input[name="return_period"]')['value']).to eq('2025-03')
+        expect(create_form.at_css('input[name="return_position"]')['value']).to eq(engineer_position.id.to_s)
+      end
+
       it 'returns not found when the employee is not a member of the department' do
         outsider = create(:employee)
 
@@ -142,6 +156,16 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(assigned_position_ids).to eq([nil])
       end
 
+      it 'preserves the department period and position filter in the redirect' do
+        patch department_employee_positions_path(department_id: department.id, employee_id: employee.id),
+              params: { position_ids: [engineer_position.id], period: '2025-03',
+                        position: engineer_position.id }
+
+        expect(response).to redirect_to(
+          department_path(department, period: '2025-03', position: engineer_position.id)
+        )
+      end
+
       it 'returns not found when the employee is not a member of the department' do
         outsider = create(:employee)
 
@@ -182,6 +206,17 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         )
         expect(flash[:notice]).to eq('Посаду працівника видалено.')
         expect(assigned_position_ids).to contain_exactly(engineer_position.id)
+      end
+
+      it 'preserves the department period and position filter after deleting a position' do
+        create(:department_employee, employee: employee, department: department, position: manager_position)
+        delete department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                  position_id: manager_position.id, period: '2025-03',
+                                                  position: engineer_position.id)
+        expect(response).to redirect_to(
+          edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                  period: '2025-03', position: engineer_position.id)
+        )
       end
 
       it 'keeps the employee in the department when the last position is removed' do

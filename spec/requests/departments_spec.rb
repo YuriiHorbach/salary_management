@@ -227,6 +227,79 @@ RSpec.describe 'Departments', type: :request do
         expect(employee_row('Alpha').text).to include('1500,00')
       end
 
+      it 'shows only the salary of the filtered position in the employee row' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: engineer_position.id)
+
+        row = employee_row('Alpha')
+        expect(row.text).to include('500,00')
+        expect(row.text).not_to include('1500,00')
+      end
+
+      it 'shows the department total for the filtered position only' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: engineer_position.id)
+
+        expect(assigns(:department_total)).to eq(500.0)
+        expect(response.body).to include('500,00')
+        expect(response.body).not_to include('1500,00')
+      end
+
+      it 'excludes salaries without a position when a position is selected' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: engineer_position.id)
+
+        expect(assigns(:period_salaries)[alpha.id]).to eq(50_000)
+        expect(assigns(:department_total)).to eq(500.0)
+      end
+
+      it 'renders no salary for a position that has no matching salary in the period' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: engineer_position.id)
+
+        expect(assigns(:period_salaries)).to be_empty
+        expect(assigns(:department_total)).to eq(0.0)
+        expect(employee_row('Zeta').text).to include('+ Додати')
+      end
+
+      it 'shows only the filtered position in the employee positions column' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+
+        get department_path(department, position: engineer_position.id)
+
+        row = employee_row('Alpha')
+        expect(row.text).to include('Engineer')
+        expect(row.text).not_to include('Manager')
+      end
+
+      it 'passes the filtered position to the add salary link' do
+        get department_path(department, period: '2025-03', position: engineer_position.id)
+
+        row = employee_row('Zeta')
+        link = row.at_css("a[href*='/employees/#{zeta.id}/salaries/new']")
+
+        expect(link).to be_present
+        query = Rack::Utils.parse_query(URI.parse(link['href']).query)
+        expect(query['position_id']).to eq(engineer_position.id.to_s)
+      end
+
       it 'opens the salary history outside the department turbo frame' do
         create(:salary, employee: alpha, department: department, amount_cents: 100_000,
                         period: Date.new(2025, 3, 1))

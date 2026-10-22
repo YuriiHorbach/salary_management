@@ -70,9 +70,10 @@
                           data: { turbo_frame: '_top' },
                           class: "text-blue-600 hover:underline font-mono" %>
             <% else %>
+              <% add_salary_params = { department_id: @department.id, period: @period.strftime('%Y-%m') } %>
+              <% add_salary_params[:position_id] = @position.id if @position %>
               <%= link_to '+ Додати',
-                          new_employee_salary_path(employee, department_id: @department.id,
-                                                             period: @period.strftime('%Y-%m')),
+                          new_employee_salary_path(employee, add_salary_params),
                           class: "text-blue-600 hover:underline font-mono" %>
             <% end %>
           <% end %>
@@ -94,7 +95,7 @@
   <tfoot>
     <tr class="bg-gray-50 font-medium">
       <td colspan="5" class="px-3 py-2 border border-gray-300 text-right">
-        Всього за <%= l(@period, format: :short) %>:
+        Всього за <%= l(@period, format: :short) %><%= " (посада: #{@position.position_name})" if @position %>:
       </td>
       <td class="px-3 py-2 border border-gray-300 whitespace-nowrap font-mono">
         <span id="department_total">

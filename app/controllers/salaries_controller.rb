@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# app/controllers/salaries_controller.rb
+# Manages salary records for an employee, including the inline add form used on
+# the department page. The inline form may carry the position selected in the
+# department filter so the new salary is scoped to that position.
 class SalariesController < ApplicationController
   before_action :set_employee
   before_action :set_salary, only: %i[show edit update destroy]
@@ -17,17 +19,20 @@ class SalariesController < ApplicationController
   def show; end
 
   def new
-    @salary = @employee.salaries.new(period: requested_period, department_id: params[:department_id])
+    @salary = @employee.salaries.new(period: requested_period,
+                                     department_id: params[:department_id],
+                                     position_id: params[:position_id])
   end
 
   def create
     @salary = @employee.salaries.build(salary_params)
 
     @salary.department_id ||= params[:department_id] || params.dig(:salary, :department_id)
+    @salary.position_id ||= params[:position_id].presence
 
     if @salary.save
       @department = @salary.department
-      @department_total = @department.monthly_total(@salary.period) if @department
+      @department_total = @department.monthly_total(@salary.period, position: @salary.position_id) if @department
 
       respond_to do |format|
         format.html { redirect_after_create }
@@ -101,8 +106,9 @@ class SalariesController < ApplicationController
 
   def redirect_after_create
     if @department
-      redirect_to department_path(@department, period: @salary.period.strftime('%Y-%m')),
-                  notice: 'Salary added successfully.'
+      options = { period: @salary.period.strftime('%Y-%m') }
+      options[:position] = @salary.position_id if @salary.position_id.present?
+      redirect_to department_path(@department, **options), notice: 'Salary added successfully.'
     else
       redirect_to employee_salaries_path(@employee), notice: 'Salary added successfully.'
     end

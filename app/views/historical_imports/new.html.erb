@@ -27,23 +27,149 @@
 </div>
 
 <div class="m-5 bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-sm text-gray-700">
-  <h2 class="text-lg font-bold mb-2">Формат файлу</h2>
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+    <h2 class="text-lg font-bold">Формат файлу</h2>
+    <%= link_to "Завантажити зразок CSV",
+          sample_historical_imports_path,
+          class: "text-sm font-medium text-blue-600 hover:text-blue-800 underline",
+          data: { turbo: false } %>
+  </div>
   <p class="mb-2">
     CSV з розділювачем <code>;</code> або <code>,</code>. Працівник шукається за
     <code>id_code</code>/<code>passport</code> (ІПН, РНОКПП або номер паспорта) чи за
     <code>identifier</code> (код книги).
   </p>
-  <ul class="list-disc pl-5 space-y-1">
-    <li><strong>Спільні колонки:</strong> <code>type</code> (salary / sick_day / vacation),
-      <code>id_code</code>, <code>period</code> (YYYY-MM), необов'язково
-      <code>department</code> (назва або id підрозділу), <code>income_tax</code>,
-      <code>military_tax</code>, <code>net_amount</code>.</li>
-    <li><strong>Зарплата:</strong> <code>amount</code>, необов'язково <code>paid_on</code>.</li>
-    <li><strong>Лікарняні:</strong> <code>pfu_amount</code>, <code>enterprise_amount</code>.</li>
-    <li><strong>Відпускні:</strong> <code>vacation_amount</code>.</li>
-  </ul>
+  <div class="mt-3 overflow-x-auto">
+    <table id="csv-columns" class="min-w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-200 text-left text-xs uppercase text-gray-500">
+          <th class="py-2 pr-4 font-semibold">Колонка</th>
+          <th class="py-2 pr-4 font-semibold">Що означає</th>
+          <th class="py-2 font-semibold">Коли заповнювати</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>type</code></td>
+          <td class="py-2 pr-4 align-top">
+            Тип запису: <code>salary</code> (зарплата), <code>sick_day</code> (лікарняні)
+            або <code>vacation</code> (відпускні).
+          </td>
+          <td class="py-2 align-top">
+            Якщо у файлі змішані типи. Якщо колонки немає, тип береться з поля
+            «Тип даних» у формі.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>id_code</code></td>
+          <td class="py-2 pr-4 align-top">
+            ІПН / РНОКПП або номер паспорта працівника.
+          </td>
+          <td class="py-2 align-top">
+            Одна з двох колонок для пошуку працівника: <code>id_code</code> або
+            <code>identifier</code>.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>identifier</code></td>
+          <td class="py-2 pr-4 align-top">
+            Код книги працівника.
+          </td>
+          <td class="py-2 align-top">
+            Альтернатива <code>id_code</code>, якщо ІПН/паспорта немає у файлі.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>period</code></td>
+          <td class="py-2 pr-4 align-top">
+            Місяць нарахування у форматі <code>YYYY-MM</code> (наприклад,
+            <code>2020-03</code>).
+          </td>
+          <td class="py-2 align-top">Завжди.</td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>amount</code></td>
+          <td class="py-2 pr-4 align-top">Сума зарплати в гривнях.</td>
+          <td class="py-2 align-top">Тільки для <code>salary</code>.</td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>pfu_amount</code></td>
+          <td class="py-2 pr-4 align-top">
+            Сума лікарняних за рахунок ПФУ / соцфонду, грн.
+          </td>
+          <td class="py-2 align-top">Тільки для <code>sick_day</code>.</td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>enterprise_amount</code></td>
+          <td class="py-2 pr-4 align-top">
+            Сума лікарняних за рахунок підприємства, грн.
+          </td>
+          <td class="py-2 align-top">Тільки для <code>sick_day</code>.</td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>vacation_amount</code></td>
+          <td class="py-2 pr-4 align-top">Сума відпускних, грн.</td>
+          <td class="py-2 align-top">Тільки для <code>vacation</code>.</td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>income_tax</code></td>
+          <td class="py-2 pr-4 align-top">Утриманий ПДФО, грн.</td>
+          <td class="py-2 align-top">
+            Необов'язково; якщо порожньо — вважається <code>0</code>.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>military_tax</code></td>
+          <td class="py-2 pr-4 align-top">Утриманий військовий збір, грн.</td>
+          <td class="py-2 align-top">
+            Необов'язково; якщо порожньо — вважається <code>0</code>.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>net_amount</code></td>
+          <td class="py-2 pr-4 align-top">
+            Сума до виплати («на руки»), грн.
+          </td>
+          <td class="py-2 align-top">
+            Необов'язково; якщо порожньо — сума мінус податки.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>department</code></td>
+          <td class="py-2 pr-4 align-top">
+            Підрозділ: назва (без урахування регістру) або числовий id.
+          </td>
+          <td class="py-2 align-top">
+            Необов'язково. Використовується, щоб розрізняти зарплати за
+            підрозділами в одному місяці.
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 pr-4 align-top"><code>paid_on</code></td>
+          <td class="py-2 pr-4 align-top">
+            Дата виплати у форматі <code>YYYY-MM-DD</code>.
+          </td>
+          <td class="py-2 align-top">
+            Необов'язково (тільки <code>salary</code>); за замовчуванням — перший
+            день <code>period</code>.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-2 text-gray-600">
+    Зразок містить лише заголовки — додайте до нього рядки з даними.
+  </p>
   <p class="mt-3">
-    Податки з файлу зберігаються без перерахунку податковим калькулятором. Якщо
-    <code>net_amount</code> не вказано, він обчислюється як сума мінус податки.
+    Податки кожного рядка зберігаються без перерахунку, як у файлі. Після
+    імпорту підсумки за місяць перераховуються податковим калькулятором для
+    кожного працівника, місяця й типу доходу, тому імпортовані дані одразу
+    з'являються у звітах. Якщо <code>net_amount</code> не вказано, він
+    обчислюється як сума мінус податки.
+  </p>
+  <p class="mt-2">
+    Рядок зарплати оновлює наявний запис із тим самим працівником, місяцем і
+    підрозділом; зарплати за той самий місяць у різних підрозділах
+    зберігаються окремо.
   </p>
 </div>

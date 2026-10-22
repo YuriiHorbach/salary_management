@@ -5,6 +5,14 @@ class HistoricalImportsController < ApplicationController
 
   def new; end
 
+  # Sends a header-only CSV template that users can fill in and upload back.
+  def sample
+    send_data HistoricalDataImporter::CsvTemplate.to_csv,
+              filename: 'historical_import_sample.csv',
+              type: 'text/csv; charset=utf-8',
+              disposition: 'attachment'
+  end
+
   def create
     file = params[:file]
 

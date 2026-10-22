@@ -39,6 +39,50 @@ RSpec.describe 'Historical imports', type: :request do
       expect(response.body).to include('Імпорт старих даних')
       expect(response.body).to include('file')
     end
+
+    it 'offers a downloadable CSV template' do
+      sign_in user
+
+      get new_historical_import_path
+
+      expect(response.body).to include('Завантажити зразок CSV')
+      expect(response.body).to include(sample_historical_imports_path)
+    end
+
+    it 'explains every column of the sample CSV' do
+      sign_in user
+
+      get new_historical_import_path
+
+      rows = response.parsed_body.css('#csv-columns tbody tr')
+      documented = rows.filter_map { |row| row.at_css('code')&.text }
+
+      expect(documented).to match_array(HistoricalDataImporter::CsvTemplate.headers)
+      expect(rows.map(&:text).join.downcase).to include('тип запису', 'місяць', 'військовий збір')
+    end
+  end
+
+  describe 'GET /historical_imports/sample' do
+    it 'requires authentication' do
+      get sample_historical_imports_path
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'downloads a header-only CSV file' do
+      sign_in user
+
+      get sample_historical_imports_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+      expect(response.body).to include('type,id_code,identifier,period')
+
+      rows = CSV.parse(response.body, headers: true)
+      expect(rows).to be_empty
+      expect(rows.headers).to include('amount', 'pfu_amount', 'vacation_amount', 'department')
+    end
   end
 
   describe 'POST /historical_imports' do
@@ -53,6 +97,17 @@ RSpec.describe 'Historical imports', type: :request do
       expect(response.body).to include('Імпорт завершено')
       expect(employee.salaries.count).to eq(1)
       expect(employee.salaries.first.income_tax_cents).to eq(11_100)
+    end
+
+    it 'rebuilds the period income aggregate used by reports' do
+      post historical_imports_path, params: { file: upload(csv), data_type: 'salary' }
+
+      aggregate = EmployeePeriodIncome.find_by(
+        employee: employee, period: Date.new(2020, 3, 1), income_type: 'salary'
+      )
+
+      expect(aggregate).to be_present
+      expect(aggregate.gross_cents).to eq(100_000)
     end
 
     it 'does not enqueue tax recalculation while importing' do

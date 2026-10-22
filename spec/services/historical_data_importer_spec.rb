@@ -11,6 +11,19 @@ RSpec.describe HistoricalDataImporter do
     described_class.new(csv, type: type).call
   end
 
+  describe HistoricalDataImporter::CsvTemplate do
+    it 'returns a header-only file with every supported column' do
+      rows = CSV.parse(described_class.to_csv, headers: true)
+
+      expect(rows).to be_empty
+      expect(rows.headers).to include(
+        'type', 'id_code', 'identifier', 'period', 'department', 'paid_on',
+        'amount', 'pfu_amount', 'enterprise_amount', 'vacation_amount',
+        'income_tax', 'military_tax', 'net_amount'
+      )
+    end
+  end
+
   describe 'salary rows' do
     let(:csv) do
       <<~CSV
@@ -218,6 +231,120 @@ RSpec.describe HistoricalDataImporter do
       expect(Salary.count).to eq(1)
       expect(SickDay.count).to eq(1)
       expect(Vacation.count).to eq(1)
+    end
+  end
+
+  describe 'period income aggregates' do
+    let(:period) { Date.new(2020, 3, 1) }
+
+    def aggregate_for(income_type, period: self.period)
+      EmployeePeriodIncome.find_by(employee: employee, period: period, income_type: income_type)
+    end
+
+    it 'rebuilds the salary aggregate so imported rows appear in reports' do
+      import(<<~CSV)
+        type,id_code,period,amount,income_tax,military_tax,net_amount
+        salary,1234567890,2020-03,1000,111,22,867
+      CSV
+
+      aggregate = aggregate_for('salary')
+      expected = TaxCalculator.call(amount_cents: 100_000)
+
+      expect(aggregate).to be_present
+      expect(aggregate.gross_cents).to eq(100_000)
+      expect(aggregate.income_tax_cents).to eq(expected[:income_tax_cents])
+      expect(aggregate.military_tax_cents).to eq(expected[:military_tax_cents])
+      expect(aggregate.net_amount_cents).to eq(expected[:net_amount_cents])
+    end
+
+    it 'keeps the imported taxes on the record while recalculating the aggregate' do
+      import(<<~CSV)
+        type,id_code,period,amount,income_tax,military_tax,net_amount
+        salary,1234567890,2020-03,1000,111,22,867
+      CSV
+
+      salary = Salary.find_by!(employee: employee, period: period)
+
+      expected_tax = TaxCalculator.call(amount_cents: 100_000)[:income_tax_cents]
+
+      expect(salary.income_tax_cents).to eq(11_100)
+      expect(salary.military_tax_cents).to eq(2_200)
+      expect(aggregate_for('salary').income_tax_cents).to eq(expected_tax)
+    end
+
+    it 'rebuilds an aggregate for each type in a mixed file' do
+      import(<<~CSV)
+        type,id_code,period,amount,pfu_amount,enterprise_amount,vacation_amount
+        salary,1234567890,2020-01,1000,,,
+        sick_day,1234567890,2020-02,,500,200,
+        vacation,1234567890,2020-03,,,,"1 000"
+      CSV
+
+      expect(aggregate_for('salary', period: Date.new(2020, 1, 1)).gross_cents).to eq(100_000)
+      expect(aggregate_for('sick_day', period: Date.new(2020, 2, 1)).gross_cents).to eq(70_000)
+      expect(aggregate_for('vacation').gross_cents).to eq(100_000)
+    end
+
+    it 'recalculates the aggregate when a re-import changes the amount' do
+      csv = <<~CSV
+        type,id_code,period,amount
+        salary,1234567890,2020-03,1000
+      CSV
+
+      import(csv)
+      import(csv.sub(',1000', ',2000'))
+
+      expect(aggregate_for('salary').gross_cents).to eq(200_000)
+    end
+
+    context 'when salaries are split across departments' do
+      let!(:accounting) { create(:department, name: 'Бухгалтерія') }
+      let!(:sales) { create(:department, name: 'Продажі') }
+      let(:two_departments_csv) do
+        <<~CSV
+          type,id_code,period,amount,department
+          salary,1234567890,2020-03,1000,Бухгалтерія
+          salary,1234567890,2020-03,2000,Продажі
+        CSV
+      end
+
+      it 'creates one salary per department in the same period instead of overwriting' do
+        result = import(two_departments_csv)
+
+        expect(result.created).to eq(2)
+        expect(employee.salaries.where(period: period).pluck(:department_id, :amount_cents))
+          .to contain_exactly([accounting.id, 100_000], [sales.id, 200_000])
+        expect(aggregate_for('salary').gross_cents).to eq(300_000)
+      end
+
+      it 'updates only the salary of the matching department on re-import' do
+        import(two_departments_csv)
+
+        result = import(<<~CSV)
+          type,id_code,period,amount,department
+          salary,1234567890,2020-03,1500,Бухгалтерія
+        CSV
+
+        expect(result.updated).to eq(1)
+        expect(result.created).to eq(0)
+        expect(employee.salaries.where(period: period).sum(:amount_cents)).to eq(350_000)
+        expect(aggregate_for('salary').gross_cents).to eq(350_000)
+      end
+    end
+
+    it 'keeps sick days from different departments in the same period' do
+      create(:department, name: 'Відділ кадрів')
+      create(:department, name: 'Фінансовий відділ')
+
+      result = import(<<~CSV)
+        type,id_code,period,pfu_amount,enterprise_amount,department
+        sick_day,1234567890,2020-04,500,200,Відділ кадрів
+        sick_day,1234567890,2020-04,300,100,Фінансовий відділ
+      CSV
+
+      expect(result.created).to eq(2)
+      expect(SickDay.where(employee: employee).count).to eq(2)
+      expect(aggregate_for('sick_day', period: Date.new(2020, 4, 1)).gross_cents).to eq(110_000)
     end
   end
 

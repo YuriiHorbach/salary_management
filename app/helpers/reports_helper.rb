@@ -35,10 +35,24 @@ module ReportsHelper
     classes.join(' ')
   end
 
+  # @param key [Symbol] column key from Reports::EmployeeDetailedQuery
+  # @param row [Hash] one employee row produced by the query
+  # @return [String, ActiveSupport::SafeBuffer] formatted value; the +id_code+
+  #   column is rendered as a link to the employee's salary page
   def detailed_report_cell_value(key, row)
+    return detailed_report_id_code_link(row) if key == :id_code
     return row[key] if detailed_report_text_column?(key)
 
     number_with_precision(row[key], precision: 2)
+  end
+
+  # The detailed table is wrapped in a Turbo Frame, so the link has to target the
+  # top-level document. Without +turbo_frame: '_top'+ Turbo would try to render
+  # the salary page inside the report frame.
+  def detailed_report_id_code_link(row)
+    link_to row[:id_code], employee_salaries_path(row[:employee_id]),
+            class: 'text-blue-600 hover:text-blue-800 underline',
+            data: { turbo_frame: '_top' }
   end
 
   private

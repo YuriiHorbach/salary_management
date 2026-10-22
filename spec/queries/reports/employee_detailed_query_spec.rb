@@ -90,6 +90,13 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(emp_row[:sick_total]).to eq(300.00) # 20000 + 10000 cents = 300 UAH
     end
 
+    it 'includes the employee id on every row so it can link to employee pages' do
+      result = described_class.new.call
+
+      expect(result[:employees].map { |employee| employee[:employee_id] })
+        .to contain_exactly(emp1.id, emp2.id)
+    end
+
     it 'includes totals row' do
       result = described_class.new.call
 

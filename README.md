@@ -87,7 +87,9 @@ The task is idempotent and can be run again at any time.
 
 Importing historical data through **Імпорт старих даних** (`/historical_imports/new`) rebuilds the aggregates for every touched employee, month and income type automatically, so imported rows appear in reports immediately. Taxes read from the CSV are kept on the individual records; only the monthly aggregates are recalculated. Re-importing updates the row with the same employee, month and department (salary also considers position), so salaries for different departments in one month are stored separately. A header-only CSV template can be downloaded from the import page and filled in with data rows.
 
-On a department page, selecting a **position** scopes the employee list, the salary column and the department total to that position. Salaries without a position are excluded while a position is selected, and the inline add form keeps the selected position.
+On a department page, selecting a **position** scopes the employee list, the salary column and the department total to that position. Salaries without a position are excluded while a position is selected. The salary column shows one line per employee position, each with its own amount or **+ Додати** link, so an employee with several positions can receive a separate salary for every position without leaving the page. The inline form has an explicit **Зберегти** button; choosing a position no longer submits an empty amount. Adding a salary without an active filter returns to the unfiltered department page, so the remaining positions stay visible. Editing a salary lets you assign or change its position without retyping the amount, and the selected period/filter is preserved while employee positions are edited.
+
+The employee salary page adds a **Підсумки за посадами** table with the gross salary total per department and position for the selected period (or for all periods when no month is selected). These are salary sums only; taxes stay as monthly aggregates in **Підсумки за періодами** and are not split per position.
 
 ---
 
@@ -141,7 +143,7 @@ bundle exec rspec
 ##### B. Explicitly from Host Machine against Agent Database
 If you need to execute tests against the agent's sandbox database directly from your host terminal:
 ```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
 ```
 
 ---
@@ -262,7 +264,7 @@ bundle exec rspec
 ##### Б. Явно з термінала хоста для бази агента
 Якщо потрібно виконати тести для бази агента напряму з вашого термінала:
 ```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
 ```
 
 ---
@@ -284,7 +286,9 @@ bin/rails incomes:recalculate
 
 Імпорт історичних даних через **Імпорт старих даних** (`/historical_imports/new`) автоматично перераховує агрегати для кожного працівника, місяця й типу доходу, тому імпортовані рядки одразу з'являються у звітах. Податки з CSV зберігаються в окремих записах; перераховуються лише підсумки за місяць. Повторний імпорт оновлює запис із тим самим працівником, місяцем і підрозділом (для зарплати також враховується посада), тому зарплати за різними підрозділами в одному місяці зберігаються окремо. Зразок CSV із заголовками можна завантажити на сторінці імпорту й заповнити рядками з даними.
 
-На сторінці підрозділу вибір **посади** звужує список працівників, колонку зарплати та підсумок підрозділу до цієї посади. Зарплати без посади не враховуються, доки посаду вибрано, а вбудована форма додавання зберігає вибрану посаду.
+На сторінці підрозділу вибір **посади** звужує список працівників, колонку зарплати та підсумок підрозділу до цієї посади. Зарплати без посади не враховуються, доки посаду вибрано. Колонка зарплати показує окремий рядок для кожної посади працівника — з сумою або посиланням **+ Додати**, тому працівник із кількома посадами може отримати окрему зарплату за кожною посадою, не залишаючи сторінку. Вбудована форма має явну кнопку **Зберегти**; вибір посади більше не надсилає порожню суму. Додавання зарплати без активного фільтра повертає на сторінку підрозділу без фільтра, щоб решта посад залишалася видимою. Під час редагування зарплати можна призначити або змінити посаду без повторного введення суми; вибраний період і фільтр зберігаються під час редагування посад працівника.
+
+На сторінці зарплат працівника додано таблицю **Підсумки за посадами** із сумою зарплати (gross) за кожним підрозділом і посадою за вибраний період (або за весь час, якщо місяць не вибрано). Це лише суми зарплат; податки залишаються місячними агрегатами в **Підсумки за періодами** і не розподіляються за посадами.
 
 ---
 

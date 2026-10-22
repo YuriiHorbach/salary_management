@@ -3,9 +3,11 @@
 # Renders departments and the employees assigned to a department.
 #
 # The +show+ action supports filtering by position: the employee list, salary
-# column and footer total are all scoped to the selected position. It preloads
-# salaries for the selected period and exposes positions grouped by employee so
-# the view can link each employee to +DepartmentEmployeePositionsController#edit+.
+# column and footer total are all scoped to the selected position. Salaries for
+# the selected period are grouped by employee and position so the salary cell can
+# show one line per position, with a separate add link for every position that
+# has no salary yet. The view links each employee to
+# +DepartmentEmployeePositionsController#edit+ to manage assignments.
 class DepartmentsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_department, only: %i[edit update show]
@@ -20,16 +22,22 @@ class DepartmentsController < ApplicationController
 
   def show
     @q = @department.employees.ransack(params[:q])
-    @employees = filtered_employees.to_a
     @positions = @department.positions.order(:position_name)
     @position = @department.positions.find_by(id: params[:position])
-    @employee_positions = positions_by_employee
+    @employees = filtered_employees.to_a
     @period = selected_period
-    period_salaries = @department.period_salaries(@period, position: params[:position])
-    @period_salaries = period_salaries.where(employee_id: @employees.map(&:id))
-                                      .group(:employee_id)
-                                      .sum(:amount_cents)
-    @department_total = period_salaries.sum(:amount_cents) / 100.0
+    @period_salaries = @department.salary_amounts_by_employee_and_position(
+      @period,
+      position: @position,
+      employee_ids: @employees.map(&:id)
+    )
+    @employee_positions = DepartmentEmployeePositionsQuery.new(
+      @department,
+      employee_ids: @employees.map(&:id),
+      period_salaries: @period_salaries,
+      position: @position
+    ).call
+    @department_total = @department.monthly_total(@period, position: @position)
   end
 
   def edit; end
@@ -75,17 +83,9 @@ class DepartmentsController < ApplicationController
 
   def filtered_employees
     employees = @q.result(distinct: true)
-    return employees if params[:position].blank?
+    return employees unless @position
 
-    employee_ids = @department.department_employees.where(position_id: params[:position]).select(:employee_id)
+    employee_ids = @department.department_employees.where(position_id: @position.id).select(:employee_id)
     employees.where(id: employee_ids)
-  end
-
-  def positions_by_employee
-    assignments = @department.department_employees.where(employee_id: @employees.map(&:id))
-    assignments = assignments.where(position_id: @position.id) if @position
-    assignments.includes(:position)
-               .group_by(&:employee_id)
-               .transform_values { |rows| rows.filter_map(&:position).uniq.sort_by(&:position_name) }
   end
 end

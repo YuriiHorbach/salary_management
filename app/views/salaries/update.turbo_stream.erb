@@ -1,3 +1,7 @@
 <%= turbo_stream.replace @salary do %>
   <%= render @salary %>
 <% end %>
+
+<%= turbo_stream.replace "salary_totals_by_position_section" do %>
+  <%= render 'salaries/salary_totals_by_position' %>
+<% end %>

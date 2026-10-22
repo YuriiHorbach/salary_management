@@ -5,6 +5,8 @@ class Department < ApplicationRecord
   has_many :employees, -> { distinct }, through: :department_employees
   has_many :positions, dependent: :destroy
   has_many :salaries
+  has_many :sick_days
+  has_many :vacations
 
   def self.ransackable_attributes(*)
     %w[id name created_at updated_at]

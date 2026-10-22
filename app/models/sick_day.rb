@@ -6,6 +6,7 @@
 # calculates the authoritative taxes on the total sick-day amount of a month.
 class SickDay < ApplicationRecord
   belongs_to :employee
+  belongs_to :department, optional: true
 
   attribute :period, :date
 

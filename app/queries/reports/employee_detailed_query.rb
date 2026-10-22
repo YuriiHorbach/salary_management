@@ -88,6 +88,7 @@ module Reports
 
     def identity_columns(employee)
       {
+        employee_id: employee.id,
         id_code: employee.id_code.to_s,
         book_code: employee.account_book&.code || '—',
         brigade: employee.territory_sign&.name || '—',

@@ -4,6 +4,7 @@
 # calculates the authoritative taxes on the total vacation amount of a month.
 class Vacation < ApplicationRecord
   belongs_to :employee
+  belongs_to :department, optional: true
 
   before_validation :calculate_and_assign_taxes, if: :vacation_amount_changed?
 

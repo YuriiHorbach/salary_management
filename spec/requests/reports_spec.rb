@@ -172,6 +172,16 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).to include('detailed_report_table')
     end
 
+    it 'links the employee ID code to their salary page' do
+      get detailed_reports_path
+
+      link = Nokogiri::HTML(response.body).at_css("a[href='#{employee_salaries_path(employee)}']")
+
+      expect(link).to be_present
+      expect(link.text.strip).to eq(employee.id_code)
+      expect(link['data-turbo-frame']).to eq('_top')
+    end
+
     it 'filters by brigade' do
       get detailed_reports_path, params: { brigade: employee.territory_info }
 

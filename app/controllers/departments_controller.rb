@@ -2,9 +2,10 @@
 
 # Renders departments and the employees assigned to a department.
 #
-# The +show+ action supports filtering by position, preloads salaries for the
-# selected period, and exposes positions grouped by employee so the view can
-# link each employee to +DepartmentEmployeePositionsController#edit+.
+# The +show+ action supports filtering by position: the employee list, salary
+# column and footer total are all scoped to the selected position. It preloads
+# salaries for the selected period and exposes positions grouped by employee so
+# the view can link each employee to +DepartmentEmployeePositionsController#edit+.
 class DepartmentsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_department, only: %i[edit update show]
@@ -21,12 +22,14 @@ class DepartmentsController < ApplicationController
     @q = @department.employees.ransack(params[:q])
     @employees = filtered_employees.to_a
     @positions = @department.positions.order(:position_name)
+    @position = @department.positions.find_by(id: params[:position])
     @employee_positions = positions_by_employee
     @period = selected_period
-    @period_salaries = Salary.where(employee_id: @employees.map(&:id), department_id: @department.id, period: @period)
-                             .group(:employee_id)
-                             .sum(:amount_cents)
-    @department_total = @department.monthly_total(@period)
+    period_salaries = @department.period_salaries(@period, position: params[:position])
+    @period_salaries = period_salaries.where(employee_id: @employees.map(&:id))
+                                      .group(:employee_id)
+                                      .sum(:amount_cents)
+    @department_total = period_salaries.sum(:amount_cents) / 100.0
   end
 
   def edit; end
@@ -79,10 +82,10 @@ class DepartmentsController < ApplicationController
   end
 
   def positions_by_employee
-    @department.department_employees
-               .where(employee_id: @employees.map(&:id))
-               .includes(:position)
+    assignments = @department.department_employees.where(employee_id: @employees.map(&:id))
+    assignments = assignments.where(position_id: @position.id) if @position
+    assignments.includes(:position)
                .group_by(&:employee_id)
-               .transform_values { |assignments| assignments.filter_map(&:position).uniq.sort_by(&:position_name) }
+               .transform_values { |rows| rows.filter_map(&:position).uniq.sort_by(&:position_name) }
   end
 end

@@ -87,6 +87,8 @@ The task is idempotent and can be run again at any time.
 
 Importing historical data through **Імпорт старих даних** (`/historical_imports/new`) rebuilds the aggregates for every touched employee, month and income type automatically, so imported rows appear in reports immediately. Taxes read from the CSV are kept on the individual records; only the monthly aggregates are recalculated. Re-importing updates the row with the same employee, month and department (salary also considers position), so salaries for different departments in one month are stored separately. A header-only CSV template can be downloaded from the import page and filled in with data rows.
 
+On a department page, selecting a **position** scopes the employee list, the salary column and the department total to that position. Salaries without a position are excluded while a position is selected, and the inline add form keeps the selected position.
+
 ---
 
 ### 8. Current Working Month
@@ -281,6 +283,8 @@ bin/rails incomes:recalculate
 Задача ідемпотентна — її можна запускати повторно.
 
 Імпорт історичних даних через **Імпорт старих даних** (`/historical_imports/new`) автоматично перераховує агрегати для кожного працівника, місяця й типу доходу, тому імпортовані рядки одразу з'являються у звітах. Податки з CSV зберігаються в окремих записах; перераховуються лише підсумки за місяць. Повторний імпорт оновлює запис із тим самим працівником, місяцем і підрозділом (для зарплати також враховується посада), тому зарплати за різними підрозділами в одному місяці зберігаються окремо. Зразок CSV із заголовками можна завантажити на сторінці імпорту й заповнити рядками з даними.
+
+На сторінці підрозділу вибір **посади** звужує список працівників, колонку зарплати та підсумок підрозділу до цієї посади. Зарплати без посади не враховуються, доки посаду вибрано, а вбудована форма додавання зберігає вибрану посаду.
 
 ---
 

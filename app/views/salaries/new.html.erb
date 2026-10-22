@@ -6,6 +6,7 @@
                 class: "inline-block" do |form| %>
 
     <%= form.hidden_field :department_id %>
+    <%= form.hidden_field :position_id if @salary.position_id.present? %>
     <%= form.hidden_field :paid_on, value: @salary.period %>
     <%= form.hidden_field :period, value: @salary.month %>
 

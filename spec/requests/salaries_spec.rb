@@ -74,6 +74,25 @@ RSpec.describe 'Salaries', type: :request do
       expect(page.at_css('input[name="salary[amount]"]')).to be_present
       expect(page.at_css('input[name="salary[department_id]"]')['value']).to eq(department.id.to_s)
     end
+
+    it 'prefills the position selected on the department page' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      get urls.new_employee_salary_path(employee, department_id: department.id, position_id: position.id)
+
+      expect(assigns(:salary).position_id).to eq(position.id)
+    end
+
+    it 'submits the filtered position from the inline add form' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      get urls.new_employee_salary_path(employee, department_id: department.id, position_id: position.id)
+
+      page = Nokogiri::HTML(response.body)
+      expect(page.at_css('input[name="salary[position_id]"]')['value']).to eq(position.id.to_s)
+    end
   end
 
   describe 'GET /index' do
@@ -219,6 +238,37 @@ RSpec.describe 'Salaries', type: :request do
 
       expect(employee.salaries.last.position).to eq(position)
       expect(response).to have_http_status(:found)
+    end
+
+    it 'redirects back to the department keeping the position filter' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id).merge(position_id: position.id),
+                     department_id: department.id }
+
+      expect(response).to redirect_to(
+        urls.department_path(department, period: '2025-10', position: position.id)
+      )
+    end
+
+    it 'updates the department total for the position after an inline create' do
+      position = create(:position, department: department, position_name: 'Інженер')
+      create(:department_employee, employee: employee, department: department, position: position)
+      create(:salary, employee: employee, department: department, amount_cents: 100_000,
+                      period: Date.new(2025, 10, 1))
+
+      post urls.employee_salaries_path(employee),
+           params: { salary: valid_attributes.except(:department_id).merge(position_id: position.id),
+                     department_id: department.id },
+           headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      total_stream = Nokogiri::HTML(response.body)
+                             .at_css('turbo-stream[action="update"][target="department_total"]')
+      expect(total_stream.text).to include('50,00')
+      expect(total_stream.text).not_to include('1050,00')
     end
   end
 end

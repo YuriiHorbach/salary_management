@@ -1,7 +1,7 @@
-<h2>New employee</h2>
+<h2><%= t('.title') %></h2>
 
 <%= render partial: 'form', locals: { post: @employee } %>
 
 <p>
-  <%= link_to "Back to eployees", employees_path, class: 'btn btn-primary font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
+  <%= link_to t('.back'), employees_path, class: 'btn btn-primary font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
 </p>

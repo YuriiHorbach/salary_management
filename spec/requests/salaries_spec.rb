@@ -122,7 +122,7 @@ RSpec.describe 'Salaries', type: :request do
       selector = page.at_css('select[name="salary[position_id]"]')
 
       expect(selector).to be_present
-      expect(selector.css('option').map(&:text)).to include('Без посади', 'Інженер')
+      expect(selector.css('option').map(&:text)).to include(I18n.t('salaries.form.no_position'), 'Інженер')
       expect(page.at_css('input[name="salary[amount]"]')).to be_present
       expect(page.at_css('input[name="salary[department_id]"]')['value']).to eq(department.id.to_s)
     end
@@ -180,7 +180,7 @@ RSpec.describe 'Salaries', type: :request do
                         .map(&:text)
 
       expect(options).to include('Інженер')
-      expect(options).not_to include('Менеджер', 'Без посади')
+      expect(options).not_to include('Менеджер', I18n.t('salaries.form.no_position'))
     end
 
     it 'ignores a position that does not belong to the employee in this department' do
@@ -218,7 +218,7 @@ RSpec.describe 'Salaries', type: :request do
                         .css('select[name="salary[position_id]"] option')
                         .map(&:text)
 
-      expect(options).to include('Без посади', 'Інженер')
+      expect(options).to include(I18n.t('salaries.form.no_position'), 'Інженер')
     end
 
     it 'renders employee positions when the salary has no department' do
@@ -273,8 +273,8 @@ RSpec.describe 'Salaries', type: :request do
 
       get urls.employee_salaries_path(employee, period: '2025-10')
 
-      expect(response.body).to include('Підсумки за періодами')
-      expect(response.body).to include('Всього доходу')
+      expect(response.body).to include(I18n.t('salaries.index.period_totals'))
+      expect(response.body).to include(I18n.t('salaries.index.headers.total_income'))
     end
 
     context 'with salaries in several positions' do
@@ -296,7 +296,7 @@ RSpec.describe 'Salaries', type: :request do
       it 'renders gross salary totals grouped by department and position' do
         get urls.employee_salaries_path(employee, period: '2025-10')
 
-        expect(response.body).to include('Підсумки за посадами')
+        expect(response.body).to include(I18n.t('salaries.totals.title'))
         expect(response.body).to include('Інженер', '1000,00', 'Менеджер', '500,00',
                                          'Другий підрозділ', '2000,00')
         expect(assigns(:salary_totals_by_position)).to include(
@@ -469,7 +469,7 @@ RSpec.describe 'Salaries', type: :request do
       form = Nokogiri::HTML.fragment(stream.at_css('template').inner_html)
 
       expect(form.at_css('input[name="salary[amount]"]')['value'].to_f).to eq(1234.56)
-      expect(form.text).to include('уже додано')
+      expect(form.text).to include(I18n.t('activerecord.errors.models.salary.attributes.period.period_taken'))
     end
   end
 
@@ -649,7 +649,7 @@ RSpec.describe 'Salaries', type: :request do
       total = turbo_stream_content('department_total', action: 'update')
       add_link = cell.at_css("a[href*='position_id=#{position.id}']")
 
-      expect(cell.text).to include('Без посади', '50,00', 'Інженер')
+      expect(cell.text).to include(I18n.t('departments.salary_cell.no_position'), '50,00', 'Інженер')
       expect(add_link['href']).not_to match(/[?&]position=/)
       expect(total.text).to include('50,00')
     end
@@ -713,7 +713,7 @@ RSpec.describe 'Salaries', type: :request do
         expect(form.at_css('input[name="salary[amount]"]')['value'].to_f).to eq(1234.56)
         expect(form.at_css('select[name="salary[position_id]"] option[selected]')['value'])
           .to eq(position.id.to_s)
-        expect(form.text).to include('уже додано')
+        expect(form.text).to include(I18n.t('activerecord.errors.models.salary.attributes.period.period_taken'))
       end
     end
   end

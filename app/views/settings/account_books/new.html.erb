@@ -1,9 +1,9 @@
-<% content_for :title, "Нова облікова книга" %>
+<% content_for :title, t('settings.account_books.new.title') %>
 
-<h1 class="text-2xl font-bold mb-6">Додати облікову книгу</h1>
+<h1 class="text-2xl font-bold mb-6"><%= t('settings.account_books.new.heading') %></h1>
 
 <div class="mb-6">
-  <%= link_to 'Назад до списку', settings_account_books_path,
+  <%= link_to t('settings.account_books.new.back'), settings_account_books_path,
               class: "text-gray-600 hover:text-blue-600 text-sm font-medium" %>
 </div>
 
@@ -11,7 +11,7 @@
   <%= form_with model: @account_book, url: settings_account_books_path, class: "space-y-6" do |f| %>
     <% if @account_book.errors.any? %>
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong class="font-bold">Помилки:</strong>
+        <strong class="font-bold"><%= t('settings.account_books.new.errors') %></strong>
         <ul class="list-disc list-inside mt-1">
           <% @account_book.errors.full_messages.each do |msg| %>
             <li><%= msg %></li>
@@ -21,14 +21,14 @@
     <% end %>
 
     <div>
-      <%= f.label :code, "Код книги (наприклад Б11)", class: "block text-sm font-medium text-gray-700 mb-1" %>
-      <%= f.text_field :code, class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: "Б11" %>
-      <p class="mt-1 text-xs text-gray-500">Формат: літера бригади + номери (наприклад Б11)</p>
+      <%= f.label :code, t('settings.account_books.new.code_label'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :code, class: "block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500", placeholder: t('settings.account_books.new.placeholder') %>
+      <p class="mt-1 text-xs text-gray-500"><%= t('settings.account_books.new.format_hint') %></p>
     </div>
 
     <div class="flex gap-3 pt-4 border-t">
-      <%= f.submit "Зберегти", class: "btn btn-primary px-6 py-2 rounded-md text-sm font-medium font-semibold" %>
-      <%= link_to 'Скасувати', settings_account_books_path,
+      <%= f.submit t('settings.account_books.new.save'), class: "btn btn-primary px-6 py-2 rounded-md text-sm font-medium font-semibold" %>
+      <%= link_to t('settings.account_books.new.cancel'), settings_account_books_path,
                   class: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md text-sm font-medium" %>
     </div>
   <% end %>

@@ -12,35 +12,40 @@ RSpec.describe 'Main navigation menu', type: :request do
   end
 
   describe 'reports dropdown consolidation' do
-    it 'does not render standalone Зведений звіт link in the main nav' do
+    it 'does not render a standalone summary report link in the main nav' do
       get root_path
 
-      expect(response.body).not_to include(%{<a href="/reports/summary" class="hover:text-blue-200">Зведений звіт</a>})
+      standalone = %{<a href="/reports/summary" class="hover:text-blue-200">#{I18n.t('navigation.summary_report')}</a>}
+
+      expect(response.body).not_to include(standalone)
     end
 
-    it 'does not render standalone Детальний звіт link in the main nav' do
+    it 'does not render a standalone detailed report link in the main nav' do
       get root_path
 
-      expect(response.body).not_to include(%{<a href="/reports/detailed" class="hover:text-blue-200">Детальний звіт</a>})
+      label = I18n.t('navigation.detailed_report')
+      standalone = %{<a href="/reports/detailed" class="hover:text-blue-200">#{label}</a>}
+
+      expect(response.body).not_to include(standalone)
     end
 
-    it 'renders a single Звіти dropdown trigger in the main nav' do
+    it 'renders a single reports dropdown trigger in the main nav' do
       get root_path
 
-      expect(response.body).to include('Звіти')
+      expect(response.body).to include(I18n.t('navigation.reports'))
     end
 
-    it 'renders Зведений звіт sub-link inside the Звіти dropdown' do
+    it 'renders the summary report sub-link inside the reports dropdown' do
       get root_path
 
-      expect(response.body).to include('Зведений звіт')
+      expect(response.body).to include(I18n.t('navigation.summary_report'))
       expect(response.body).to include('/reports/summary')
     end
 
-    it 'renders Детальний звіт sub-link inside the Звіти dropdown' do
+    it 'renders the detailed report sub-link inside the reports dropdown' do
       get root_path
 
-      expect(response.body).to include('Детальний звіт')
+      expect(response.body).to include(I18n.t('navigation.detailed_report'))
       expect(response.body).to include('/reports/detailed')
     end
 

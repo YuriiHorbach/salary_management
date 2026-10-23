@@ -13,7 +13,7 @@ RSpec.describe DepartmentEmployee, type: :model do
       duplicate = build(:department_employee, employee: employee, department: department)
 
       expect(duplicate.valid?).to eq(false)
-      expect(duplicate.errors[:employee_id]).to include('вже має цю посаду в цьому підрозділі')
+      expect(duplicate.errors[:employee_id]).to include('already has this position in the department')
     end
 
     it 'allows the same employee to have several positions in one department' do
@@ -34,7 +34,7 @@ RSpec.describe DepartmentEmployee, type: :model do
       duplicate = build(:department_employee, employee: employee, department: department, position: position)
 
       expect(duplicate.valid?).to eq(false)
-      expect(duplicate.errors[:employee_id]).to include('вже має цю посаду в цьому підрозділі')
+      expect(duplicate.errors[:employee_id]).to include('already has this position in the department')
     end
 
     it 'allows adding the same employee to a different department' do

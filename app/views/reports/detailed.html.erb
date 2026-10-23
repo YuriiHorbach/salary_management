@@ -1,62 +1,62 @@
-<% content_for :title, "Детальний звіт по співробітникам" %>
+<% content_for :title, t('reports.detailed.title') %>
 
-<h1 class="text-2xl font-bold mb-6">Детальний звіт по співробітникам</h1>
+<h1 class="text-2xl font-bold mb-6"><%= t('reports.detailed.title') %></h1>
 
 <%= form_with url: detailed_reports_path, method: :get, class: "flex flex-wrap gap-4 items-end mb-6", data: { turbo_frame: "detailed_report_table" } do |f| %>
   <%= hidden_field_tag 'q[s]', params.dig(:q, :s) if params.dig(:q, :s).present? %>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :date_from, "З дати", class: "text-sm font-medium" %>
+    <%= f.label :date_from, t('reports.detailed.date_from'), class: "text-sm font-medium" %>
     <%= f.date_field :date_from, value: params[:date_from], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :date_to, "По дату", class: "text-sm font-medium" %>
+    <%= f.label :date_to, t('reports.detailed.date_to'), class: "text-sm font-medium" %>
     <%= f.date_field :date_to, value: params[:date_to], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :department, "Підрозділ", class: "text-sm font-medium" %>
+    <%= f.label :department, t('reports.detailed.department'), class: "text-sm font-medium" %>
     <%= f.select :department,
         options_from_collection_for_select(@departments, 'id', 'name', params[:department]),
-        { include_blank: 'Всі підрозділи' },
+        { include_blank: t('reports.detailed.all_departments') },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :position, "Посада", class: "text-sm font-medium" %>
+    <%= f.label :position, t('reports.detailed.position'), class: "text-sm font-medium" %>
     <%= f.select :position,
         options_from_collection_for_select(@positions, 'id', 'position_name', params[:position]),
-        { include_blank: 'Всі посади' },
+        { include_blank: t('reports.detailed.all_positions') },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :brigade, "Бригада", class: "text-sm font-medium" %>
+    <%= f.label :brigade, t('reports.detailed.brigade'), class: "text-sm font-medium" %>
     <%= f.select :brigade,
         options_from_collection_for_select(@brigades, 'id', 'name', params[:brigade]),
-        { include_blank: 'Всі бригади' },
+        { include_blank: t('reports.detailed.all_brigades') },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :account_book, "Книга", class: "text-sm font-medium" %>
+    <%= f.label :account_book, t('reports.detailed.book'), class: "text-sm font-medium" %>
     <%= f.select :account_book,
         options_for_select(@account_book_codes, params[:account_book]),
-        { include_blank: 'Всі книги' },
+        { include_blank: t('reports.detailed.all_books') },
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :employee_search, "Співробітник (ПІБ / ІПН)", class: "text-sm font-medium" %>
-    <%= f.text_field :employee_search, value: params[:employee_search], placeholder: "ПІБ або ІПН",
+    <%= f.label :employee_search, t('reports.detailed.employee_search'), class: "text-sm font-medium" %>
+    <%= f.text_field :employee_search, value: params[:employee_search], placeholder: t('reports.detailed.employee_placeholder'),
         class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.submit "Фільтрувати", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
-    <%= link_to "Скинути", detailed_reports_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
-    <%= link_to "Експорт CSV",
+    <%= f.submit t('reports.detailed.filter'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to t('reports.detailed.reset'), detailed_reports_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
+    <%= link_to t('reports.detailed.export_csv'),
         detailed_report_csv_path(params),
         class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded text-center",
         data: { turbo: false } %>
@@ -73,10 +73,10 @@
     <table class="min-w-full border-collapse border border-gray-300">
       <thead class="bg-gray-100 font-bold sticky top-0">
         <tr>
-          <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each do |key, label| %>
+          <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_key do |key| %>
             <% alignment = Reports::EmployeeDetailedQuery::TEXT_COLUMNS.include?(key) ? 'text-left' : 'text-right' %>
             <th class="border border-gray-300 px-3 py-2 <%= alignment %> text-sm whitespace-nowrap">
-              <%= sort_link(@q, key, label,
+              <%= sort_link(@q, key, t("reports.detailed_columns.#{key}"),
                     class: "hover:text-blue-700 hover:underline",
                     page: nil,
                     commit: nil) %>
@@ -96,7 +96,7 @@
           <% end %>
 
           <tr class="bg-gray-100 font-bold">
-            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= Reports::EmployeeDetailedQuery::TEXT_COLUMNS.size %>">Загалом</td>
+            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= Reports::EmployeeDetailedQuery::TEXT_COLUMNS.size %>"><%= t('reports.detailed.total') %></td>
             <% (Reports::EmployeeDetailedQuery::COLUMN_LABELS.keys - Reports::EmployeeDetailedQuery::TEXT_COLUMNS).each do |key| %>
               <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"><%= number_with_precision(@result[:totals][key], precision: 2) %></td>
             <% end %>
@@ -104,7 +104,7 @@
         <% else %>
           <tr>
             <td colspan="<%= Reports::EmployeeDetailedQuery::COLUMN_LABELS.size %>" class="px-6 py-4 text-center text-sm text-gray-500">
-              Даних за вибрані фільтри не знайдено.
+              <%= t('reports.detailed.empty') %>
             </td>
           </tr>
         <% end %>

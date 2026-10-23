@@ -13,19 +13,19 @@
                               class: "p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
       </div>
       <div class="col-span-2">
-        <%= form.label :period, "Період", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.label :period, t('salaries.form.period'), class: "block text-sm font-medium text-gray-700" %>
         <%= form.month_field :period, value: @salary.month, class:"p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" %>
       </div>
       <div class="col-span-2">
-        <%= form.label :position_id, "Посада", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.label :position_id, t('salaries.form.position'), class: "block text-sm font-medium text-gray-700" %>
         <%= form.collection_select :position_id, @positions || [], :id, :position_name,
-            { include_blank: 'Без посади' },
+            { include_blank: t('salaries.form.no_position') },
             { class: "w-full p-1 cursor-pointer border-b-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
       </div>
     </div>
   </div>
   <div class="mt-4">
-    <%= form.submit "Save Salary Record", class: "btn btn-primary btn-xs rounded hover:bg-blue-600" %>
+    <%= form.submit t('salaries.form.submit'), class: "btn btn-primary btn-xs rounded hover:bg-blue-600" %>
   </div>
 <% end %>
 
@@ -33,4 +33,4 @@
 <% end %>
 
 
-<%= link_to 'Back', employee_salaries_path(@employee), class: 'mt-1 inline-block text-blue-500 hover:underline' %>
+<%= link_to t('salaries.form.back'), employee_salaries_path(@employee), class: 'mt-1 inline-block text-blue-500 hover:underline' %>

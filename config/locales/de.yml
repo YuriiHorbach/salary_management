@@ -1,0 +1,927 @@
+---
+de:
+  common:
+    save: Speichern
+    cancel: Abbrechen
+    back: Zurück
+    home: Startseite
+    add: Hinzufügen
+    edit: Bearbeiten
+    delete: Löschen
+    search: Suchen
+    reset: Zurücksetzen
+    actions: Aktionen
+    all: Alle
+    none: Keine
+    total: Gesamt
+    amount: Betrag
+    period: Zeitraum
+    month: Monat
+    year: Jahr
+    employee: Mitarbeiter
+    employees: Mitarbeiter
+    department: Abteilung
+    departments: Abteilungen
+    position: Position
+    positions: Positionen
+    brigade: Brigade
+    book: Buch
+    id_code: Steuer-ID
+    last_name: Nachname
+    first_name: Vorname
+    patronic_name: Vatersname
+    name: Name
+    code: Code
+    notes: Notizen
+    paid_on: Ausgezahlt am
+    select: Auswählen
+    select_employee: Mitarbeiter auswählen
+    no_position: Ohne Position
+    no_matches: Keine passenden Mitarbeiter gefunden.
+    back_to_list: Zurück zur Liste
+    current_working_month: Aktueller Arbeitsmonat
+    example: "(Beispiel: 1000,00)"
+    all_years: Alle Jahre
+    all_months: Alle Monate
+    all_departments: Alle Abteilungen
+    all_positions: Alle Positionen
+    all_brigades: Alle Brigaden
+    all_books: Alle Bücher
+    no_department: Ohne Abteilung
+    selected_count: "%{count} ausgewählt"
+    confirm_delete: Sind Sie sicher?
+    'yes': Ja
+    'no': Nein
+  navigation:
+    app_name: Gehaltsverwaltung
+    departments: Abteilungen
+    employees: Mitarbeiter
+    more: Mehr
+    sick_days: Krankheitstage
+    vacations: Urlaub
+    historical_import: Historischer Import
+    reports: Berichte
+    summary_report: Gehaltsübersicht
+    detailed_report: Detaillierter Bericht
+    settings: Einstellungen
+    system_settings: Systemeinstellungen
+    brigades: Brigaden
+    books: Bücher
+    logout: Abmelden
+    login: Anmelden
+  locales:
+    en: English
+    uk: Українська
+    de: Deutsch
+    short:
+      en: EN
+      uk: UA
+      de: DE
+    switch: Sprache
+  home_pages:
+    index:
+      title: Startseite
+      current_month: 'Aktueller Arbeitsmonat: %{month}'
+      current_month_hint: Er wird automatisch in Gehalts-, Urlaubs- und Krankheitsformulare
+        eingetragen.
+      choose_month: Wählen Sie den aktuellen Arbeitsmonat
+      choose_month_hint: Er kann vom Kalendermonat abweichen. Wählen Sie den Monat,
+        an dem Sie arbeiten, damit er automatisch in Gehalts-, Urlaubs- und Krankheitsformulare
+        eingetragen wird.
+      field_label: Aktueller Arbeitsmonat
+      save_month: Monat speichern
+    flash:
+      month_saved: 'Aktueller Arbeitsmonat gespeichert: %{month}'
+      invalid_month: Wählen Sie einen gültigen Arbeitsmonat.
+  date:
+    formats:
+      short: "%m.%Y"
+      month_year: "%B %Y"
+      default: "%d.%m.%Y"
+    month_names:
+    -
+    - Januar
+    - Februar
+    - März
+    - April
+    - Mai
+    - Juni
+    - Juli
+    - August
+    - September
+    - Oktober
+    - November
+    - Dezember
+    abbr_month_names:
+    -
+    - Jan
+    - Feb
+    - Mär
+    - Apr
+    - Mai
+    - Jun
+    - Jul
+    - Aug
+    - Sep
+    - Okt
+    - Nov
+    - Dez
+  number:
+    format:
+      delimiter: "."
+      separator: ","
+    currency:
+      format:
+        delimiter: "."
+        separator: ","
+        unit: ''
+        format: "%n"
+        negative_format: "-%n"
+  activerecord:
+    models:
+      employee: Mitarbeiter
+      department: Abteilung
+      salary: Gehalt
+      sick_day: Krankheitstag
+      vacation: Urlaub
+      account_book: Buch
+      territory_sign: Brigade
+      tax_setting: Steuereinstellungen
+    attributes:
+      employee:
+        id_code: Steuer-ID
+        last_name: Nachname
+        first_name: Vorname
+        patronic_name: Vatersname
+        children_count: Kinder
+        chaes: Tschernobyl
+        contract: Vertrag
+        disability_group: Behindertengruppe
+        territory_sign: Brigade
+        account_book: Buch
+      department:
+        name: Name
+      salary:
+        amount: Betrag
+        period: Zeitraum
+        department: Abteilung
+        position: Position
+        paid_on: Ausgezahlt am
+        notes: Notizen
+      sick_day:
+        period: Zeitraum
+        pfu_amount: PFU-Betrag
+        enterprise_amount: Unternehmensbetrag
+      vacation:
+        period: Zeitraum
+        amount: Betrag
+      account_book:
+        code: Code
+        name: Name
+      territory_sign:
+        name: Name
+        code: Code
+    errors:
+      models:
+        employee:
+          attributes:
+            id_code:
+              invalid_id_code: muss 9–10 Ziffern oder 2 Buchstaben und 6 Ziffern enthalten
+        account_book:
+          attributes:
+            code:
+              code_format: muss im Format B11 vorliegen (Brigadebuchstabe und Ziffern)
+        department_employee:
+          attributes:
+            employee_id:
+              position_taken: hat diese Position bereits in der Abteilung
+        salary:
+          attributes:
+            period:
+              period_taken: für diese Position/Abteilung ist in diesem Zeitraum bereits
+                ein Gehalt erfasst
+            position:
+              position_other_department: gehört zu einer anderen Abteilung
+              position_not_assigned: ist diesem Mitarbeiter nicht zugewiesen
+  departments:
+    index:
+      title: Abteilungen
+      new: Abteilung erstellen
+    new:
+      title: Neue Abteilung hinzufügen
+    form:
+      heading: Abteilung
+      submit: Abteilung speichern
+    card:
+      employees: Mitarbeiter
+      edit: Bearbeiten
+    show:
+      period: Zeitraum
+      position: Position
+      all_positions: Alle Positionen
+      show: Anzeigen
+      salary_for: Gehalt für %{period}
+      view_salary: Gehalt anzeigen
+      remove_employee: Mitarbeiter entfernen
+      edit_positions: Positionen bearbeiten
+      add_position: Position hinzufügen
+      salary: Gehalt
+      total_for: 'Gesamt für %{period}%{position}:'
+      position_suffix: " (Position: %{position})"
+      add_employees: Mitarbeiter hinzufügen
+      confirm_remove: Sind Sie sicher?
+      remove_title: Aus Abteilung entfernen
+    salary_cell:
+      add: "+ Hinzufügen"
+      no_position: 'Ohne Position:'
+  employees:
+    index:
+      search:
+        id_code: Steuer-ID
+        last_name: Nachname
+        first_name: Vorname
+        patronic_name: Vatersname
+        territory: Gebiet
+        children_gt: Kinder >
+        group: Gruppe
+        all: Alle
+        chaes: Tschernobyl
+        contract: Vertrag
+        submit: Suchen
+        reset: Zurücksetzen
+      add: Neuen Mitarbeiter hinzufügen
+      headers:
+        id: ID
+        full_name: Vollständiger Name
+        children: Kinder
+        group: Gr.
+        chaes: Tschernobyl
+        contract: Vertrag
+        territory: Gebiet
+        actions: Aktionen
+      home: "← Startseite"
+    form:
+      chaes: Tschernobyl-Einsatzkraft
+      contract: Vertrag
+      disability_group: Besonderes Einkommensmerkmal
+      disability_options:
+        none: Keine
+        group_1: Gruppe I
+        group_2: Gruppe II
+        group_3: Gruppe III
+        low_income: Geringes Einkommen
+      territory_sign: Gebietsmerkmal (Brigade)
+      select_brigade: Brigade auswählen
+      account_book_code: Kontobuchcode
+      no_book: "— kein Buch —"
+      submit: Mitarbeiter speichern
+      cancel: Abbrechen
+    new:
+      title: Neuer Mitarbeiter
+      back: Zurück zu Mitarbeitern
+    edit:
+      title: Mitarbeiter bearbeiten
+    show:
+      identifier: Buchkennung
+      id_code: Steuer-ID
+      last_name: Nachname
+      first_name: Vorname
+      patronic_name: Vatersname
+      edit: Bearbeiten
+      salary_search:
+        amount: Betrag
+        year: Jahr
+        all_years: Alle Jahre
+        department: Abteilung
+        all_departments: Alle Abteilungen
+        submit: Gehälter suchen
+      salaries_by_department: Mitarbeitergehälter nach Abteilung
+      department: Abteilung
+      amount: Betrag
+      paid_on: Ausgezahlt am
+      no_department: Ohne Abteilung
+      no_salaries: Keine Gehälter gefunden
+      monthly_totals: Gesamtgehalt nach Monat (Übersicht)
+      month: Monat
+      sick_days: Krankheitstage (Übersicht)
+      period: Zeitraum
+      total: Gesamt
+      income_tax: Einkommensteuer (18%)
+      military_tax: Militärabgabe (5%)
+      no_sick_days: Keine Krankheitstage
+      view_all: Alle anzeigen
+      add: Hinzufügen
+      vacations: Urlaubsgeld
+      vacation_amount: Betrag
+      no_vacations: Kein Urlaubsgeld
+    employee:
+      show: Anzeigen
+      edit: Bearbeiten
+      add_sick_day: Krankheitstag hinzufügen
+      delete: Löschen
+      confirm_delete: Sind Sie sicher?
+  salaries:
+    form:
+      amount: Betrag
+      period: Zeitraum
+      position: Position
+      no_position: Ohne Position
+      submit: Gehalt speichern
+      back: Zurück
+    inline_form:
+      no_position: Ohne Position
+      save: Speichern
+    totals:
+      title: Gehaltssummen nach Position
+      for_period: " für %{period}"
+      all_time: " für den gesamten Zeitraum"
+      hint: Nur Gehaltsbeträge, ohne Steuern.
+      department: Abteilung
+      position: Position
+      amount: Betrag
+      no_position: Ohne Position
+    salary:
+      edit: Bearbeiten
+      delete: Löschen
+      confirm_delete: Sind Sie sicher?
+    index:
+      title: Gehaltsdatensätze für %{name}
+      period: Zeitraum
+      show: Anzeigen
+      all_periods: Alle Zeiträume
+      period_totals: Summen nach Zeitraum
+      headers:
+        period: Zeitraum
+        salary: Gehalt
+        salary_tax: Steuer auf Gehalt
+        salary_military: Militärabgabe auf Gehalt
+        vacation: Urlaubsgeld
+        vacation_tax: Steuer auf Urlaub
+        vacation_military: Militärabgabe auf Urlaub
+        sick: Krankengeld
+        sick_tax: Steuer auf Krankengeld
+        sick_military: Militärabgabe auf Krankengeld
+        total_income: Gesamteinkommen
+        total_taxes: Gesamtsteuern
+        total_military: Gesamte Militärabgabe
+      amount: Betrag
+      department: Abteilung
+      position: Position
+      actions: Aktionen
+      back_to_department: 'Zurück zur Abteilung:'
+      back_to_employee: Zurück zum Mitarbeiter
+    show:
+      title: Gehaltsdetails
+      salary: Gehalt
+      paid_on: Ausgezahlt am
+      notes: Notizen
+      edit: Bearbeiten
+      back: Zurück
+  sick_days:
+    index:
+      title: Krankheitstage für %{name}
+      add: Krankheitstag hinzufügen
+      back: Zurück zum Profil
+    new:
+      back: "← Zurück zum Mitarbeiter"
+      title: 'Neuer Krankheitstag: %{name}'
+    edit:
+      title: Krankheitstag bearbeiten
+    form:
+      select_month: Monat auswählen
+      pfu: PFU
+      enterprise: Unternehmen
+      save: Speichern
+      cancel: Abbrechen
+    list:
+      empty: Noch keine Krankheitstage.
+    table:
+      period: Zeitraum
+      pfu: PFU
+      enterprise: Unternehmen
+      total: Gesamt
+      actions: Aktionen
+    summary:
+      total_for: 'GESAMT FÜR %{period}:'
+    row:
+      confirm_delete: Sind Sie sicher?
+  sick_day_entries:
+    new:
+      title: Krankheitstag hinzufügen
+      search_label: Suche nach Teil der Steuer-ID oder Namen
+      search_placeholder: Teil der Steuer-ID oder Name
+      search: Suchen
+      reset: Zurücksetzen
+      found: 'Gefunden:'
+    form:
+      employee: Mitarbeiter
+      select_employee: Mitarbeiter auswählen
+      other_search: Wählen Sie eine andere Suchanfrage.
+      period: Zeitraum
+      pfu: Krankengeld der PFU
+      enterprise: Krankengeld des Unternehmens
+      save: Speichern
+      cancel: Abbrechen
+  vacations:
+    index:
+      title: Urlaubsgeld für %{name}
+      add: Urlaub hinzufügen
+      back: Zurück zum Profil
+      filters: Suchfilter
+      start_date: Startdatum (von)
+      end_date: Enddatum (bis)
+      amount_from: Urlaubsbetrag (von)
+      search: Suchen
+      reset: Zurücksetzen
+      period: Zeitraum
+      amount: Urlaubsbetrag
+      actions: Aktionen
+      edit: Bearbeiten
+      total: 'Gesamtes Urlaubsgeld: %{amount}'
+      empty: Noch keine Urlaubsdatensätze.
+    new:
+      back: "← Zurück zum Mitarbeiter"
+      title: 'Neuer Urlaub: %{name}'
+    edit:
+      back: "← Zurück zum Mitarbeiter"
+      title: 'Urlaub bearbeiten: %{name}'
+      delete: Löschen
+      confirm_delete: Sind Sie sicher?
+    form:
+      period: Zeitraum
+      amount: Urlaubsgeld
+      save: Speichern
+      cancel: Abbrechen
+    table:
+      period: Zeitraum
+      amount: Urlaubsbetrag
+      income_tax: Einkommensteuer
+      military_tax: Militärabgabe
+      edit: Bearbeiten
+      delete: Löschen
+      confirm_delete: Sind Sie sicher?
+  vacation_entries:
+    new:
+      title: Urlaub hinzufügen
+      search_label: Suche nach Teil der Steuer-ID oder Namen
+      search_placeholder: Teil der Steuer-ID oder Name
+      search: Suchen
+      reset: Zurücksetzen
+      found: 'Gefunden:'
+    form:
+      employee: Mitarbeiter
+      select_employee: Mitarbeiter auswählen
+      other_search: Wählen Sie eine andere Suchanfrage.
+      period: Zeitraum
+      vacation_amount: Urlaubsgeld
+      save: Speichern
+      cancel: Abbrechen
+  department_employees:
+    new:
+      title: Mitarbeiter zu %{department} hinzufügen
+      id_code: Steuer-ID
+      last_name: Nachname
+      first_name: Vorname
+      patronic_name: Vatersname
+      submit: Suchen
+      clear: Zurücksetzen
+      position: Position
+      no_position: Ohne Position
+      position_hint: Die ausgewählte Position wird allen ausgewählten Mitarbeitern
+        hinzugefügt. Ein Mitarbeiter kann mehrere Positionen haben.
+      add_all: Alle hinzufügen
+      add_employees: Mitarbeiter hinzufügen
+      selected_count: "%{count} ausgewählt"
+  department_employee_positions:
+    edit:
+      title: Positionen des Mitarbeiters
+      subtitle: "%{employee} — %{department}"
+      assigned_title: Positionen des Mitarbeiters
+      edit: "✏️ Bearbeiten"
+      edit_title: Position bearbeiten
+      delete: "❌ Löschen"
+      delete_title: Position löschen
+      confirm_delete: Position „%{position}“ löschen?
+      empty: Der Mitarbeiter hat in dieser Abteilung noch keine Positionen.
+      choose: Positionen in dieser Abteilung auswählen
+      no_positions: Diese Abteilung hat noch keine Positionen. Fügen Sie dem Abteilungsverzeichnis
+        eine Position hinzu.
+      hint: Wenn keine Position ausgewählt wird, bleibt der Mitarbeiter ohne Position
+        in der Abteilung.
+      save: Speichern
+      back: Zurück
+      add_title: Position zur Abteilung hinzufügen
+      add_hint: Die neue Position wird dem Verzeichnis „%{department}“ hinzugefügt.
+        Nach dem Erstellen erscheint sie in der Liste oben.
+      position_name: Positionsname
+      add: Position hinzufügen
+  reports:
+    index:
+      title: Gehaltsübersicht nach Abteilung
+      year: Jahr
+      all_years: Alle Jahre
+      month: Monat
+      all_months: Alle Monate
+      department: Abteilung
+      all_departments: Alle Abteilungen
+      filter: Filtern
+      results: Berichtsergebnisse
+      headers:
+        department: Abteilung
+        gross_salary: Bruttogehalt
+        net_salary: Nettogehalt
+        income_tax: Einkommensteuer
+        military_tax: Militärabgabe
+      empty: Keine Daten für den ausgewählten Zeitraum.
+      grand_total: Gesamtsumme
+    summary:
+      title: Gehaltsübersicht (Pivot)
+      period: Zeitraum
+      show: Anzeigen
+      export_csv: CSV exportieren
+      brigade: Brigade
+      book: Buch
+      brigade_total: "%{brigade} — Gesamt"
+      grand_total: Gesamtsumme
+      empty: Keine Daten für den Bericht.
+    detailed:
+      title: Detaillierter Mitarbeiterbericht
+      date_from: Von Datum
+      date_to: Bis Datum
+      department: Abteilung
+      all_departments: Alle Abteilungen
+      position: Position
+      all_positions: Alle Positionen
+      brigade: Brigade
+      all_brigades: Alle Brigaden
+      book: Buch
+      all_books: Alle Bücher
+      employee_search: Mitarbeiter (Name / Steuer-ID)
+      employee_placeholder: Name oder Steuer-ID
+      filter: Filtern
+      reset: Zurücksetzen
+      export_csv: CSV exportieren
+      total: Gesamt
+      empty: Keine Daten für die ausgewählten Filter.
+    csv:
+      brigade: Brigade
+      book: Buch
+      total: Gesamt
+      brigade_total: "%{brigade} — Gesamt"
+    columns:
+      id_code: Steuer-ID
+      book_code: Buchcode
+      brigade: Brigade
+      department: Abteilung
+      full_name: Vollständiger Name
+      base_salary: Grundgehalt
+      salary_income_tax: Einkommensteuer auf Gehalt
+      salary_military_tax: Militärabgabe auf Gehalt
+      salary_net: Nettogehalt
+      vacation_amount: Urlaubsgeld
+      vacation_income_tax: Einkommensteuer auf Urlaubsgeld
+      vacation_military_tax: Militärabgabe auf Urlaubsgeld
+      sick_total: Krankengeld
+      sick_pdfo: Einkommensteuer auf Krankengeld
+      sick_military: Militärabgabe auf Krankengeld
+      gross_vacation: Brutto Gehalt + Urlaub
+      total_income: Gesamteinkommen (Gehalt+Urlaub+Krankengeld)
+      total_tax: Gesamtsteuer (Gehalt+Urlaub+Krankengeld)
+      total_military: Gesamte Militärabgabe (Gehalt+Urlaub+Krankengeld)
+      net_pay: Nettoauszahlung
+      salary_amount: Gehalt
+      total_salary: Gesamtgehälter
+      salary_gross_vacation: Gehalt + Urlaub (brutto)
+      salary_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+    detailed_columns:
+      id_code: Steuer-ID
+      book_code: Buchcode
+      brigade: Brigade
+      department: Abteilung
+      full_name: Vollständiger Name
+      base_salary: Grundgehalt
+      salary_income_tax: Steuer auf Gehalt
+      salary_military_tax: Militärabgabe auf Gehalt
+      salary_net: Nettogehalt
+      vacation_amount: Urlaubsgeld
+      vacation_income_tax: Steuer auf Urlaub
+      vacation_military_tax: Militärabgabe auf Urlaub
+      sick_total: Krankengeld
+      sick_pdfo: Steuer auf Krankengeld
+      sick_military: Militärabgabe auf Krankengeld
+      gross_vacation: Brutto Gehalt + Urlaub
+      total_income: Gesamteinkommen
+      total_tax: Gesamtsteuer
+      total_military: Gesamte Militärabgabe
+      net_pay: Nettoauszahlung
+    summary_columns:
+      salary_amount: Gehalt
+      salary_income_tax: Einkommensteuer auf Gehalt
+      salary_military_tax: Militärabgabe auf Gehalt
+      salary_net: Nettogehalt
+      vacation_amount: Urlaubsgeld
+      vacation_income_tax: Einkommensteuer auf Urlaubsgeld
+      vacation_military_tax: Militärabgabe auf Urlaubsgeld
+      sick_total: Krankengeld
+      sick_pdfo: Einkommensteuer auf Krankengeld
+      sick_military: Militärabgabe auf Krankengeld
+      total_salary: Gesamtgehälter
+      total_income: Gesamteinkommen (Gehalt+Urlaub+Krankengeld)
+      total_tax: Gesamtsteuer (Gehalt+Urlaub+Krankengeld)
+      total_military: Gesamte Militärabgabe (Gehalt+Urlaub+Krankengeld)
+      salary_gross_vacation: Gehalt + Urlaub (brutto)
+      salary_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+  historical_imports:
+    new:
+      title: Historischer Import
+      file: CSV-Datei
+      data_type: Datentyp (wenn die Datei keine type-Spalte hat)
+      auto: Automatisch (nach type-Spalte)
+      salary: Gehalt
+      sick_day: Krankheitstage
+      vacation: Urlaubsgeld
+      submit: Importieren
+      format_title: Dateiformat
+      download_sample: CSV-Beispiel herunterladen
+      intro_html: CSV mit <code>;</code> oder <code>,</code> getrennt. Der Mitarbeiter
+        wird über <code>id_code</code>/<code>passport</code> (Steuer-ID, RNOKPP oder
+        Passnummer) oder über <code>identifier</code> (Buchcode) gefunden.
+      columns:
+        column: Spalte
+        meaning: Bedeutung
+        when: Wann ausfüllen
+        type:
+          meaning_html: 'Datensatztyp: <code>salary</code> (Gehalt), <code>sick_day</code>
+            (Krankheitstage) oder <code>vacation</code> (Urlaubsgeld).'
+          when_html: Wenn die Datei verschiedene Typen enthält. Fehlt die Spalte,
+            wird der Typ aus dem Feld „Datentyp“ im Formular übernommen.
+        id_code:
+          meaning: Steuer-ID / RNOKPP oder Passnummer des Mitarbeiters.
+          when_html: 'Eine von zwei Spalten zum Finden des Mitarbeiters: <code>id_code</code>
+            oder <code>identifier</code>.'
+        identifier:
+          meaning: Buchcode des Mitarbeiters.
+          when_html: Alternative zu <code>id_code</code>, wenn die Datei keine Steuer-ID/Passnummer
+            enthält.
+        period:
+          meaning_html: Abrechnungsmonat im Format <code>YYYY-MM</code> (zum Beispiel
+            <code>2020-03</code>).
+          when: Immer.
+        amount:
+          meaning: Gehaltsbetrag in UAH.
+          when_html: Nur für <code>salary</code>.
+        pfu_amount:
+          meaning: Krankengeld der PFU / des Sozialfonds, UAH.
+          when_html: Nur für <code>sick_day</code>.
+        enterprise_amount:
+          meaning: Krankengeld des Unternehmens, UAH.
+          when_html: Nur für <code>sick_day</code>.
+        vacation_amount:
+          meaning: Urlaubsgeld, UAH.
+          when_html: Nur für <code>vacation</code>.
+        income_tax:
+          meaning: Einbehaltene Einkommensteuer, UAH.
+          when_html: Optional; wenn leer, wird <code>0</code> angenommen.
+        military_tax:
+          meaning: Einbehaltene Militärabgabe, UAH.
+          when_html: Optional; wenn leer, wird <code>0</code> angenommen.
+        net_amount:
+          meaning: Auszahlungsbetrag („netto“), UAH.
+          when_html: Optional; wenn leer, der Betrag abzüglich Steuern.
+        department:
+          meaning: 'Abteilung: Name (Groß-/Kleinschreibung wird ignoriert) oder numerische
+            ID.'
+          when: Optional. Wird verwendet, um Gehälter nach Abteilung im selben Monat
+            zu unterscheiden.
+        paid_on:
+          meaning_html: Auszahlungsdatum im Format <code>YYYY-MM-DD</code>.
+          when_html: Optional (nur <code>salary</code>); standardmäßig der erste Tag
+            von <code>period</code>.
+      sample_hint: Das Beispiel enthält nur Kopfzeilen — fügen Sie Datenzeilen hinzu.
+      taxes_html: Steuern jeder Zeile werden unverändert gespeichert. Nach dem Import
+        werden die Monatssummen für jeden Mitarbeiter, Monat und Einkommenstyp neu
+        berechnet, sodass importierte Daten sofort in Berichten erscheinen. Fehlt
+        <code>net_amount</code>, wird es als Betrag abzüglich Steuern berechnet.
+      update_hint: Eine Gehaltszeile aktualisiert einen vorhandenen Datensatz mit
+        demselben Mitarbeiter, Monat und derselben Abteilung; Gehälter für denselben
+        Monat in verschiedenen Abteilungen werden getrennt gespeichert.
+    errors:
+      no_headers: CSV enthält keine Kopfzeile
+      unknown_type: unbekannter Datentyp (erwartet salary, sick_day oder vacation)
+      employee_not_found: Mitarbeiter mit Code %{code} nicht gefunden
+      invalid_period: ungültiger Zeitraum %{period}
+      row: 'Zeile %{line}: %{message}'
+  settings:
+    dashboard:
+      title: Systemeinstellungen
+      territory_title: "\U0001F3E2 Gebietsmerkmale (Brigaden)"
+      territory_description: Verwalten Sie die Liste der Brigaden / Gebietsmerkmale,
+        die Mitarbeitern zugewiesen werden können.
+      add_brigade: Brigade hinzufügen
+      view_all: Alle anzeigen
+      taxes_title: "\U0001F4B0 Steuern"
+      taxes_description: Verwalten Sie Steuersätze und Schwellenwerte für die Gehaltsberechnung.
+      edit_taxes: Einstellungen bearbeiten
+      books_title: "\U0001F4DA Kontobücher"
+      books_description: 'Verwalten Sie Bücher: Name, Buchnummer, Seitenzahl.'
+      add_book: Buch hinzufügen
+    account_books:
+      index:
+        title: Kontobücher
+        back: Zurück zu Einstellungen
+        add: Neu hinzufügen
+        code: Buchcode
+        action: Aktion
+        edit: Bearbeiten
+        delete: Löschen
+        confirm_delete: Möchten Sie dieses Buch wirklich löschen?
+        empty: Keine Bücher gefunden. Fügen Sie das erste hinzu.
+      new:
+        title: Neues Kontobuch
+        heading: Kontobuch hinzufügen
+        back: Zurück zur Liste
+        errors: 'Fehler:'
+        code_label: Buchcode (zum Beispiel B11)
+        placeholder: B11
+        format_hint: 'Format: Buchstabe der Brigade + Ziffern (zum Beispiel B11)'
+        save: Speichern
+        cancel: Abbrechen
+      edit:
+        title: Buch bearbeiten
+        heading: Kontobuch bearbeiten
+        back: Zurück zur Liste
+        errors: 'Fehler:'
+        code_label: Buchcode (zum Beispiel B11)
+        placeholder: B11
+        format_hint: 'Format: Buchstabe der Brigade + Ziffern (zum Beispiel B11)'
+        save: Speichern
+        cancel: Abbrechen
+    territory_signs:
+      index:
+        title: Gebietsmerkmale
+        heading: Gebietsmerkmale (Brigaden)
+        add: Neu hinzufügen
+        back: Zurück zu Einstellungen
+        name: Brigadename
+        code: Code (erster Buchstabe)
+        action: Aktion
+        edit: Bearbeiten
+        delete: Löschen
+        confirm_delete: Möchten Sie diese Brigade wirklich löschen?
+        empty: Keine Brigaden gefunden. Fügen Sie die erste hinzu.
+      new:
+        title: Neue Brigade
+        heading: Brigade hinzufügen
+        back: Zurück zur Liste
+        errors: 'Fehler:'
+        name: Brigadename
+        name_placeholder: 'Zum Beispiel: Brigade A'
+        save: Speichern
+        cancel: Abbrechen
+      edit:
+        title: Brigade bearbeiten
+        heading: Brigade bearbeiten
+        back: Zurück zur Liste
+        errors: 'Fehler:'
+        name: Brigadename
+        save: Speichern
+        cancel: Abbrechen
+    tax_settings:
+      edit:
+        title: Steuereinstellungen
+        back: Zurück zu Einstellungen
+        errors: 'Fehler:'
+        income_rate: Einkommensteuersatz (Anteil)
+        income_hint: 'Zum Beispiel: 0.18 für 18 %'
+        military_rate: Militärabgabesatz (Anteil)
+        military_hint: 'Zum Beispiel: 0.05 für 5 %'
+        gran_dohid: Einkommensgrenze für den Sozialrabatt, UAH
+        psp: Steuerlicher Sozialrabatt, UAH
+        save: Speichern
+        cancel: Abbrechen
+  users:
+    index:
+      logout: Abmelden
+      employees: Mitarbeiterliste
+  pagination:
+    page_of: Seite %{page} von %{last}
+  devise_views:
+    sessions:
+      title: Anmelden
+      submit: Anmelden
+    registrations:
+      new_title: Registrieren
+      sign_up: Registrieren
+      edit_title: Konto bearbeiten
+      waiting_confirmation: 'Warten auf Bestätigung für: %{email}'
+      password_hint: Leer lassen, wenn Sie es nicht ändern möchten
+      current_password_hint: Wir benötigen Ihr aktuelles Passwort zur Bestätigung
+      update: Aktualisieren
+      cancel_title: Konto löschen
+      unhappy: Unzufrieden?
+      cancel_account: Konto löschen
+      confirm: Sind Sie sicher?
+      back: Zurück
+    passwords:
+      new_title: Passwort vergessen?
+      send_reset: Anweisungen zum Zurücksetzen senden
+      edit_title: Passwort ändern
+      new_password: Neues Passwort
+      confirm_password: Neues Passwort bestätigen
+      submit: Passwort ändern
+    confirmations:
+      title: Bestätigungsanweisungen erneut senden
+      submit: Bestätigungsanweisungen erneut senden
+    unlocks:
+      title: Entsperranweisungen erneut senden
+      submit: Entsperranweisungen erneut senden
+    links:
+      login: Anmelden
+      sign_up: Registrieren
+      forgot: Passwort vergessen?
+      no_confirmation: Keine Bestätigungsanweisungen erhalten?
+      no_unlock: Keine Entsperranweisungen erhalten?
+      sign_in_with: Anmelden mit %{provider}
+    min_chars: Mindestens %{count} Zeichen
+    mailers:
+      welcome: Willkommen %{email}!
+      confirm_text: 'Bestätigen Sie Ihre E-Mail-Adresse über den folgenden Link:'
+      confirm_account: Konto bestätigen
+      hello: Hallo %{email}!
+      reset_request: Jemand hat einen Link zum Ändern Ihres Passworts angefordert.
+        Sie können dies über den folgenden Link tun.
+      change_password: Passwort ändern
+      ignore: Wenn Sie dies nicht angefordert haben, ignorieren Sie diese E-Mail.
+      password_wont_change: Ihr Passwort ändert sich erst, wenn Sie den obigen Link
+        aufrufen und ein neues erstellen.
+      password_changed: Wir informieren Sie, dass Ihr Passwort geändert wurde.
+      email_changed_to: Wir informieren Sie, dass Ihre E-Mail-Adresse auf %{email}
+        geändert wird.
+      email_changed: Wir informieren Sie, dass Ihre E-Mail-Adresse auf %{email} geändert
+        wurde.
+      locked: Ihr Konto wurde aufgrund zu vieler fehlgeschlagener Anmeldeversuche
+        gesperrt.
+      unlock_text: 'Klicken Sie auf den folgenden Link, um Ihr Konto zu entsperren:'
+      unlock_account: Konto entsperren
+  errors:
+    messages:
+      not_saved:
+        one: '1 Fehler verhinderte das Speichern von %{resource}:'
+        other: "%{count} Fehler verhinderten das Speichern von %{resource}:"
+  flash:
+    departments:
+      created: Abteilung erfolgreich erstellt.
+      updated: Abteilung erfolgreich aktualisiert.
+    employees:
+      not_found: Mitarbeiter nicht gefunden.
+      created: Mitarbeiter erfolgreich erstellt.
+      updated: Mitarbeiter erfolgreich aktualisiert.
+      deleted: Mitarbeiter erfolgreich gelöscht.
+    salaries:
+      created: Gehalt erfolgreich hinzugefügt.
+      updated: Gehalt erfolgreich aktualisiert.
+      deleted: Gehalt erfolgreich gelöscht.
+    sick_days:
+      created: Krankheitstag erfolgreich hinzugefügt.
+      updated: Krankheitstag erfolgreich aktualisiert.
+      deleted: Krankheitstag erfolgreich gelöscht.
+    vacations:
+      created: Urlaub erfolgreich hinzugefügt.
+      updated: Urlaub erfolgreich aktualisiert.
+      deleted: Urlaub erfolgreich gelöscht.
+    sick_day_entries:
+      created: Krankheitstag erfolgreich hinzugefügt.
+    vacation_entries:
+      created: Urlaub erfolgreich hinzugefügt.
+    department_employees:
+      added:
+        one: 'Mitarbeiter zur Abteilung hinzugefügt: %{count}.'
+        other: 'Mitarbeiter zur Abteilung hinzugefügt: %{count}.'
+      removed: Mitarbeiter erfolgreich aus der Abteilung entfernt.
+      not_found: Mitarbeiter in der Abteilung nicht gefunden.
+      no_selection: Keine Mitarbeiter ausgewählt.
+      duplicate_position: Die ausgewählten Mitarbeiter haben diese Position bereits
+        in der Abteilung.
+      duplicate_department: Die ausgewählten Mitarbeiter sind bereits in dieser Abteilung.
+    department_employee_positions:
+      updated: Positionen des Mitarbeiters erfolgreich aktualisiert.
+      not_found: Position in dieser Abteilung nicht gefunden.
+      deleted: Position des Mitarbeiters erfolgreich gelöscht.
+    department_positions:
+      created: Position zur Abteilung hinzugefügt.
+    historical_imports:
+      select_file: Wählen Sie eine CSV-Datei zum Importieren.
+      invalid_csv: 'Ungültige CSV-Datei: %{message}'
+      completed: 'Import abgeschlossen: hinzugefügt %{created}, aktualisiert %{updated},
+        übersprungen %{skipped}.'
+    settings:
+      account_books:
+        created: Buch hinzugefügt.
+        updated: Buch aktualisiert.
+        deleted: Buch gelöscht.
+      territory_signs:
+        created: Gebietsmerkmal hinzugefügt.
+        updated: Gebietsmerkmal aktualisiert.
+        deleted: Gebietsmerkmal gelöscht.
+      tax_settings:
+        updated: Steuereinstellungen aktualisiert.

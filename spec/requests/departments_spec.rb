@@ -231,7 +231,7 @@ RSpec.describe 'Departments', type: :request do
 
         headers = Nokogiri::HTML(response.body).css('thead th a')
 
-        expect(headers.map(&:text)).to include('ID', 'Last name', 'First name', 'Patronic name')
+        expect(headers.map(&:text)).to include('ID', 'Last name', 'First name', I18n.t('common.patronic_name'))
         expect(headers.map { |link| link['href'] }).to all(include('q%5Bs%5D'))
       end
 
@@ -266,7 +266,7 @@ RSpec.describe 'Departments', type: :request do
 
         headers = Nokogiri::HTML(response.body).css('thead th').map { |header| header.text.strip }
 
-        expect(headers).to include('Зарплата за 03-2025')
+        expect(headers).to include(I18n.t('departments.show.salary_for', period: '03-2025'))
       end
 
       it 'shows the salary for the selected period instead of the last salary' do
@@ -352,8 +352,8 @@ RSpec.describe 'Departments', type: :request do
         positionless_cell = row.at_css("#salary_position_#{alpha.id}_none")
         manager_cell = row.at_css("#salary_position_#{alpha.id}_#{manager_position.id}")
 
-        expect(positionless_cell.text).to include('Без посади', '1000,00')
-        expect(manager_cell.text).to include('Manager', '+ Додати')
+        expect(positionless_cell.text).to include(I18n.t('departments.salary_cell.no_position'), '1000,00')
+        expect(manager_cell.text).to include('Manager', I18n.t('departments.salary_cell.add'))
       end
 
       it 'renders no salary for a position that has no matching salary in the period' do
@@ -364,7 +364,7 @@ RSpec.describe 'Departments', type: :request do
 
         expect(assigns(:period_salaries)).to be_empty
         expect(assigns(:department_total)).to eq(0.0)
-        expect(employee_row('Zeta').text).to include('+ Додати')
+        expect(employee_row('Zeta').text).to include(I18n.t('departments.salary_cell.add'))
       end
 
       it 'shows only the filtered position in the employee positions column' do

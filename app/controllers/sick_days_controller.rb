@@ -19,7 +19,7 @@ class SickDaysController < ApplicationController
     @sick_day = @employee.sick_days.build(sick_day_params)
 
     if @sick_day.save
-      redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно додано.'
+      redirect_to employee_sick_days_path(@employee), notice: t('flash.sick_days.created')
     else
       render :new, status: :unprocessable_content
     end
@@ -32,7 +32,7 @@ class SickDaysController < ApplicationController
       respond_to do |format|
         format.turbo_stream { render turbo_stream: sick_days_list_turbo_stream(@employee.sick_days_summaries) }
         format.html do
-          redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно оновлено.'
+          redirect_to employee_sick_days_path(@employee), notice: t('flash.sick_days.updated')
         end
       end
     else
@@ -47,7 +47,7 @@ class SickDaysController < ApplicationController
     respond_to do |format|
       format.turbo_stream { render turbo_stream: destroy_turbo_streams(destroyed_period) }
       format.html do
-        redirect_to employee_sick_days_path(@employee), notice: 'Лікарняний успішно видалено.'
+        redirect_to employee_sick_days_path(@employee), notice: t('flash.sick_days.deleted')
       end
     end
   end

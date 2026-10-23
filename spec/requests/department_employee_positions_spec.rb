@@ -90,7 +90,9 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
                                                     period: '2025-03', position: engineer_position.id)
         page = Nokogiri::HTML(response.body)
         patch_form = page.at_css('form[action*="/employees/"]')
-        back_link = page.css('a').find { |link| link.text.strip == 'Назад' }
+        back_link = page.css('a').find do |link|
+          link.text.strip == I18n.t('department_employee_positions.edit.back')
+        end
         create_form = page.at_css('input[name="position[position_name]"]').ancestors('form').first
         expect(patch_form['action']).to include('period=2025-03', "position=#{engineer_position.id}")
         expect(back_link['href']).to include('period=2025-03', "position=#{engineer_position.id}")
@@ -204,7 +206,7 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(response).to redirect_to(
           edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
         )
-        expect(flash[:notice]).to eq('Посаду працівника видалено.')
+        expect(flash[:notice]).to eq(I18n.t('flash.department_employee_positions.deleted'))
         expect(assigned_position_ids).to contain_exactly(engineer_position.id)
       end
 
@@ -247,7 +249,7 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(response).to redirect_to(
           edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
         )
-        expect(flash[:alert]).to eq('Посаду не знайдено в цьому підрозділі.')
+        expect(flash[:alert]).to eq(I18n.t('flash.department_employee_positions.not_found'))
         expect(assigned_position_ids).to contain_exactly(nil, manager_position.id)
       end
 
@@ -261,7 +263,7 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(response).to redirect_to(
           edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
         )
-        expect(flash[:alert]).to eq('Посаду не знайдено в цьому підрозділі.')
+        expect(flash[:alert]).to eq(I18n.t('flash.department_employee_positions.not_found'))
       end
 
       it 'returns not found when the employee is not a member of the department' do

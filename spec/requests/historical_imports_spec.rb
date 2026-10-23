@@ -36,7 +36,7 @@ RSpec.describe 'Historical imports', type: :request do
       get new_historical_import_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Імпорт старих даних')
+      expect(response.body).to include(I18n.t('historical_imports.new.title'))
       expect(response.body).to include('file')
     end
 
@@ -45,7 +45,7 @@ RSpec.describe 'Historical imports', type: :request do
 
       get new_historical_import_path
 
-      expect(response.body).to include('Завантажити зразок CSV')
+      expect(response.body).to include(I18n.t('historical_imports.new.download_sample'))
       expect(response.body).to include(sample_historical_imports_path)
     end
 
@@ -58,7 +58,7 @@ RSpec.describe 'Historical imports', type: :request do
       documented = rows.filter_map { |row| row.at_css('code')&.text }
 
       expect(documented).to match_array(HistoricalDataImporter::CsvTemplate.headers)
-      expect(rows.map(&:text).join.downcase).to include('тип запису', 'місяць', 'військовий збір')
+      expect(rows.map(&:text).join.downcase).to include('record type', 'accrual month', 'military levy')
     end
   end
 
@@ -94,7 +94,7 @@ RSpec.describe 'Historical imports', type: :request do
       expect(response).to redirect_to(new_historical_import_path)
       follow_redirect!
 
-      expect(response.body).to include('Імпорт завершено')
+      expect(response.body).to include('Import completed')
       expect(employee.salaries.count).to eq(1)
       expect(employee.salaries.first.income_tax_cents).to eq(11_100)
     end
@@ -122,7 +122,7 @@ RSpec.describe 'Historical imports', type: :request do
       expect(response).to redirect_to(new_historical_import_path)
       follow_redirect!
 
-      expect(response.body).to include('Оберіть CSV-файл')
+      expect(response.body).to include(I18n.t('flash.historical_imports.select_file'))
     end
 
     it 'reports rows that could not be matched to an employee' do
@@ -134,7 +134,7 @@ RSpec.describe 'Historical imports', type: :request do
       post historical_imports_path, params: { file: upload(bad_csv), data_type: 'salary' }
       follow_redirect!
 
-      expect(response.body).to include('пропущено')
+      expect(response.body).to include('skipped')
       expect(response.body).to include('9999999999')
       expect(Salary.count).to eq(0)
     end

@@ -11,9 +11,9 @@ class HomePagesController < ApplicationController
     month = parsed_working_month
 
     if month && current_user.update(current_working_month: month)
-      redirect_to root_path, notice: "Поточний робочий місяць збережено: #{month.strftime('%m.%Y')}"
+      redirect_to root_path, notice: t('home_pages.flash.month_saved', month: l(month, format: :short))
     else
-      redirect_to root_path, alert: 'Оберіть коректний робочий місяць.'
+      redirect_to root_path, alert: t('home_pages.flash.invalid_month')
     end
   end
 

@@ -25,7 +25,7 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
     end
     fill_in 'vacation[period]', with: period
     fill_in 'vacation[vacation_amount]', with: amount
-    click_button 'Зберегти'
+    click_button I18n.t('common.save')
   end
 
   it 'filters the employee list and creates a vacation for the selected employee' do
@@ -36,7 +36,7 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
                                                ivanenko.full_name_with_id_code])
 
     fill_in 'employee_search', with: 'петренко'
-    click_button 'Пошук'
+    click_button I18n.t('common.search')
 
     expect(page).to have_text(petrenko.full_name_with_id_code)
     expect(page).not_to have_text(ivanenko.full_name_with_id_code)
@@ -51,7 +51,7 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
     visit new_vacation_entry_path
 
     fill_in 'employee_search', with: '9876'
-    click_button 'Пошук'
+    click_button I18n.t('common.search')
 
     expect(page).to have_text(ivanenko.full_name_with_id_code)
     expect(page).not_to have_text(petrenko.full_name_with_id_code)
@@ -64,10 +64,10 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
   it 'opens the form from the additional navigation menu' do
     visit root_path
 
-    find('details summary', text: 'Додатково').click
-    click_link 'Відпустки'
+    find('details summary', text: I18n.t('navigation.more')).click
+    click_link I18n.t('navigation.vacations')
 
     expect(page).to have_current_path(new_vacation_entry_path)
-    expect(page).to have_text('Додати відпустку')
+    expect(page).to have_text(I18n.t('vacation_entries.new.title'))
   end
 end

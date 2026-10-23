@@ -1,65 +1,77 @@
-<nav class="bg-blue-500 text-white p-4">
-  <div class="container mx-auto flex justify-between items-center">
+<nav class="bg-blue-500 p-4 text-white">
+  <div class="container mx-auto flex flex-wrap items-center justify-between gap-3">
     <div class="text-lg font-bold">
-      <%= link_to 'MyApp', root_path, class: 'hover:text-blue-200' %>
+      <%= link_to t('navigation.app_name'), root_path, class: 'hover:text-blue-200' %>
     </div>
 
-    <button id="menu-toggle" class="lg:hidden px-3 py-2 border rounded hover:bg-blue-600">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-      </svg>
-    </button>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-1 rounded-md bg-blue-600/50 p-1" aria-label="<%= t('locales.switch') %>">
+        <% supported_locales.each do |locale| %>
+          <%= link_to t("locales.short.#{locale}"),
+                      locale_switch_path(locale),
+                      class: locale_link_classes(locale),
+                      title: t("locales.#{locale}"),
+                      aria: { current: (I18n.locale == locale ? 'page' : nil) } %>
+        <% end %>
+      </div>
 
-    <div id="menu" class="hidden lg:flex space-x-4 items-center">
-      <%= link_to 'Departments', departments_path, class: 'hover:text-blue-200' %>
-      <%= link_to 'Employees', employees_path, class: 'hover:text-blue-200' %>
+      <button id="menu-toggle" class="rounded border px-3 py-2 hover:bg-blue-600 lg:hidden">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+      </button>
 
-      <details style="position:relative;" data-controller="dropdown" data-action="toggle->dropdown#toggle">
-        <summary style="list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.25rem;">
-          <span>Додатково</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </summary>
-        <div style="position:absolute; top:100%; left:0; margin-top:.25rem; z-index:50; min-width:14rem; white-space:nowrap; background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px rgba(0,0,0,.1); padding:.25rem 0;">
-          <%= link_to 'Лікарняні', new_sick_day_entry_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-          <%= link_to 'Відпустки', new_vacation_entry_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-          <%= link_to 'Імпорт старих даних', new_historical_import_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-        </div>
-      </details>
+      <div id="menu" class="hidden items-center gap-4 lg:flex">
+        <%= link_to t('navigation.departments'), departments_path, class: 'hover:text-blue-200' %>
+        <%= link_to t('navigation.employees'), employees_path, class: 'hover:text-blue-200' %>
 
-      <details style="position:relative;" data-controller="dropdown" data-action="toggle->dropdown#toggle">
-        <summary style="list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.25rem;">
-          <span>Звіти</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </summary>
-        <div style="position:absolute; top:100%; left:0; margin-top:.25rem; z-index:50; min-width:14rem; white-space:nowrap; background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px rgba(0,0,0,.1); padding:.25rem 0;">
-          <%= link_to 'Зведений звіт', summary_reports_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-          <%= link_to 'Детальний звіт', detailed_reports_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-        </div>
-      </details>
+        <details class="relative" data-controller="dropdown" data-action="toggle->dropdown#toggle">
+          <summary class="flex cursor-pointer select-none items-center gap-1">
+            <span><%= t('navigation.more') %></span>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </summary>
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <%= link_to t('navigation.sick_days'), new_sick_day_entry_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.vacations'), new_vacation_entry_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.historical_import'), new_historical_import_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+          </div>
+        </details>
 
-      <details style="position:relative;" data-controller="dropdown" data-action="toggle->dropdown#toggle">
-        <summary style="list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.25rem;">
-          <span>Налаштування</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </summary>
-        <div style="position:absolute; top:100%; left:0; margin-top:.25rem; z-index:50; min-width:14rem; white-space:nowrap; background:#fff; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px rgba(0,0,0,.1); padding:.25rem 0;">
-          <%= link_to 'Налаштування системи', settings_root_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-          <%= link_to 'Бригади', settings_territory_signs_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-          <%= link_to 'Книги', settings_account_books_path, style: "display:block; padding:.5rem 1rem; color:#1f2937; white-space:nowrap;", class: "hover:bg-gray-100" %>
-        </div>
-      </details>
+        <details class="relative" data-controller="dropdown" data-action="toggle->dropdown#toggle">
+          <summary class="flex cursor-pointer select-none items-center gap-1">
+            <span><%= t('navigation.reports') %></span>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </summary>
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <%= link_to t('navigation.summary_report'), summary_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.detailed_report'), detailed_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+          </div>
+        </details>
 
-      <% if user_signed_in? %>
-        <%= link_to 'Logout', destroy_user_session_path, data: { turbo_method: :delete }, class: 'hover:text-blue-200' %>
-      <% else %>
-        <%= link_to 'Login', new_user_session_path, class: 'hover:text-blue-200' %>
-      <% end %>
+        <details class="relative" data-controller="dropdown" data-action="toggle->dropdown#toggle">
+          <summary class="flex cursor-pointer select-none items-center gap-1">
+            <span><%= t('navigation.settings') %></span>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </summary>
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <%= link_to t('navigation.system_settings'), settings_root_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.brigades'), settings_territory_signs_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.books'), settings_account_books_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+          </div>
+        </details>
+
+        <% if user_signed_in? %>
+          <%= link_to t('navigation.logout'), destroy_user_session_path, data: { turbo_method: :delete }, class: 'hover:text-blue-200' %>
+        <% else %>
+          <%= link_to t('navigation.login'), new_user_session_path, class: 'hover:text-blue-200' %>
+        <% end %>
+      </div>
     </div>
   </div>
 </nav>

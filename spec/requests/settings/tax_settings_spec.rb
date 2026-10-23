@@ -69,7 +69,7 @@ RSpec.describe 'TaxSettings settings', type: :request do
         patch settings_tax_settings_path, params: { tax_setting: { income_rate: 0.22 } }
 
         follow_redirect!
-        expect(response.body).to include('Налаштування податків оновлено')
+        expect(response.body).to include(I18n.t('flash.settings.tax_settings.updated'))
       end
     end
 
@@ -81,7 +81,7 @@ RSpec.describe 'TaxSettings settings', type: :request do
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(setting.reload.income_rate).to eq(BigDecimal('0.18'))
-        expect(response.body).to include('Помилки')
+        expect(response.body).to include(I18n.t('settings.tax_settings.edit.errors'))
       end
     end
   end

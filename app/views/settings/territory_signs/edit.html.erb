@@ -1,15 +1,15 @@
-<% content_for :title, "Редагувати бригаду" %>
+<% content_for :title, t('settings.territory_signs.edit.title') %>
 
-<h1 class="text-2xl font-bold mb-6">Редагувати brigades</h1>
+<h1 class="text-2xl font-bold mb-6"><%= t('settings.territory_signs.edit.heading') %></h1>
 
-<%= link_to 'Назад до списку', settings_territory_signs_path,
+<%= link_to t('settings.territory_signs.edit.back'), settings_territory_signs_path,
             class: "text-gray-600 hover:text-blue-600 mb-4 inline-block" %>
 
 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 max-w-md">
   <%= form_with model: @territory_sign, url: settings_territory_sign_path(@territory_sign), method: :patch, class: "space-y-4" do |f| %>
     <% if @territory_sign.errors.any? %>
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong class="font-bold">Помилки:</strong>
+        <strong class="font-bold"><%= t('settings.territory_signs.edit.errors') %></strong>
         <ul class="list-disc list-inside mt-1">
           <% @territory_sign.errors.full_messages.each do |msg| %>
             <li><%= msg %></li>
@@ -19,13 +19,13 @@
     <% end %>
 
     <div>
-      <%= f.label :name, "Назва brigades", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.label :name, t('settings.territory_signs.edit.name'), class: "block text-sm font-medium text-gray-700" %>
       <%= f.text_field :name, class: "mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" %>
     </div>
 
     <div class="flex gap-2">
-      <%= f.submit "Зберегти", class: "btn btn-primary" %>
-      <%= link_to 'Скасувати', settings_territory_signs_path,
+      <%= f.submit t('settings.territory_signs.edit.save'), class: "btn btn-primary" %>
+      <%= link_to t('settings.territory_signs.edit.cancel'), settings_territory_signs_path,
                   class: "btn btn-secondary" %>
     </div>
   <% end %>

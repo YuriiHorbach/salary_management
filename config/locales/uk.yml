@@ -1,0 +1,923 @@
+---
+uk:
+  common:
+    save: Зберегти
+    cancel: Скасувати
+    back: Назад
+    home: Головна
+    add: Додати
+    edit: Редагувати
+    delete: Видалити
+    search: Пошук
+    reset: Скинути
+    actions: Дії
+    all: Всі
+    none: Немає
+    total: Всього
+    amount: Сума
+    period: Період
+    month: Місяць
+    year: Рік
+    employee: Працівник
+    employees: Працівники
+    department: Підрозділ
+    departments: Підрозділи
+    position: Посада
+    positions: Посади
+    brigade: Бригада
+    book: Книга
+    id_code: ІПН
+    last_name: Прізвище
+    first_name: Ім'я
+    patronic_name: По батькові
+    name: Назва
+    code: Код
+    notes: Примітки
+    paid_on: Дата виплати
+    select: Оберіть
+    select_employee: Оберіть працівника
+    no_position: Без посади
+    no_matches: Працівників за таким запитом не знайдено.
+    back_to_list: Назад до списку
+    current_working_month: Поточний робочий місяць
+    example: "(приклад: 1000,00)"
+    all_years: Всі роки
+    all_months: Всі місяці
+    all_departments: Всі підрозділи
+    all_positions: Всі посади
+    all_brigades: Всі бригади
+    all_books: Всі книги
+    no_department: Без підрозділу
+    selected_count: 'Вибрано: %{count}'
+    confirm_delete: Ви впевнені?
+    'yes': Так
+    'no': Ні
+  navigation:
+    app_name: Управління зарплатами
+    departments: Підрозділи
+    employees: Працівники
+    more: Додатково
+    sick_days: Лікарняні
+    vacations: Відпустки
+    historical_import: Імпорт старих даних
+    reports: Звіти
+    summary_report: Зведений звіт
+    detailed_report: Детальний звіт
+    settings: Налаштування
+    system_settings: Налаштування системи
+    brigades: Бригади
+    books: Книги
+    logout: Вийти
+    login: Увійти
+  locales:
+    en: English
+    uk: Українська
+    de: Deutsch
+    short:
+      en: EN
+      uk: UA
+      de: DE
+    switch: Мова
+  home_pages:
+    index:
+      title: Головна сторінка
+      current_month: 'Поточний робочий місяць: %{month}'
+      current_month_hint: Він автоматично підставлятиметься у форми додавання зарплат,
+        відпускних і лікарняних.
+      choose_month: Оберіть поточний робочий місяць
+      choose_month_hint: Він може не збігатися з календарним місяцем. Оберіть місяць,
+        з яким ви зараз працюєте, щоб він автоматично підставлявся у форми додавання
+        зарплат, відпускних і лікарняних.
+      field_label: Поточний робочий місяць
+      save_month: Зберегти місяць
+    flash:
+      month_saved: 'Поточний робочий місяць збережено: %{month}'
+      invalid_month: Оберіть коректний робочий місяць.
+  date:
+    formats:
+      short: "%m.%Y"
+      month_year: "%B %Y"
+      default: "%d.%m.%Y"
+    month_names:
+    -
+    - Січень
+    - Лютий
+    - Березень
+    - Квітень
+    - Травень
+    - Червень
+    - Липень
+    - Серпень
+    - Вересень
+    - Жовтень
+    - Листопад
+    - Грудень
+    abbr_month_names:
+    -
+    - Січ
+    - Лют
+    - Бер
+    - Кві
+    - Тра
+    - Чер
+    - Лип
+    - Сер
+    - Вер
+    - Жов
+    - Лис
+    - Гру
+  number:
+    format:
+      delimiter: ''
+      separator: ","
+    currency:
+      format:
+        delimiter: ''
+        separator: ","
+        unit: ''
+        format: "%n"
+        negative_format: "-%n"
+  activerecord:
+    models:
+      employee: Працівник
+      department: Підрозділ
+      salary: Зарплата
+      sick_day: Лікарняний
+      vacation: Відпустка
+      account_book: Книга
+      territory_sign: Бригада
+      tax_setting: Налаштування податків
+    attributes:
+      employee:
+        id_code: ІПН
+        last_name: Прізвище
+        first_name: Ім'я
+        patronic_name: По батькові
+        children_count: Діти
+        chaes: ЧАЕС
+        contract: Контракт
+        disability_group: Група інвалідності
+        territory_sign: Бригада
+        account_book: Книга
+      department:
+        name: Назва
+      salary:
+        amount: Сума
+        period: Період
+        department: Підрозділ
+        position: Посада
+        paid_on: Дата виплати
+        notes: Примітки
+      sick_day:
+        period: Період
+        pfu_amount: Сума ПФУ
+        enterprise_amount: Сума підприємства
+      vacation:
+        period: Період
+        amount: Сума
+      account_book:
+        code: Код
+        name: Назва
+      territory_sign:
+        name: Назва
+        code: Код
+    errors:
+      models:
+        employee:
+          attributes:
+            id_code:
+              invalid_id_code: має містити 9–10 цифр або 2 літери та 6 цифр
+        account_book:
+          attributes:
+            code:
+              code_format: має бути у форматі Б11 (літера бригади та номери)
+        department_employee:
+          attributes:
+            employee_id:
+              position_taken: вже має цю посаду в цьому підрозділі
+        salary:
+          attributes:
+            period:
+              period_taken: за цей період уже додано зарплату для цієї посади/підрозділу
+            position:
+              position_other_department: належить іншому підрозділу
+              position_not_assigned: не призначена цьому працівнику
+  departments:
+    index:
+      title: Підрозділи
+      new: Створити підрозділ
+    new:
+      title: Додати новий підрозділ
+    form:
+      heading: Підрозділ
+      submit: Зберегти підрозділ
+    card:
+      employees: Працівники
+      edit: Редагувати
+    show:
+      period: Період
+      position: Посада
+      all_positions: Всі посади
+      show: Показати
+      salary_for: Зарплата за %{period}
+      view_salary: Переглянути зарплату
+      remove_employee: Видалити працівника
+      edit_positions: Редагувати посади
+      add_position: Додати посаду
+      salary: Зарплата
+      total_for: 'Всього за %{period}%{position}:'
+      position_suffix: " (посада: %{position})"
+      add_employees: Додати працівників
+      confirm_remove: Ви впевнені?
+      remove_title: Видалити з підрозділу
+    salary_cell:
+      add: "+ Додати"
+      no_position: 'Без посади:'
+  employees:
+    index:
+      search:
+        id_code: ІПН
+        last_name: Прізвище
+        first_name: Ім'я
+        patronic_name: По батькові
+        territory: Територія
+        children_gt: Дітей >
+        group: Група
+        all: Всі
+        chaes: ЧАЕС
+        contract: Контракт
+        submit: Пошук
+        reset: Скинути
+      add: Додати нового працівника
+      headers:
+        id: ID
+        full_name: ПІБ
+        children: Діти
+        group: Гр.
+        chaes: ЧАЕС
+        contract: Контр.
+        territory: Територія
+        actions: Дії
+      home: "← Головна"
+    form:
+      chaes: Учасник ліквідації ЧАЕС
+      contract: Контракт
+      disability_group: Ознака доходу
+      disability_options:
+        none: Немає
+        group_1: I група
+        group_2: II група
+        group_3: III група
+        low_income: Низький дохід
+      territory_sign: Територіальна ознака (бригада)
+      select_brigade: Оберіть бригаду
+      account_book_code: Код облікової книги
+      no_book: "— без книги —"
+      submit: Зберегти працівника
+      cancel: Скасувати
+    new:
+      title: Новий працівник
+      back: Назад до працівників
+    edit:
+      title: Редагувати працівника
+    show:
+      identifier: Ідентифікатор книги
+      id_code: ІПН
+      last_name: Прізвище
+      first_name: Ім'я
+      patronic_name: По батькові
+      edit: Редагувати
+      salary_search:
+        amount: Сума
+        year: Рік
+        all_years: Всі роки
+        department: Підрозділ
+        all_departments: Всі підрозділи
+        submit: Пошук зарплат
+      salaries_by_department: Зарплати працівника по підрозділах
+      department: Підрозділ
+      amount: Сума
+      paid_on: Дата виплати
+      no_department: Без підрозділу
+      no_salaries: Зарплат не знайдено
+      monthly_totals: Загальна зарплата по місяцях (підсумки)
+      month: Місяць
+      sick_days: Лікарняні (зведені)
+      period: Період
+      total: Разом
+      income_tax: ПДФО (18%)
+      military_tax: ВЗ (5%)
+      no_sick_days: Немає лікарняних
+      view_all: Переглянути всі
+      add: Додати
+      vacations: Відпускні
+      vacation_amount: Сума
+      no_vacations: Немає відпускних
+    employee:
+      show: Переглянути
+      edit: Редагувати
+      add_sick_day: Додати лікарняний
+      delete: Видалити
+      confirm_delete: Ви впевнені?
+  salaries:
+    form:
+      amount: Сума
+      period: Період
+      position: Посада
+      no_position: Без посади
+      submit: Зберегти зарплату
+      back: Назад
+    inline_form:
+      no_position: Без посади
+      save: Зберегти
+    totals:
+      title: Підсумки за посадами
+      for_period: " за %{period}"
+      all_time: " за весь час"
+      hint: Лише суми зарплат, без податків.
+      department: Підрозділ
+      position: Посада
+      amount: Сума
+      no_position: Без посади
+    salary:
+      edit: Редагувати
+      delete: Видалити
+      confirm_delete: Ви впевнені?
+    index:
+      title: 'Зарплати: %{name}'
+      period: Період
+      show: Показати
+      all_periods: Усі періоди
+      period_totals: Підсумки за періодами
+      headers:
+        period: Період
+        salary: ЗП
+        salary_tax: ПДФО ЗП
+        salary_military: ВЗ ЗП
+        vacation: Відпускні
+        vacation_tax: ПДФО відп.
+        vacation_military: ВЗ відп.
+        sick: Лікарняні
+        sick_tax: ПДФО лік.
+        sick_military: ВЗ лік.
+        total_income: Всього доходу
+        total_taxes: Всього податків
+        total_military: Всього ВЗ
+      amount: Сума
+      department: Підрозділ
+      position: Посада
+      actions: Дії
+      back_to_department: 'Повернутися до підрозділу:'
+      back_to_employee: Назад до працівника
+    show:
+      title: Деталі зарплати
+      salary: Зарплата
+      paid_on: Дата виплати
+      notes: Примітки
+      edit: Редагувати
+      back: Назад
+  sick_days:
+    index:
+      title: Лікарняні для %{name}
+      add: Додати новий лікарняний
+      back: Назад до профілю
+    new:
+      back: "← Назад до працівника"
+      title: 'Новий лікарняний: %{name}'
+    edit:
+      title: Редагувати лікарняний
+    form:
+      select_month: Оберіть місяць
+      pfu: ПФУ
+      enterprise: Підприємство
+      save: Зберегти
+      cancel: Скасувати
+    list:
+      empty: Записів про лікарняні поки що немає.
+    table:
+      period: Період
+      pfu: ФСС (ПФУ)
+      enterprise: Підприємство
+      total: Разом
+      actions: Дії
+    summary:
+      total_for: 'РАЗОМ ЗА %{period}:'
+    row:
+      confirm_delete: Ви впевнені?
+  sick_day_entries:
+    new:
+      title: Додати лікарняний
+      search_label: Пошук за частиною ІПН або ПІБ
+      search_placeholder: Частина ІПН або ПІБ
+      search: Пошук
+      reset: Скинути
+      found: 'Знайдено:'
+    form:
+      employee: Працівник
+      select_employee: Оберіть працівника
+      other_search: Оберіть інший запит для пошуку працівника.
+      period: Період
+      pfu: Лікарняний за рахунок ПФУ
+      enterprise: Лікарняний за рахунок підприємства
+      save: Зберегти
+      cancel: Скасувати
+  vacations:
+    index:
+      title: Відпускні для %{name}
+      add: Додати нову відпустку
+      back: Назад до профілю
+      filters: Фільтри пошуку
+      start_date: Дата початку (від)
+      end_date: Дата закінчення (до)
+      amount_from: Сума відпускних (від)
+      search: Пошук
+      reset: Скинути
+      period: Період
+      amount: Сума відпускних
+      actions: Дії
+      edit: Редагувати
+      total: 'Загальна сума відпускних: %{amount}'
+      empty: Записів про відпускні поки що немає.
+    new:
+      back: "← Назад до працівника"
+      title: 'Нова відпустка: %{name}'
+    edit:
+      back: "← Назад до працівника"
+      title: 'Редагувати відпустку: %{name}'
+      delete: Видалити
+      confirm_delete: Ви впевнені?
+    form:
+      period: Період
+      amount: Сума відпустки
+      save: Зберегти
+      cancel: Скасувати
+    table:
+      period: Період
+      amount: Сума відпустки
+      income_tax: ПДФО
+      military_tax: ВЗ
+      edit: Редагувати
+      delete: Видалити
+      confirm_delete: Ви впевнені?
+  vacation_entries:
+    new:
+      title: Додати відпустку
+      search_label: Пошук за частиною ІПН або ПІБ
+      search_placeholder: Частина ІПН або ПІБ
+      search: Пошук
+      reset: Скинути
+      found: 'Знайдено:'
+    form:
+      employee: Працівник
+      select_employee: Оберіть працівника
+      other_search: Оберіть інший запит для пошуку працівника.
+      period: Період
+      vacation_amount: Сума відпустки
+      save: Зберегти
+      cancel: Скасувати
+  department_employees:
+    new:
+      title: Додати працівників до %{department}
+      id_code: ІПН
+      last_name: Прізвище
+      first_name: Ім'я
+      patronic_name: По батькові
+      submit: Пошук
+      clear: Очистити
+      position: Посада
+      no_position: Без посади
+      position_hint: Обрана посада буде додана всім вибраним працівникам. Працівник
+        може мати кілька посад.
+      add_all: Додати всіх
+      add_employees: Додати працівників
+      selected_count: 'Вибрано: %{count}'
+  department_employee_positions:
+    edit:
+      title: Посади працівника
+      subtitle: "%{employee} — %{department}"
+      assigned_title: Посади працівника
+      edit: "✏️ Редагувати"
+      edit_title: Редагувати посаду
+      delete: "❌ Видалити"
+      delete_title: Видалити посаду
+      confirm_delete: Видалити посаду «%{position}»?
+      empty: У працівника ще немає посад у цьому підрозділі.
+      choose: Оберіть посади в цьому підрозділі
+      no_positions: У цьому підрозділі ще немає посад. Додайте посаду до довідника
+        підрозділу.
+      hint: Якщо не обрати жодної посади, працівник залишиться в підрозділі без посади.
+      save: Зберегти
+      back: Назад
+      add_title: Додати посаду до підрозділу
+      add_hint: Нову посаду буде додано до довідника «%{department}». Після створення
+        вона з’явиться у списку вище.
+      position_name: Назва посади
+      add: Додати посаду
+  reports:
+    index:
+      title: Зведений звіт по зарплатах (по відділах)
+      year: Рік
+      all_years: Всі роки
+      month: Місяць
+      all_months: Всі місяці
+      department: Відділ
+      all_departments: Всі відділи
+      filter: Фільтрувати
+      results: Результати звіту
+      headers:
+        department: Відділ
+        gross_salary: Брутто зп
+        net_salary: Чиста зп
+        income_tax: ПДФО
+        military_tax: Військовий збір
+      empty: Даних за вибраний період не знайдено.
+      grand_total: Загальний підсумок
+    summary:
+      title: Зведений звіт по зарплатах (Pivot)
+      period: Період
+      show: Показати
+      export_csv: Експорт CSV
+      brigade: Бригада
+      book: Книга
+      brigade_total: "%{brigade} — Підсумок"
+      grand_total: Всього
+      empty: Даних для звіту не знайдено.
+    detailed:
+      title: Детальний звіт по співробітникам
+      date_from: З дати
+      date_to: По дату
+      department: Підрозділ
+      all_departments: Всі підрозділи
+      position: Посада
+      all_positions: Всі посади
+      brigade: Бригада
+      all_brigades: Всі бригади
+      book: Книга
+      all_books: Всі книги
+      employee_search: Співробітник (ПІБ / ІПН)
+      employee_placeholder: ПІБ або ІПН
+      filter: Фільтрувати
+      reset: Скинути
+      export_csv: Експорт CSV
+      total: Загалом
+      empty: Даних за вибрані фільтри не знайдено.
+    csv:
+      brigade: Бригада
+      book: Книга
+      total: Всього
+      brigade_total: "%{brigade} — Підсумок"
+    columns:
+      id_code: ІПН
+      book_code: Код книги
+      brigade: Бригада
+      department: Підрозділ
+      full_name: ПІБ
+      base_salary: Базова зп
+      salary_income_tax: ПДФО із зарплати
+      salary_military_tax: ВЗ із зарплати
+      salary_net: Зарплата на руки
+      vacation_amount: Відпускні
+      vacation_income_tax: ПДФО з відпускних
+      vacation_military_tax: ВЗ з відпускних
+      sick_total: Лікарняні
+      sick_pdfo: ПДФО з лікарняних
+      sick_military: ВЗ з лікарняних
+      gross_vacation: Брутто зп+відп
+      total_income: Загальний дохід (зп+вп+лік)
+      total_tax: Загальний податок (зп+вп+лік)
+      total_military: Загальний ВЗ (зп+вп+лік)
+      net_pay: Чиста виплата
+      salary_amount: Зарплата
+      total_salary: Всього зарплат
+      salary_gross_vacation: Зарплата + відпускні (брутто)
+      salary_vacation_income_tax: ПДФО із зп + відпускних
+    detailed_columns:
+      id_code: ІПН
+      book_code: Код книги
+      brigade: Бригада
+      department: Підрозділ
+      full_name: ПІБ
+      base_salary: Базова зп
+      salary_income_tax: зп податок
+      salary_military_tax: зп вз
+      salary_net: зп чиста
+      vacation_amount: відпускні
+      vacation_income_tax: відп податок
+      vacation_military_tax: відп вз
+      sick_total: лікарняні
+      sick_pdfo: лік податок
+      sick_military: лік вз
+      gross_vacation: Брутто зп+відп
+      total_income: Загальний дохід
+      total_tax: Загальний податок
+      total_military: Загальний вз
+      net_pay: Чиста виплата
+    summary_columns:
+      salary_amount: Зарплата
+      salary_income_tax: ПДФО із зарплати
+      salary_military_tax: ВЗ із зарплати
+      salary_net: Зарплата на руки
+      vacation_amount: Відпускні
+      vacation_income_tax: ПДФО з відпускних
+      vacation_military_tax: ВЗ з відпускних
+      sick_total: Лікарняні
+      sick_pdfo: ПДФО з лікарняних
+      sick_military: ВЗ з лікарняних
+      total_salary: Всього зарплат
+      total_income: Загальний дохід (зп+вп+лік)
+      total_tax: Загальний податок (зп+вп+лік)
+      total_military: Загальний ВЗ (зп+вп+лік)
+      salary_gross_vacation: Зарплата + відпускні (брутто)
+      salary_vacation_income_tax: ПДФО із зп + відпускних
+  historical_imports:
+    new:
+      title: Імпорт старих даних
+      file: CSV-файл
+      data_type: Тип даних (якщо у файлі немає колонки type)
+      auto: Автоматично (за колонкою type)
+      salary: Зарплата
+      sick_day: Лікарняні
+      vacation: Відпускні
+      submit: Імпортувати
+      format_title: Формат файлу
+      download_sample: Завантажити зразок CSV
+      intro_html: CSV з розділювачем <code>;</code> або <code>,</code>. Працівник
+        шукається за <code>id_code</code>/<code>passport</code> (ІПН, РНОКПП або номер
+        паспорта) чи за <code>identifier</code> (код книги).
+      columns:
+        column: Колонка
+        meaning: Що означає
+        when: Коли заповнювати
+        type:
+          meaning_html: 'Тип запису: <code>salary</code> (зарплата), <code>sick_day</code>
+            (лікарняні) або <code>vacation</code> (відпускні).'
+          when_html: Якщо у файлі змішані типи. Якщо колонки немає, тип береться з
+            поля «Тип даних» у формі.
+        id_code:
+          meaning: ІПН / РНОКПП або номер паспорта працівника.
+          when_html: 'Одна з двох колонок для пошуку працівника: <code>id_code</code>
+            або <code>identifier</code>.'
+        identifier:
+          meaning: Код книги працівника.
+          when_html: Альтернатива <code>id_code</code>, якщо ІПН/паспорта немає у
+            файлі.
+        period:
+          meaning_html: Місяць нарахування у форматі <code>YYYY-MM</code> (наприклад,
+            <code>2020-03</code>).
+          when: Завжди.
+        amount:
+          meaning: Сума зарплати в гривнях.
+          when_html: Тільки для <code>salary</code>.
+        pfu_amount:
+          meaning: Сума лікарняних за рахунок ПФУ / соцфонду, грн.
+          when_html: Тільки для <code>sick_day</code>.
+        enterprise_amount:
+          meaning: Сума лікарняних за рахунок підприємства, грн.
+          when_html: Тільки для <code>sick_day</code>.
+        vacation_amount:
+          meaning: Сума відпускних, грн.
+          when_html: Тільки для <code>vacation</code>.
+        income_tax:
+          meaning: Утриманий ПДФО, грн.
+          when_html: Необов'язково; якщо порожньо — вважається <code>0</code>.
+        military_tax:
+          meaning: Утриманий військовий збір, грн.
+          when_html: Необов'язково; якщо порожньо — вважається <code>0</code>.
+        net_amount:
+          meaning: Сума до виплати («на руки»), грн.
+          when_html: Необов'язково; якщо порожньо — сума мінус податки.
+        department:
+          meaning: 'Підрозділ: назва (без урахування регістру) або числовий id.'
+          when: Необов'язково. Використовується, щоб розрізняти зарплати за підрозділами
+            в одному місяці.
+        paid_on:
+          meaning_html: Дата виплати у форматі <code>YYYY-MM-DD</code>.
+          when_html: Необов'язково (тільки <code>salary</code>); за замовчуванням
+            — перший день <code>period</code>.
+      sample_hint: Зразок містить лише заголовки — додайте до нього рядки з даними.
+      taxes_html: Податки кожного рядка зберігаються без перерахунку, як у файлі.
+        Після імпорту підсумки за місяць перераховуються податковим калькулятором
+        для кожного працівника, місяця й типу доходу, тому імпортовані дані одразу
+        з'являються у звітах. Якщо <code>net_amount</code> не вказано, він обчислюється
+        як сума мінус податки.
+      update_hint: Рядок зарплати оновлює наявний запис із тим самим працівником,
+        місяцем і підрозділом; зарплати за той самий місяць у різних підрозділах зберігаються
+        окремо.
+    errors:
+      no_headers: CSV не містить заголовків
+      unknown_type: невідомий тип даних (очікується salary, sick_day або vacation)
+      employee_not_found: працівника з кодом %{code} не знайдено
+      invalid_period: некоректний період %{period}
+      row: 'Рядок %{line}: %{message}'
+  settings:
+    dashboard:
+      title: Налаштування системи
+      territory_title: "\U0001F3E2 Територіальні ознаки (бригади)"
+      territory_description: Керуйте списком бригад / територіальних ознак, які можна
+        призначати працівникам.
+      add_brigade: Додати бригаду
+      view_all: Переглянути всі
+      taxes_title: "\U0001F4B0 Податки"
+      taxes_description: Керуйте ставками податків та порогами для розрахунку заробітної
+        плати.
+      edit_taxes: Редагувати налаштування
+      books_title: "\U0001F4DA Облікові книги"
+      books_description: 'Керуйте книгами: назва, номер книги, номер сторінки.'
+      add_book: Додати книгу
+    account_books:
+      index:
+        title: Облікові книги
+        back: Назад до налаштувань
+        add: Додати нову
+        code: Код книги
+        action: Дія
+        edit: Редагувати
+        delete: Видалити
+        confirm_delete: Ви дійсно хочете видалити цю книгу?
+        empty: Книг не знайдено. Додайте першу.
+      new:
+        title: Нова облікова книга
+        heading: Додати облікову книгу
+        back: Назад до списку
+        errors: 'Помилки:'
+        code_label: Код книги (наприклад Б11)
+        placeholder: Б11
+        format_hint: 'Формат: літера бригади + номери (наприклад Б11)'
+        save: Зберегти
+        cancel: Скасувати
+      edit:
+        title: Редагувати книгу
+        heading: Редагувати облікову книгу
+        back: Назад до списку
+        errors: 'Помилки:'
+        code_label: Код книги (наприклад Б11)
+        placeholder: Б11
+        format_hint: 'Формат: літера бригади + номери (наприклад Б11)'
+        save: Зберегти
+        cancel: Скасувати
+    territory_signs:
+      index:
+        title: Територіальні ознаки
+        heading: Територіальні ознаки (бригади)
+        add: Додати нову
+        back: Назад до налаштувань
+        name: Назва бригади
+        code: Код (перша літера)
+        action: Дія
+        edit: Редагувати
+        delete: Видалити
+        confirm_delete: Ви дійсно хочете видалити цю бригаду?
+        empty: Бригад не знайдено. Додайте першу.
+      new:
+        title: Нова бригада
+        heading: Додати бригаду
+        back: Назад до списку
+        errors: 'Помилки:'
+        name: Назва бригади
+        name_placeholder: 'Наприклад: Бригада А'
+        save: Зберегти
+        cancel: Скасувати
+      edit:
+        title: Редагувати бригаду
+        heading: Редагувати бригаду
+        back: Назад до списку
+        errors: 'Помилки:'
+        name: Назва бригади
+        save: Зберегти
+        cancel: Скасувати
+    tax_settings:
+      edit:
+        title: Налаштування податків
+        back: Назад до налаштувань
+        errors: 'Помилки:'
+        income_rate: Ставка податку на доходи (частка)
+        income_hint: 'Наприклад: 0.18 для 18%'
+        military_rate: Ставка військового збору (частка)
+        military_hint: 'Наприклад: 0.05 для 5%'
+        gran_dohid: Граничний дохід для ПСП, грн
+        psp: Податкова соціальна пільга, грн
+        save: Зберегти
+        cancel: Скасувати
+  users:
+    index:
+      logout: Вийти
+      employees: Список працівників
+  pagination:
+    page_of: Сторінка %{page} з %{last}
+  devise_views:
+    sessions:
+      title: Увійти
+      submit: Увійти
+    registrations:
+      new_title: Реєстрація
+      sign_up: Зареєструватися
+      edit_title: Редагувати обліковий запис
+      waiting_confirmation: 'Очікується підтвердження для: %{email}'
+      password_hint: Залиште порожнім, якщо не хочете змінювати
+      current_password_hint: Потрібен поточний пароль для підтвердження змін
+      update: Оновити
+      cancel_title: Скасувати обліковий запис
+      unhappy: Незадоволені?
+      cancel_account: Скасувати обліковий запис
+      confirm: Ви впевнені?
+      back: Назад
+    passwords:
+      new_title: Забули пароль?
+      send_reset: Надіслати інструкції для скидання пароля
+      edit_title: Змінити пароль
+      new_password: Новий пароль
+      confirm_password: Підтвердіть новий пароль
+      submit: Змінити пароль
+    confirmations:
+      title: Надіслати інструкції для підтвердження
+      submit: Надіслати інструкції для підтвердження
+    unlocks:
+      title: Надіслати інструкції для розблокування
+      submit: Надіслати інструкції для розблокування
+    links:
+      login: Увійти
+      sign_up: Зареєструватися
+      forgot: Забули пароль?
+      no_confirmation: Не отримали інструкції для підтвердження?
+      no_unlock: Не отримали інструкції для розблокування?
+      sign_in_with: Увійти через %{provider}
+    min_chars: Мінімум %{count} символів
+    mailers:
+      welcome: Вітаємо, %{email}!
+      confirm_text: 'Підтвердьте електронну пошту за посиланням нижче:'
+      confirm_account: Підтвердити обліковий запис
+      hello: Вітаємо, %{email}!
+      reset_request: Хтось запитав посилання для зміни пароля. Ви можете зробити це
+        за посиланням нижче.
+      change_password: Змінити пароль
+      ignore: Якщо ви не запитували це, проігноруйте цей лист.
+      password_wont_change: Пароль не зміниться, доки ви не перейдете за посиланням
+        вище та не створите новий.
+      password_changed: Повідомляємо, що ваш пароль було змінено.
+      email_changed_to: Повідомляємо, що вашу електронну пошту змінюють на %{email}.
+      email_changed: Повідомляємо, що вашу електронну пошту змінено на %{email}.
+      locked: Ваш обліковий запис заблоковано через надмірну кількість невдалих спроб
+        входу.
+      unlock_text: 'Натисніть посилання нижче, щоб розблокувати обліковий запис:'
+      unlock_account: Розблокувати обліковий запис
+  errors:
+    messages:
+      not_saved:
+        one: '1 помилка завадила зберегти %{resource}:'
+        other: "%{count} помилок завадили зберегти %{resource}:"
+  flash:
+    departments:
+      created: Підрозділ успішно створено.
+      updated: Підрозділ успішно оновлено.
+    employees:
+      not_found: Співробітника не знайдено.
+      created: Співробітника успішно створено.
+      updated: Співробітника успішно оновлено.
+      deleted: Співробітника успішно видалено.
+    salaries:
+      created: Зарплату успішно додано.
+      updated: Зарплату успішно оновлено.
+      deleted: Зарплату успішно видалено.
+    sick_days:
+      created: Лікарняний успішно додано.
+      updated: Лікарняний успішно оновлено.
+      deleted: Лікарняний успішно видалено.
+    vacations:
+      created: Відпустку успішно додано.
+      updated: Відпустку успішно оновлено.
+      deleted: Відпустку успішно видалено.
+    sick_day_entries:
+      created: Лікарняний успішно додано.
+    vacation_entries:
+      created: Відпустку успішно додано.
+    department_employees:
+      added:
+        one: 'Додано працівників: %{count}.'
+        other: 'Додано працівників: %{count}.'
+      removed: Працівника успішно видалено з підрозділу.
+      not_found: Працівника не знайдено в цьому підрозділі.
+      no_selection: Не вибрано жодного працівника.
+      duplicate_position: Вибрані працівники вже мають цю посаду в підрозділі.
+      duplicate_department: Вибрані працівники вже перебувають у цьому підрозділі.
+    department_employee_positions:
+      updated: Посади працівника успішно оновлено.
+      not_found: Посаду не знайдено в цьому підрозділі.
+      deleted: Посаду працівника видалено.
+    department_positions:
+      created: Посаду додано до підрозділу.
+    historical_imports:
+      select_file: Оберіть CSV-файл для імпорту.
+      invalid_csv: 'Некоректний CSV-файл: %{message}'
+      completed: 'Імпорт завершено: додано %{created}, оновлено %{updated}, пропущено
+        %{skipped}.'
+    settings:
+      account_books:
+        created: Книгу додано.
+        updated: Книгу оновлено.
+        deleted: Книгу видалено.
+      territory_signs:
+        created: Територіальну ознаку додано.
+        updated: Територіальну ознаку оновлено.
+        deleted: Територіальну ознаку видалено.
+      tax_settings:
+        updated: Налаштування податків оновлено.

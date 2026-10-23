@@ -16,7 +16,7 @@ class DepartmentPositionsController < ApplicationController
     @position = @department.positions.new(position_params)
 
     if @position.save
-      redirect_to after_create_path, notice: 'Посаду додано до підрозділу.'
+      redirect_to after_create_path, notice: t('flash.department_positions.created')
     else
       redirect_to after_create_path, alert: @position.errors.full_messages.to_sentence
     end

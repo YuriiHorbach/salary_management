@@ -39,7 +39,7 @@ RSpec.describe 'Department employee positions', :js, type: :system do
 
     uncheck "position_#{manager_position.id}"
     check "position_#{engineer_position.id}"
-    click_button 'Зберегти'
+    click_button I18n.t('department_employee_positions.edit.save')
 
     expect(page).to have_current_path(department_path(department), ignore_query: true)
 
@@ -53,7 +53,7 @@ RSpec.describe 'Department employee positions', :js, type: :system do
     visit edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id)
 
     within("#assigned_position_#{manager_position.id}") do
-      click_link '✏️ Редагувати'
+      click_link I18n.t('department_employee_positions.edit.edit')
     end
 
     expect(page).to have_css("#position_label_#{manager_position.id}.ring-2")
@@ -80,12 +80,12 @@ RSpec.describe 'Department employee positions', :js, type: :system do
       edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id),
       ignore_query: true
     )
-    expect(page).to have_text('У працівника ще немає посад у цьому підрозділі.')
+    expect(page).to have_text(I18n.t('department_employee_positions.edit.empty'))
     visit department_path(department)
 
     within("#department_employee_#{employee.id}") do
       expect(page).to have_text('Kovalenko')
-      expect(page).to have_link('Додати посаду')
+      expect(page).to have_link(I18n.t('departments.show.add_position'))
       expect(page).not_to have_text('Manager')
     end
 
@@ -94,7 +94,7 @@ RSpec.describe 'Department employee positions', :js, type: :system do
 
   def delete_position(position)
     within("#assigned_position_#{position.id}") do
-      accept_confirm { click_link '❌ Видалити' }
+      accept_confirm { click_link I18n.t('department_employee_positions.edit.delete') }
     end
   end
 end

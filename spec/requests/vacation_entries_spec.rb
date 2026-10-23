@@ -92,7 +92,7 @@ RSpec.describe 'VacationEntries', type: :request do
       doc = Nokogiri::HTML(response.body)
 
       expect(doc.at_css('#vacation_employee_search_count').text.strip).to eq('0')
-      expect(doc.text).to include('Працівників за таким запитом не знайдено.')
+      expect(doc.text).to include(I18n.t('common.no_matches'))
     end
 
     it 'keeps the search term after filtering' do
@@ -109,14 +109,14 @@ RSpec.describe 'VacationEntries', type: :request do
       amount_input = Nokogiri::HTML(response.body).at_css('input[name="vacation[vacation_amount]"]')
 
       expect(amount_input['value']).to be_blank
-      expect(response.body).to include('1000,00')
+      expect(response.body).to include(I18n.t('common.example'))
     end
 
     it 'renders the link in the additional navigation menu' do
       get root_path
 
       expect(response.body).to include(new_vacation_entry_path)
-      expect(response.body).to include('Відпустки')
+      expect(response.body).to include(I18n.t('navigation.vacations'))
     end
 
     context 'when a current working month is selected' do
@@ -149,7 +149,7 @@ RSpec.describe 'VacationEntries', type: :request do
       expect(vacation.vacation_amount_cents).to eq(10_000)
       expect(vacation.income_tax_cents).to eq(TaxCalculator.call(amount_cents: 10_000, simple: true)[:income_tax_cents])
       expect(response).to redirect_to(employee_vacations_path(employee))
-      expect(flash[:notice]).to eq('Відпустку успішно додано.')
+      expect(flash[:notice]).to eq(I18n.t('flash.vacation_entries.created'))
     end
 
     it 'renders the form with an error when no employee is selected' do
@@ -160,7 +160,7 @@ RSpec.describe 'VacationEntries', type: :request do
       end.not_to change(Vacation, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('Працівник')
+      expect(response.body).to include(I18n.t('common.employee'))
     end
 
     it 'renders the form with an error when the period is blank' do
@@ -171,7 +171,7 @@ RSpec.describe 'VacationEntries', type: :request do
       end.not_to change(Vacation, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('Період')
+      expect(response.body).to include(I18n.t('common.period'))
     end
 
     it 're-selects the chosen employee when a different validation fails' do

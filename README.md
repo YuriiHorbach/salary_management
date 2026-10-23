@@ -1,8 +1,8 @@
 # Salary Management
 
-A Rails application for managing employees, departments, positions, salaries, vacations, sick leave, taxes, and payroll reports. The UI is in Ukrainian; developer documentation is in English.
+A Rails application for managing employees, departments, positions, salaries, vacations, sick leave, taxes, and payroll reports. The UI is available in English, Ukrainian, and German (English is the default); developer documentation is in English.
 
-**Contents:** [Features](#features) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quick start](#quick-start-with-docker) · [Local development](#local-development) · [Environment variables](#environment-variables) · [Testing](#testing) · [Tailwind](#tailwind-css) · [Desktop app](#desktop-app) · [Docs](#documentation) · [Security](#security) · [Contributing](#contributing)
+**Contents:** [Features](#features) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quick start](#quick-start-with-docker) · [Local development](#local-development) · [Environment variables](#environment-variables) · [Testing](#testing) · [Localization](#localization) · [Tailwind](#tailwind-css) · [Desktop app](#desktop-app) · [Docs](#documentation) · [Security](#security) · [Contributing](#contributing)
 
 ## Features
 
@@ -14,6 +14,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 - Historical CSV import for previously calculated payroll data.
 - Per-user working month used as the default period for new records.
 - Search, filtering, sorting, and pagination.
+- Multilingual UI (English, Ukrainian, German) with a navbar language switcher.
 
 ## Tech stack
 
@@ -133,6 +134,16 @@ bundle exec rspec
 ```
 
 See [docs/agent-environment.md](docs/agent-environment.md) for isolation details and [docs/task-specs-guide.md](docs/task-specs-guide.md) for spec-writing patterns.
+
+## Localization
+
+The application ships with English (`en`), Ukrainian (`uk`), and German (`de`) locales. English is the default and the fallback for missing translations.
+
+- Translation files live in `config/locales/en.yml`, `uk.yml`, and `de.yml`.
+- Users switch languages from the navbar, which preserves the current path and query string and adds `?locale=uk` (or `de`).
+- Controllers expose the selected locale through `ApplicationController#set_locale`; invalid values fall back to the default locale.
+- Report column headers, CSV exports, validation errors, flash messages, and mailers are all translated.
+- When adding a new locale, update `config.i18n.available_locales` in `config/application.rb` and add the matching YAML file and navbar label under `locales`.
 
 ## Tailwind CSS
 

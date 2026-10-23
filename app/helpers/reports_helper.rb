@@ -20,8 +20,11 @@ module ReportsHelper
     (START_YEAR..Time.now.year).to_a.reverse
   end
 
+  # Builds the month filter options using the active locale's month names.
   def month_options
-    (1..12).map { |m| [Date::MONTHNAMES[m], m] }
+    I18n.t('date.month_names').each_with_index.filter_map do |name, index|
+      [name, index] if index.positive?
+    end
   end
 
   def detailed_report_cell_class(key, emphasize: true)

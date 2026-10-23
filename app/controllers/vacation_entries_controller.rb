@@ -12,7 +12,7 @@ class VacationEntriesController < ApplicationController
     @vacation = Vacation.new(vacation_params)
 
     if @vacation.save
-      redirect_to employee_vacations_path(@vacation.employee), notice: 'Відпустку успішно додано.'
+      redirect_to employee_vacations_path(@vacation.employee), notice: t('flash.vacation_entries.created')
     else
       load_form_data
       render :new, status: :unprocessable_content

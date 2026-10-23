@@ -66,7 +66,7 @@ class SalariesController < ApplicationController
         format.turbo_stream
         format.html do
           redirect_to employee_salaries_path(@employee, period: @salary.period.strftime('%Y-%m')),
-                      notice: 'Salary updated successfully.'
+                      notice: t('flash.salaries.updated')
         end
       end
     else
@@ -81,7 +81,7 @@ class SalariesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to employee_salaries_path(@employee), notice: 'Salary deleted successfully.' }
+      format.html { redirect_to employee_salaries_path(@employee), notice: t('flash.salaries.deleted') }
     end
   end
 
@@ -128,9 +128,9 @@ class SalariesController < ApplicationController
     if @department
       options = { period: @salary.period.strftime('%Y-%m') }
       options[:position] = effective_filter_position if effective_filter_position.present?
-      redirect_to department_path(@department, **options), notice: 'Salary added successfully.'
+      redirect_to department_path(@department, **options), notice: t('flash.salaries.created')
     else
-      redirect_to employee_salaries_path(@employee), notice: 'Salary added successfully.'
+      redirect_to employee_salaries_path(@employee), notice: t('flash.salaries.created')
     end
   end
 

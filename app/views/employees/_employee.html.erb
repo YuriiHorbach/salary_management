@@ -26,21 +26,21 @@
     </div>
     
     <div class="px-2 py-2 flex flex-col space-y-0.5 items-stretch">
-<%= link_to "Show", employee_path(employee),
+<%= link_to t('.show'), employee_path(employee),
           class: "btn btn-primary btn-xs rounded",
           data: { turbo: :false } %>
 
-<%= link_to "Edit", edit_employee_path(employee),
+<%= link_to t('.edit'), edit_employee_path(employee),
           class: "btn btn-primary btn-yellow btn-xs rounded",
           data: { turbo_frame: dom_id(employee) } %>
 
-      <%= link_to 'Add sick day', new_employee_sick_day_path(employee), 
+      <%= link_to t('.add_sick_day'), new_employee_sick_day_path(employee), 
             class: "btn btn-secondary btn-xs rounded",
             data: { turbo: false } %>
 
-      <%= link_to 'Delete', employee_path(employee),
+      <%= link_to t('.delete'), employee_path(employee),
           class: 'btn btn-danger btn-xs rounded',
-          data: { turbo_method: :delete, turbo_confirm: 'Ви впевнені?' } %>
+          data: { turbo_method: :delete, turbo_confirm: t('.confirm_delete') } %>
     </div>
   </div>
 <% end %>

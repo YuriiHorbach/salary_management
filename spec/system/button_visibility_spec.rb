@@ -15,8 +15,8 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     sign_in_user
     visit settings_account_books_path
 
-    # Find the "Додати нову" button
-    add_btn = page.find('a', text: 'Додати нову')
+    # Find the "Add new" button
+    add_btn = page.find('a', text: I18n.t('settings.account_books.index.add'))
     expect(add_btn).to be_visible
 
     # Check computed styles via JavaScript
@@ -41,7 +41,7 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     sign_in_user
     visit settings_territory_signs_path
 
-    add_btn = page.find('a', text: 'Додати нову')
+    add_btn = page.find('a', text: I18n.t('settings.account_books.index.add'))
     expect(add_btn).to be_visible
 
     color = evaluate_script("getComputedStyle(arguments[0]).color", add_btn.native)
@@ -52,13 +52,13 @@ RSpec.describe 'Button visibility', type: :system, js: true do
     sign_in_user
     visit settings_root_path
 
-    add_brigade_btn = page.find('a', text: 'Додати бригаду')
+    add_brigade_btn = page.find('a', text: I18n.t('settings.dashboard.add_brigade'))
     expect(add_brigade_btn).to be_visible
 
     color = evaluate_script("getComputedStyle(arguments[0]).color", add_brigade_btn.native)
     expect(color).to eq('rgb(0, 0, 0)')
 
-    add_book_btn = page.find('a', text: 'Додати книгу')
+    add_book_btn = page.find('a', text: I18n.t('settings.dashboard.add_book'))
     expect(add_book_btn).to be_visible
 
     color = evaluate_script("getComputedStyle(arguments[0]).color", add_book_btn.native)

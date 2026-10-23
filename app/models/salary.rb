@@ -125,14 +125,14 @@ class Salary < ApplicationRecord
 
     return unless duplicates.exists?
 
-    errors.add(:period, 'за цей період уже додано зарплату для цієї посади/підрозділу')
+    errors.add(:period, :period_taken)
   end
 
   def position_belongs_to_department
     return if position.blank? || department_id.blank?
     return if position.department_id == department_id
 
-    errors.add(:position, 'належить іншому підрозділу')
+    errors.add(:position, :position_other_department)
   end
 
   def position_assigned_to_employee
@@ -140,7 +140,7 @@ class Salary < ApplicationRecord
     return if DepartmentEmployee.exists?(employee_id: employee_id, department_id: department_id,
                                          position_id: position_id)
 
-    errors.add(:position, 'не призначена цьому працівнику')
+    errors.add(:position, :position_not_assigned)
   end
 
   def refresh_period_income

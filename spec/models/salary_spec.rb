@@ -58,7 +58,7 @@ RSpec.describe Salary, type: :model do
       duplicate = build(:salary, employee: employee, department: department, period: Date.new(2025, 5, 20))
 
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату для цієї посади/підрозділу')
+      expect(duplicate.errors[:period]).to include('already has a salary for this position/department in this period')
     end
 
     it 'allows salaries in different departments for the same employee and period' do
@@ -80,7 +80,7 @@ RSpec.describe Salary, type: :model do
                                  period: Date.new(2025, 5, 20))
 
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:period]).to include('за цей період уже додано зарплату для цієї посади/підрозділу')
+      expect(duplicate.errors[:period]).to include('already has a salary for this position/department in this period')
     end
 
     it 'allows different positions in the same department for the same period' do
@@ -105,7 +105,7 @@ RSpec.describe Salary, type: :model do
                               period: Date.new(2025, 5, 1))
 
       expect(record).not_to be_valid
-      expect(record.errors[:position]).to include('належить іншому підрозділу')
+      expect(record.errors[:position]).to include('belongs to another department')
     end
 
     it 'rejects a position that is not assigned to the employee' do
@@ -115,7 +115,7 @@ RSpec.describe Salary, type: :model do
                               period: Date.new(2025, 5, 1))
 
       expect(record).not_to be_valid
-      expect(record.errors[:position]).to include('не призначена цьому працівнику')
+      expect(record.errors[:position]).to include('is not assigned to this employee')
     end
 
     it 'allows the same period for another employee' do

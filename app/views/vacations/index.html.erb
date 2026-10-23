@@ -1,38 +1,38 @@
 <div class="container mx-auto px-4 py-6">
   <h1 class="text-2xl font-bold mb-6">
-    Відпускні для <%= @employee.last_name %> <%= @employee.first_name %>
+    <%= t('vacations.index.title', name: "#{@employee.last_name} #{@employee.first_name}") %>
   </h1>
 
   <div class="mb-8">
-    <%= link_to "Додати нову відпустку", new_employee_vacation_path(@employee),
+    <%= link_to t('vacations.index.add'), new_employee_vacation_path(@employee),
         class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm inline-block" %>
 
-    <%= link_to "Назад до профілю", employee_path(@employee),
+    <%= link_to t('vacations.index.back'), employee_path(@employee),
         class: "ml-4 text-gray-600 hover:text-gray-900 underline" %>
   </div>
 
   <div class="mb-8 p-4 border rounded-lg shadow-sm bg-gray-50">
-    <h2 class="text-lg font-semibold mb-4">Фільтри пошуку</h2>
+    <h2 class="text-lg font-semibold mb-4"><%= t('vacations.index.filters') %></h2>
     <%= search_form_for @q, url: employee_vacations_path(@employee) do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="field">
-          <%= f.label :period_gteq, "Дата початку (від)", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.label :period_gteq, t('vacations.index.start_date'), class: "block text-sm font-medium text-gray-700" %>
           <%= f.date_field :period_gteq, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
         </div>
         <div class="field">
-          <%= f.label :period_lteq, "Дата закінчення (до)", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.label :period_lteq, t('vacations.index.end_date'), class: "block text-sm font-medium text-gray-700" %>
           <%= f.date_field :period_lteq, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
         </div>
         <div class="field">
-          <%= f.label :vacation_amount_cents_gteq, "Сума відпускних (від)", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.label :vacation_amount_cents_gteq, t('vacations.index.amount_from'), class: "block text-sm font-medium text-gray-700" %>
           <%= f.number_field :vacation_amount_cents_gteq, step: "0.01", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" %>
         </div>
       </div>
       <div class="mt-4 flex justify-end items-center">
         <button type="submit" class= "btn btn-primary px-4 py-2 rounded-md font-medium transition shadow-sm inline-block">
-          Пошук
+          <%= t('vacations.index.search') %>
         </button>
-        <%= link_to "Скинути", employee_vacations_path(@employee), class: "text-gray-600 hover:text-gray-900 underline px-4 py-2" %>
+        <%= link_to t('vacations.index.reset'), employee_vacations_path(@employee), class: "text-gray-600 hover:text-gray-900 underline px-4 py-2" %>
       </div>
     <% end %>
   </div>
@@ -43,13 +43,13 @@
         <thead class="bg-gray-50">
           <tr>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <%= sort_link(@q, :period, "Період") %>
+              <%= sort_link(@q, :period, t('vacations.index.period')) %>
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <%= sort_link(@q, :vacation_amount_cents, "Сума відпускних") %>
+              <%= sort_link(@q, :vacation_amount_cents, t('vacations.index.amount')) %>
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Дії
+              <%= t('vacations.index.actions') %>
             </th>
           </tr>
         </thead>
@@ -57,13 +57,13 @@
           <% @vacations.each do |vacation| %>
             <tr>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                <%= vacation.period.strftime("%d.%m.%Y") %>
+                <%= l(vacation.period, format: :default) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                 <%= number_to_currency(vacation.vacation_amount) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <%= link_to "Edit", edit_employee_vacation_path(@employee, vacation), class: "text-indigo-600 hover:text-indigo-900" %>
+                <%= link_to t('vacations.index.edit'), edit_employee_vacation_path(@employee, vacation), class: "text-indigo-600 hover:text-indigo-900" %>
               </td>
             </tr>
           <% end %>
@@ -73,11 +73,11 @@
 
     <% if @total_vacation_amount.present? %>
       <div class="mt-6 p-4 border rounded-lg shadow-sm bg-gray-100 text-lg font-semibold">
-        Загальна сума відпускних: <%= number_to_currency(Money.new(@total_vacation_amount, 'UAH')) %>
+        <%= t('vacations.index.total', amount: number_to_currency(Money.new(@total_vacation_amount, 'UAH'))) %>
       </div>
     <% end %>
 
   <% else %>
-    <p class="text-gray-500 italic">Записів про відпускні поки що немає.</p>
+    <p class="text-gray-500 italic"><%= t('vacations.index.empty') %></p>
   <% end %>
 </div>

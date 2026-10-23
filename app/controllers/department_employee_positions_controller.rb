@@ -34,9 +34,11 @@ class DepartmentEmployeePositionsController < ApplicationController
       employee: @employee,
       position_ids: selected_position_ids
     )
-      redirect_to department_path(@department, **@context_params), notice: 'Посади працівника успішно оновлено.'
+      redirect_to department_path(@department, **@context_params),
+                  notice: t('flash.department_employee_positions.updated')
     else
-      redirect_to department_path(@department, **@context_params), alert: 'Посаду не знайдено в цьому підрозділі.'
+      redirect_to department_path(@department, **@context_params),
+                  alert: t('flash.department_employee_positions.not_found')
     end
   end
 
@@ -48,9 +50,9 @@ class DepartmentEmployeePositionsController < ApplicationController
       employee: @employee,
       position: position
     )
-      redirect_to edit_positions_path, notice: 'Посаду працівника видалено.'
+      redirect_to edit_positions_path, notice: t('flash.department_employee_positions.deleted')
     else
-      redirect_to edit_positions_path, alert: 'Посаду не знайдено в цьому підрозділі.'
+      redirect_to edit_positions_path, alert: t('flash.department_employee_positions.not_found')
     end
   end
 

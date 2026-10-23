@@ -49,7 +49,7 @@
 
     <div class="mb-5">
       <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-        <%= form.label :chaes, 'CHAES Rescue member' %>
+        <%= form.label :chaes, t('.chaes') %>
 
       </div>
       <div>
@@ -59,7 +59,7 @@
 
     <div class="mb-5">
     <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-      <%= form.label :contract, 'Contract' %>
+      <%= form.label :contract, t('.contract') %>
 
     </div>
     <div>
@@ -69,12 +69,16 @@
 
     <div class="mb-5">
       <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-        <%= form.label :disability_group, 'Special income sign' %>
+        <%= form.label :disability_group, t('.disability_group') %>
 
       </div>
       <div>
         <%= form.select :disability_group,
-                          [["Немає", 0], ["I група", 1], ["II група", 2], ["III група", 3], ["low income", 4]],
+                          [[t('.disability_options.none'), 0],
+                           [t('.disability_options.group_1'), 1],
+                           [t('.disability_options.group_2'), 2],
+                           [t('.disability_options.group_3'), 3],
+                           [t('.disability_options.low_income'), 4]],
                           {},
                           { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
       </div>
@@ -82,14 +86,14 @@
 
     <div class="mb-5">
       <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-        <%= form.label :territory_sign_id, "Теріторіальна ознака (Бригада)" %>
+        <%= form.label :territory_sign_id, t('.territory_sign') %>
 
       </div>
       <div>
         <%= form.collection_select :territory_sign_id,
                           @territory_signs,
                           :id, :name,
-                          { include_blank: 'Оберіть бригаду' },
+                          { include_blank: t('.select_brigade') },
                           { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
       </div>
     </div>
@@ -97,22 +101,22 @@
     <%= form.fields_for :account_book do |ab_form| %>
       <div class="mb-5">
         <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          <%= ab_form.label :code, "Код облікової книги" %>
+          <%= ab_form.label :code, t('.account_book_code') %>
 
         </div>
         <div>
           <%= ab_form.collection_select :code,
                             @account_book_codes,
                             :to_s, :to_s,
-                            { include_blank: '— без книги —' },
+                            { include_blank: t('.no_book') },
                             { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
         </div>
       </div>
     <% end %>
 
     <div class="mt-3">
-      <%= form.submit "Submit", class: "btn btn-primary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
-      <%= link_to "Cancel", employees_path, class: "btn btn-secondary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
+      <%= form.submit t('.submit'), class: "btn btn-primary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
+      <%= link_to t('.cancel'), employees_path, class: "btn btn-secondary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>
     </div>
   <% end %>
 <% end %>

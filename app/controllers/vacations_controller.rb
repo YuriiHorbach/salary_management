@@ -22,7 +22,7 @@ class VacationsController < ApplicationController
     @vacation = @employee.vacations.build(vacation_params)
 
     if @vacation.save
-      redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно додано.'
+      redirect_to employee_vacations_path(@employee), notice: t('flash.vacations.created')
     else
       puts @vacation.errors.full_messages
       render :new, status: :unprocessable_content
@@ -31,7 +31,7 @@ class VacationsController < ApplicationController
 
   def update
     if @vacation.update(vacation_params)
-      redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно оновлено.'
+      redirect_to employee_vacations_path(@employee), notice: t('flash.vacations.updated')
     else
       render :edit, status: :unprocessable_content
     end
@@ -40,7 +40,7 @@ class VacationsController < ApplicationController
   def destroy
     @vacation.destroy
 
-    redirect_to employee_vacations_path(@employee), notice: 'Відпустку успішно видалено.',
+    redirect_to employee_vacations_path(@employee), notice: t('flash.vacations.deleted'),
                                                     turb_stream: turbo_stream.remove(@vacation)
   end
 

@@ -15,15 +15,15 @@ class DepartmentEmployeesController < ApplicationController
 
   def create
     ids = selected_employee_ids
-    return redirect_with_alert('No employees selected.') if ids.empty?
+    return redirect_with_alert(t('flash.department_employees.no_selection')) if ids.empty?
 
     employee_ids = Employee.where(id: ids).pluck(:id)
-    return redirect_with_alert('No employees selected.') if employee_ids.empty?
+    return redirect_with_alert(t('flash.department_employees.no_selection')) if employee_ids.empty?
 
     position = selected_position
 
     if params[:position_id].present? && position.nil?
-      return redirect_with_alert('Посаду не знайдено в цьому підрозділі.')
+      return redirect_with_alert(t('flash.department_employee_positions.not_found'))
     end
 
     new_ids = employee_ids.reject { |employee_id| assignment_exists?(employee_id, position) }
@@ -31,7 +31,7 @@ class DepartmentEmployeesController < ApplicationController
 
     insert_assignments(new_ids, position)
 
-    redirect_to @department, notice: "Employees added to the department: #{new_ids.size}."
+    redirect_to @department, notice: t('flash.department_employees.added', count: new_ids.size)
   end
 
   def destroy
@@ -39,9 +39,9 @@ class DepartmentEmployeesController < ApplicationController
 
     if assignments.exists?
       assignments.delete_all
-      flash[:notice] = 'Employee was successfully removed from the department.'
+      flash[:notice] = t('flash.department_employees.removed')
     else
-      flash[:alert] = 'Employee not found in the department.'
+      flash[:alert] = t('flash.department_employees.not_found')
     end
 
     redirect_to department_path(params[:department_id])
@@ -92,9 +92,9 @@ class DepartmentEmployeesController < ApplicationController
 
   def duplicate_message(position)
     if position
-      'Selected employees already have this position in the department.'
+      t('flash.department_employees.duplicate_position')
     else
-      'Selected employees are already in this department.'
+      t('flash.department_employees.duplicate_department')
     end
   end
 

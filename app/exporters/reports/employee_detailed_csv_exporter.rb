@@ -21,7 +21,7 @@ module Reports
     private
 
     def header
-      EmployeeDetailedQuery::COLUMN_LABELS.values
+      EmployeeDetailedQuery::COLUMN_LABELS.keys.map { |key| I18n.t("reports.detailed_columns.#{key}") }
     end
 
     def employee_row(employee)
@@ -31,7 +31,7 @@ module Reports
     end
 
     def totals_row
-      ['Загалом', *Array.new(EmployeeDetailedQuery::TEXT_COLUMNS.size - 1, ''), *money_totals]
+      [I18n.t('reports.detailed.total'), *Array.new(EmployeeDetailedQuery::TEXT_COLUMNS.size - 1, ''), *money_totals]
     end
 
     def money_totals

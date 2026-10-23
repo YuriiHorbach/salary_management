@@ -1,4 +1,4 @@
-<h2> Edit employee </h2>
+<h2><%= t('.title') %></h2>
 
 <%= turbo_frame_tag "employee_#{@employee.id}" do %>
   <%= render partial: 'form', employee: @employee %>

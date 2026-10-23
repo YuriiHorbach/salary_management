@@ -3,49 +3,49 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
       <div class="flex flex-col">
-        <%= f.label :id_code_cont, "ID Code", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :id_code_cont, t('.search.id_code'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :id_code_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :last_name_cont, "Прізвище", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :last_name_cont, t('.search.last_name'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :last_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :first_name_cont, "Ім'я", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :first_name_cont, t('.search.first_name'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :first_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :patronic_name_cont, "По батькові", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :patronic_name_cont, t('.search.patronic_name'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :patronic_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :territory_info_cont, "Територія", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :territory_info_cont, t('.search.territory'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :territory_info_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :children_count_gt, "Дітей >", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :children_count_gt, t('.search.children_gt'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.number_field :children_count_gt, min: 0, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :disability_group_eq, "Група", class: "text-xs font-bold text-gray-600 mb-1" %>
-        <%= f.select :disability_group_eq, [["Всі", ""], ["0", 0], ["1", 1], ["2", 2], ["3", 3], ["4", 4]], {}, { class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" } %>
+        <%= f.label :disability_group_eq, t('.search.group'), class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.select :disability_group_eq, [[t('.search.all'), ""], ["0", 0], ["1", 1], ["2", 2], ["3", 3], ["4", 4]], {}, { class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" } %>
       </div>
 
       <div class="flex items-center space-x-2 h-10">
         <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
           <%= f.check_box :chaes_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
-          <%= f.label :chaes_true, "ЧАЕС", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
+          <%= f.label :chaes_true, t('.search.chaes'), class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
 
         <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
           <%= f.check_box :contract_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
-          <%= f.label :contract_true, "Contract", class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
+          <%= f.label :contract_true, t('.search.contract'), class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
 
         <%= f.submit "🔍", class: "btn btn-primary flex-1 font-bold py-2 px-2 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
@@ -57,7 +57,7 @@
 </div>
 
 <div id="employees_actions" class="m-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-  <%= link_to 'Add a new employee', new_employee_path, class: 'btn btn-primary btn-xs font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
+  <%= link_to t('.add'), new_employee_path, class: 'btn btn-primary btn-xs font-medium rounded-lg text-sm w-full sm:w-auto text-center', data: { turbo_frame: dom_id(Employee.new) } %>
 
   <%= render 'shared/pagination',
         pagy: @pagy,
@@ -70,14 +70,14 @@
     <% grid_layout = "grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;" %>
 
     <div class="grid bg-gray-100 border border-gray-200 font-bold text-xs uppercase text-gray-700 items-center" style="<%= grid_layout %>">
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :id_code, "ID") %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :last_name, "ПІБ") %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :children_count, "Діти") %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, "Гр.") %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center">ЧАЕС</div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center">Контр.</div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :territory_info, "Територія") %></div>
-      <div class="px-2 py-3 text-center">Дії</div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :id_code, t('.headers.id')) %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :last_name, t('.headers.full_name')) %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :children_count, t('.headers.children')) %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, t('.headers.group')) %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= t('.headers.chaes') %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= t('.headers.contract') %></div>
+      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :territory_info, t('.headers.territory')) %></div>
+      <div class="px-2 py-3 text-center"><%= t('.headers.actions') %></div>
     </div>
 
     <div class="divide-y divide-gray-200 border-x border-b border-gray-200">
@@ -94,5 +94,5 @@
 </div>
 
 <div class="m-5">
-  <%= link_to '← Home Page', home_pages_path, class: 'text-gray-600 hover:text-blue-700 font-medium text-sm' %>
+  <%= link_to t('.home'), home_pages_path, class: 'text-gray-600 hover:text-blue-700 font-medium text-sm' %>
 </div>

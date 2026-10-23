@@ -56,7 +56,7 @@ RSpec.describe 'Salary position flow', :js, type: :system do
 
     expect(page).to have_no_text('Amount is not a number')
     fill_in 'salary[amount]', with: '500'
-    click_button 'Зберегти'
+    click_button I18n.t('common.save')
 
     expect(page).to have_css("#salary_position_#{employee.id}_#{other_position.id}", text: '500,00')
     expect(Salary.last.position).to eq(other_position)
@@ -74,7 +74,7 @@ RSpec.describe 'Salary position flow', :js, type: :system do
     expect(amount.value.to_f).to eq(1000.0)
 
     select 'Engineer', from: 'salary[position_id]'
-    click_button 'Save Salary Record'
+    click_button I18n.t('salaries.form.submit')
 
     expect(URI.parse(current_url).path).to eq(employee_salaries_path(employee))
 
@@ -89,16 +89,16 @@ RSpec.describe 'Salary position flow', :js, type: :system do
 
   def create_and_assign_position(name)
     visit department_path(department, period: '2025-10')
-    within(employee_row) { click_link 'Додати посаду' }
+    within(employee_row) { click_link I18n.t('departments.show.add_position') }
     fill_in 'position[position_name]', with: name
-    click_button 'Додати посаду'
+    click_button I18n.t('department_employee_positions.edit.add')
     expect(page).to have_css('input[name="position_ids[]"]:checked')
-    click_button 'Зберегти'
+    click_button I18n.t('common.save')
   end
 
   def add_salary(amount, position)
-    within("#salary_position_#{employee.id}_#{position.id}") { click_link '+ Додати' }
+    within("#salary_position_#{employee.id}_#{position.id}") { click_link I18n.t('departments.salary_cell.add') }
     fill_in 'salary[amount]', with: amount
-    click_button 'Зберегти'
+    click_button I18n.t('common.save')
   end
 end

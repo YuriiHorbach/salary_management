@@ -26,7 +26,7 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     fill_in 'sick_day[period]', with: period
     fill_in 'sick_day[pfu_amount]', with: pfu
     fill_in 'sick_day[enterprise_amount]', with: enterprise
-    click_button 'Зберегти'
+    click_button I18n.t('common.save')
   end
 
   it 'filters the employee dropdown and creates a sick day for the selected employee' do
@@ -37,7 +37,7 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
                                                ivanenko.full_name_with_id_code])
 
     fill_in 'employee_search', with: 'петренко'
-    click_button 'Пошук'
+    click_button I18n.t('common.search')
 
     expect(page).to have_text(petrenko.full_name_with_id_code)
     expect(page).not_to have_text(ivanenko.full_name_with_id_code)
@@ -52,7 +52,7 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     visit new_sick_day_entry_path
 
     fill_in 'employee_search', with: '9876'
-    click_button 'Пошук'
+    click_button I18n.t('common.search')
 
     expect(page).to have_text(ivanenko.full_name_with_id_code)
     expect(page).not_to have_text(petrenko.full_name_with_id_code)
@@ -65,10 +65,10 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
   it 'opens the form from the additional navigation menu' do
     visit root_path
 
-    find('details summary', text: 'Додатково').click
-    click_link 'Лікарняні'
+    find('details summary', text: I18n.t('navigation.more')).click
+    click_link I18n.t('navigation.sick_days')
 
     expect(page).to have_current_path(new_sick_day_entry_path)
-    expect(page).to have_text('Додати лікарняний')
+    expect(page).to have_text(I18n.t('sick_day_entries.new.title'))
   end
 end

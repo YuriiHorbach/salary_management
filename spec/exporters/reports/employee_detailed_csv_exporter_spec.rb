@@ -38,8 +38,10 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       expect(described_class.new(result).call).to start_with(bom)
     end
 
-    it 'renders the header from the COLUMN_LABELS values in key order' do
-      expect(parse(described_class.new(result).call).first).to eq(query::COLUMN_LABELS.values)
+    it 'renders the header from the translated column labels in key order' do
+      labels = query::COLUMN_LABELS.keys.map { |key| I18n.t("reports.detailed_columns.#{key}") }
+
+      expect(parse(described_class.new(result).call).first).to eq(labels)
     end
 
     it 'renders the header, one row per employee and the totals row' do
@@ -58,7 +60,7 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
     it 'renders the totals row as a label, empty text cells and money totals' do
       row = parse(described_class.new(result).call).last
 
-      expect(row.first).to eq('Загалом')
+      expect(row.first).to eq(I18n.t('reports.detailed.total'))
       expect(row[1..4]).to eq(['', '', '', ''])
       expect(row[5..]).to eq(
         ['2500,00', '450,00', '125,00', '1925,00', '750,00', '135,00', '37,50',
@@ -81,7 +83,8 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
     it 'renders only the header when there are no employees' do
       empty = { employees: [], totals: {} }
 
-      expect(parse(described_class.new(empty).call)).to eq([query::COLUMN_LABELS.values])
+      labels = query::COLUMN_LABELS.keys.map { |key| I18n.t("reports.detailed_columns.#{key}") }
+      expect(parse(described_class.new(empty).call)).to eq([labels])
     end
   end
 end

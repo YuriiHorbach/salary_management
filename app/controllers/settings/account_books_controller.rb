@@ -17,7 +17,7 @@ class Settings::AccountBooksController < Settings::BaseController
     @account_book = AccountBook.new(account_book_params)
 
     if @account_book.save
-      redirect_to settings_account_books_path, notice: 'Книгу додано.'
+      redirect_to settings_account_books_path, notice: t('flash.settings.account_books.created')
     else
       render :new, status: :unprocessable_content
     end
@@ -25,7 +25,7 @@ class Settings::AccountBooksController < Settings::BaseController
 
   def update
     if @account_book.update(account_book_params)
-      redirect_to settings_account_books_path, notice: 'Книгу оновлено.'
+      redirect_to settings_account_books_path, notice: t('flash.settings.account_books.updated')
     else
       render :edit, status: :unprocessable_content
     end
@@ -33,7 +33,7 @@ class Settings::AccountBooksController < Settings::BaseController
 
   def destroy
     @account_book.destroy
-    redirect_to settings_account_books_path, notice: 'Книгу видалено.'
+    redirect_to settings_account_books_path, notice: t('flash.settings.account_books.deleted')
   end
 
   private

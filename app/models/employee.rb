@@ -154,6 +154,6 @@ class Employee < ApplicationRecord
     return if id_code.blank?
     return if ID_CODE_PATTERNS.any? { |pattern| id_code.match?(pattern) }
 
-    errors.add(:id_code, 'має містити 9–10 цифр або 2 літери та 6 цифр')
+    errors.add(:id_code, :invalid_id_code)
   end
 end

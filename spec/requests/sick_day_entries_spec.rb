@@ -38,22 +38,62 @@ RSpec.describe 'SickDayEntries', type: :request do
       expect(doc.at_css('input[name="sick_day[enterprise_amount]"]')).to be_present
     end
 
-    it 'filters the dropdown by name case-insensitively' do
+    it 'filters the employee list by name case-insensitively' do
       get new_sick_day_entry_path, params: { employee_search: 'петренко' }
 
-      select = Nokogiri::HTML(response.body).at_css('select[name="sick_day[employee_id]"]')
+      doc = Nokogiri::HTML(response.body)
 
-      expect(select.text).to include(petrenko.last_name)
-      expect(select.text).not_to include(ivanenko.last_name)
+      expect(doc.text).to include(petrenko.full_name_with_id_code)
+      expect(doc.text).not_to include(ivanenko.full_name_with_id_code)
     end
 
-    it 'filters the dropdown by a partial id code' do
+    it 'shows employees matching a partial id code as selectable options' do
       get new_sick_day_entry_path, params: { employee_search: '9876' }
 
-      select = Nokogiri::HTML(response.body).at_css('select[name="sick_day[employee_id]"]')
+      doc = Nokogiri::HTML(response.body)
+      radio_values = doc.css('input[type="radio"][name="sick_day[employee_id]"]').map { |radio| radio['value'] }
 
-      expect(select.text).to include(ivanenko.last_name)
-      expect(select.text).not_to include(petrenko.last_name)
+      expect(radio_values).to eq([ivanenko.id.to_s])
+      expect(doc.text).to include(ivanenko.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code)
+    end
+
+    it 'shows a passport book id code match typed in lowercase' do
+      passport_employee = create(:employee, id_code: 'АА123456', last_name: 'Шевченко',
+                                            first_name: 'Тарас', patronic_name: 'Григорович')
+
+      get new_sick_day_entry_path, params: { employee_search: 'аа12' }
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.text).to include(passport_employee.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code, ivanenko.full_name_with_id_code)
+    end
+
+    it 'ignores whitespace around a partial id code' do
+      get new_sick_day_entry_path, params: { employee_search: '  9876  ' }
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.text).to include(ivanenko.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code)
+    end
+
+    it 'shows how many employees matched the partial id code' do
+      get new_sick_day_entry_path, params: { employee_search: '9876' }
+
+      count = Nokogiri::HTML(response.body).at_css('#sick_day_employee_search_count')
+
+      expect(count.text.strip).to eq('1')
+    end
+
+    it 'shows an empty state when no employee matches' do
+      get new_sick_day_entry_path, params: { employee_search: '0000' }
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.at_css('#sick_day_employee_search_count').text.strip).to eq('0')
+      expect(doc.text).to include('Працівників за таким запитом не знайдено.')
     end
 
     it 'keeps the search term in the search field' do
@@ -140,6 +180,24 @@ RSpec.describe 'SickDayEntries', type: :request do
       selected_values = select.css('option[selected]').map { |option| option['value'] }
 
       expect(selected_values).to include(employee.id.to_s)
+    end
+
+    it 'keeps the partially filtered employee list after a failed create' do
+      matching_employee = create(:employee, id_code: '9876543210')
+      non_matching_employee = create(:employee, id_code: '1111111111')
+
+      post sick_day_entries_path, params: {
+        employee_search: '9876',
+        sick_day: { employee_id: matching_employee.id, period: '', pfu_amount: '10.00' }
+      }
+
+      doc = Nokogiri::HTML(response.body)
+      selected_radio = doc.at_css(
+        "input[type='radio'][name='sick_day[employee_id]'][value='#{matching_employee.id}'][checked]"
+      )
+      expect(selected_radio).to be_present
+      expect(doc.text).to include(matching_employee.full_name_with_id_code)
+      expect(doc.text).not_to include(non_matching_employee.full_name_with_id_code)
     end
 
     it 'keeps the search filter after a failed create' do

@@ -18,7 +18,11 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
   end
 
   def submit_sick_day(employee, period:, pfu:, enterprise:)
-    select employee.full_name_with_id_code, from: 'sick_day_employee_id'
+    if page.has_css?("#sick_day_employee_id_#{employee.id}", visible: :all)
+      choose "sick_day_employee_id_#{employee.id}"
+    else
+      select employee.full_name_with_id_code, from: 'sick_day_employee_id'
+    end
     fill_in 'sick_day[period]', with: period
     fill_in 'sick_day[pfu_amount]', with: pfu
     fill_in 'sick_day[enterprise_amount]', with: enterprise
@@ -35,13 +39,27 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     fill_in 'employee_search', with: 'петренко'
     click_button 'Пошук'
 
-    expect(page).to have_select('sick_day_employee_id', with_options: [petrenko.full_name_with_id_code])
-    expect(page).not_to have_select('sick_day_employee_id', with_options: [ivanenko.full_name_with_id_code])
+    expect(page).to have_text(petrenko.full_name_with_id_code)
+    expect(page).not_to have_text(ivanenko.full_name_with_id_code)
 
     submit_sick_day(petrenko, period: '2026-10', pfu: '60.00', enterprise: '40.00')
 
     expect(page).to have_current_path(employee_sick_days_path(petrenko), wait: 10)
     expect(page).to have_text('100,00')
+  end
+
+  it 'shows the matching employees by a partial id code and allows choosing one' do
+    visit new_sick_day_entry_path
+
+    fill_in 'employee_search', with: '9876'
+    click_button 'Пошук'
+
+    expect(page).to have_text(ivanenko.full_name_with_id_code)
+    expect(page).not_to have_text(petrenko.full_name_with_id_code)
+
+    choose "sick_day_employee_id_#{ivanenko.id}"
+
+    expect(page).to have_checked_field("sick_day_employee_id_#{ivanenko.id}")
   end
 
   it 'opens the form from the additional navigation menu' do

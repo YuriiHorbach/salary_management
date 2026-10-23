@@ -1,303 +1,199 @@
 # Salary Management
 
-[English Version](#part-1-english-version) | [Українська версія](#частина-2-українська-версія)
+A Rails application for managing employees, departments, positions, salaries, vacations, sick leave, taxes, and payroll reports. The UI is in Ukrainian; developer documentation is in English.
 
----
+**Contents:** [Features](#features) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quick start](#quick-start-with-docker) · [Local development](#local-development) · [Environment variables](#environment-variables) · [Testing](#testing) · [Tailwind](#tailwind-css) · [Desktop app](#desktop-app) · [Docs](#documentation) · [Security](#security) · [Contributing](#contributing)
 
-## Part 1: English Version
+## Features
 
-### 1. Overview & Tech Stack
-- **Backend/Frontend:** Ruby on Rails, PostgreSQL, Tailwind CSS (`tailwindcss-rails`).
-- **Desktop Shell:** Electron (cross-platform desktop wrapper).
-- **Isolation & Safety:** Dedicated environment guards to prevent accidental data loss in production/development databases.
+- Employee records with tax settings, account books, and territory assignments.
+- Departments, positions, and employee-position assignments.
+- Salary, vacation, and sick-day records with automatic tax calculation.
+- Monthly income aggregates in `employee_period_incomes`.
+- Summary and detailed payroll reports.
+- Historical CSV import for previously calculated payroll data.
+- Per-user working month used as the default period for new records.
+- Search, filtering, sorting, and pagination.
 
----
+## Tech stack
 
-### 2. Styling (Tailwind CSS)
-Tailwind CSS is compiled via the `tailwindcss-rails` gem, meaning `node`/`npm` installation is optional for basic Rails development. After modifying views, compile styles using:
-```bash
-bin/rails tailwindcss:build
-```
-In development mode, watch for changes automatically:
-```bash
-bin/rails tailwindcss:watch
-```
-*Commit compiled assets (`app/assets/builds/tailwind.css`) along with view changes so styles are available after `git clone`.*
+| Layer | Technology |
+|---|---|
+| Language | Ruby 3.4.3 |
+| Framework | Rails 8.0 |
+| Database | PostgreSQL 16 |
+| Frontend | Hotwire (Turbo), Stimulus, Tailwind CSS |
+| Authentication | Devise |
+| Search and pagination | Ransack, Pagy |
+| Money handling | money-rails |
+| Desktop shell | Electron |
 
----
+## Requirements
 
-### 3. Running via Docker
-Requires Docker Desktop. Start the application with a single command:
-```bash
-docker compose up --build
-```
-- **App URL:** http://localhost:3000
-- **PostgreSQL:** `127.0.0.1:5433:5432` (bound locally to prevent external exposure).
+- Ruby 3.4.3 and Bundler
+- PostgreSQL 16, local or via Docker
+- Docker Desktop (recommended)
+- Node.js 22.12+ only for the Electron desktop shell
 
-On first startup, the `web` container automatically runs `db:prepare` via `bin/docker-entrypoint`.
+## Quick start with Docker
 
-- Stop without losing data: `docker compose down`
-- Completely reset database (removes data volume): `docker compose down -v`
-
----
-
-### 4. Database Backup & Restore Safety
-Backup scripts run via Docker Compose without requiring a local `psql` installation.
-
-- **Create a backup:**
-  ```bash
-  bin/backup-db
-  ```
-- **Restore a database:**
-  ```bash
-  bin/restore-db backups/salary-management-dump.sql --yes
-  ```
-*Warning: `restore-db` deletes and recreates the target database. Always verify target database names to prevent data loss.*
-
----
-
-### 5. Desktop Shell & Shortcuts
-The application can run as a standalone desktop app via Electron.
-
-#### Create Desktop Shortcut:
-```bash
-cd desktop
-npm install
-npm run shortcut
-```
-This automatically detects your OS and creates a launcher (`.command` on macOS, `.cmd` on Windows, `.desktop` on Linux).
-
----
-
-### 6. Security & Environment Best Practices
-1. **Credentials Management:** Never hardcode passwords or secrets. Use a local `.env` file in the project root (ignored by git).
-2. **Database Protection:** Built-in Rake guards (`lib/tasks/protect_real_db.rake`) prevent destructive accidental execution on active development databases.
-3. **Agent Permission Boundaries:** AI agents are restricted from modifying infrastructure configuration files (`config/database.yml`, `docker-compose.yml`, `bin/agent`) to ensure safe operations.
-
----
-
-### 7. Period Income Aggregates
-Salary, vacation and sick-day taxes are calculated once per employee, month and income type. The results live in `employee_period_incomes` and power the summary report.
-
-After deploying this feature over existing data, a data migration backfills the aggregates. To rebuild them later (for example after changing tax settings), run:
-```bash
-bin/rails incomes:recalculate
-```
-The task is idempotent and can be run again at any time.
-
-Importing historical data through **Імпорт старих даних** (`/historical_imports/new`) rebuilds the aggregates for every touched employee, month and income type automatically, so imported rows appear in reports immediately. Taxes read from the CSV are kept on the individual records; only the monthly aggregates are recalculated. Re-importing updates the row with the same employee, month and department (salary also considers position), so salaries for different departments in one month are stored separately. A header-only CSV template can be downloaded from the import page and filled in with data rows.
-
-On a department page, selecting a **position** scopes the employee list, the salary column and the department total to that position. Salaries without a position are excluded while a position is selected. The salary column shows one line per employee position, each with its own amount or **+ Додати** link, so an employee with several positions can receive a separate salary for every position without leaving the page. The inline form has an explicit **Зберегти** button; choosing a position no longer submits an empty amount. Adding a salary without an active filter returns to the unfiltered department page, so the remaining positions stay visible. Editing a salary lets you assign or change its position without retyping the amount, and the selected period/filter is preserved while employee positions are edited.
-
-The employee salary page adds a **Підсумки за посадами** table with the gross salary total per department and position for the selected period (or for all periods when no month is selected). These are salary sums only; taxes stay as monthly aggregates in **Підсумки за періодами** and are not split per position.
-
----
-
-### 8. Current Working Month
-Each user can select a **current working month** on the home page. It is stored per user and intentionally may differ from the calendar month.
-
-The selected month is used as the default period when adding:
-- salaries;
-- vacations;
-- sick days.
-
-The home page shows a reminder until a month is selected. The setting can be changed at any time and affects only the signed-in user.
-
----
-Testing Guide / Інструкція з запуску тестів
-
-### Part 1: English Version
-
-#### 1. Concept: Why Separate Test Databases?
-Even though the project test suite (RSpec code) is identical for both human developers and AI agents, **the underlying test databases MUST be isolated**.
-
-* **Developer Environment (Port 5433):** Runs on `salary_management_test`. RSpec automatically truncates/prepares this database during test runs without touching your development data.
-* **AI Agent Environment (Port 5434):** Runs on `salary_management_agent_test`. When the AI agent tests code modifications or experimental migrations, it must be constrained to port `5434` to prevent altering the developer's test state or schema.
-
----
-
-#### 2. Developer Test Execution (Real / Main Setup)
-
-##### A. Inside Docker Container (Recommended)
-This is the cleanest method as it uses the containerized environment matching production:
-```bash
-docker compose exec web bundle exec rspec
-```
-
-##### B. Locally on Host Machine (Without Docker)
-Ensure the Docker Postgres container on port `5433` (or local Postgres) is running:
-```bash
-RAILS_ENV=test DB_PORT=5433 bundle exec rspec
-```
-
----
-
-#### 3. AI Agent Test Execution (Isolated Sandbox)
-
-##### A. Inside the Agent Wrapper (`bin/agent`) — Recommended
-When operating inside the `./bin/agent` wrapper session, the environment is sanitized via `env -i`, and connection variables point strictly to port `5434`. You or the agent can simply run:
-```bash
-bundle exec rspec
-```
-
-##### B. Explicitly from Host Machine against Agent Database
-If you need to execute tests against the agent's sandbox database directly from your host terminal:
-```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
-```
-
----
-
-#### 4. Safety Checklist
-- [x] Never run `bundle exec rspec` with `DB_PORT=5432` if you have system Postgres running locally.
-- [x] Ensure `.env` is ignored by git so test execution parameters do not leak sensitive host keys.
-
----
-
-## Частина 2: Українська версія
-
-### 1. Огляд та технологічний стек
-- **Бекенд/Фронтенд:** Ruby on Rails, PostgreSQL, Tailwind CSS (`tailwindcss-rails`).
-- **Десктопна оболонка:** Electron (кросплатформна обгортка для запуску у вікні).
-- **Ізоляція та безпека:** Вбудовані механізми захисту від випадкового знищення даних в основній базі.
-
----
-
-### 2. Стилі (Tailwind CSS)
-Tailwind CSS збирається гемом `tailwindcss-rails`, тому встановлювати `node`/`npm` для цього не обов'язково. Після зміни класів у в'юхах згенеруйте стилі:
-```bash
-bin/rails tailwindcss:build
-```
-У режимі розробки відстежуйте зміни автоматично:
-```bash
-bin/rails tailwindcss:watch
-```
-*Коммітьте змінений `app/assets/builds/tailwind.css` разом із в'юхами, щоб стилі працювали одразу після клонування репозиторію.*
-
----
-
-### 3. Запуск у Docker
-Потрібен запущений Docker Desktop. Усе піднімається однією командою:
 ```bash
 docker compose up --build
 ```
-- **Застосунок:** http://localhost:3000
-- **PostgreSQL:** `127.0.0.1:5433:5432` (прив'язано локально для захисту від доступу із зовнішньої мережі).
 
-При першому старті контейнер `web` автоматично виконує `db:prepare`.
+- Application: <http://localhost:3000>
+- PostgreSQL: `127.0.0.1:5433` (bound to localhost only)
 
-- Зупинити без втрати даних: `docker compose down`
-- Повністю скинути базу (видалить том): `docker compose down -v`
+The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db`, and PostgreSQL listens on `5432` inside the container, so ensure `DB_PORT=5432` is set in `.env`:
 
----
-
-### 4. Безпека бекапів та відновлення БД
-Скрипти працюють через Docker Compose.
-
-- **Створити дамп:**
-  ```bash
-  bin/backup-db
-  ```
-- **Відновити базу:**
-  ```bash
-  bin/restore-db backups/salary-management-dump.sql --yes
-  ```
-*Увага: скрипт відновлення повністю очищає та перестворює цільову базу даних. Завжди перевіряйте назву бази перед запуском.*
-
----
-
-### 5. Десктопна оболонка та ярлики
-Застосунок можна запускати подвійним кліком через десктопний ярлик.
-
-#### Створити ярлик на Робочому столі:
-```bash
-cd desktop
-npm install
-npm run shortcut
-```
-Команда автоматично визначає ОС і створює запускач (`.command` на macOS, `.cmd` на Windows, `.desktop` на Linux).
-
----
-
-### 6. Безпека та правила ізоляції середовища
-1. **Конфіденційні дані:** Ніколи не вписуйте паролі в код. Використовуйте локальний файл `.env` у корені проєкту (він захищений `.gitignore`).
-2. **Захист від деструктивних команд:** Спеціальні Rake-захисти (`lib/tasks/protect_real_db.rake`) блокують випадкове очищення чи скидання робочої бази даних при помилковому запуску команд з хоста.
-3. **Обмеження прав AI-агентів:** Правила безпеки забороняють агентам редагувати інфраструктурні конфігурації (`config/database.yml`, `docker-compose.yml`, `bin/agent`), що гарантує незмінність захисних контурів.
-
-
-
-
-### Частина 2: Українська версія
-
-#### 1. Концепція: Чому тестові бази даних мають бути розділені?
-Хоча сам набір тестів (код RSpec) є єдиним для всього проєкту, **бази даних для запуску тестів розробником та AI-агентом ПОВИННІ бути ізольованими**.
-
-* **Середовище розробника (Порт 5433):** Працює з базою `salary_management_test`. Під час запуску RSpec Rails автоматично очищує та підготовлює цю базу, не чіпаючи ваші робочі дані розробки.
-* **Середовище AI-агента (Порт 5434):** Працює з базою `salary_management_agent_test`. Якщо AI-агент перевіряє свої експерименти з кодом або нові міграції, він повинен бути обмежений портом `5434`, щоб не пошкодити схему чи стан тестів розробника.
-
----
-
-#### 2. Запуск тестів розробником (Основна база)
-
-##### А. Усередині контейнера Docker (Рекомендовано)
-Найбільш ізольований та надійний спосіб розробки:
-```bash
-docker compose exec web bundle exec rspec
+```dotenv
+DB_PORT=5432
 ```
 
-##### Б. Локально на хості (Без Docker)
-Переконайся, що контейнер PostgreSQL на порту `5433` (або локальний Postgres) запущений:
 ```bash
-RAILS_ENV=test DB_PORT=5433 bundle exec rspec
+docker compose down            # stop, keep data
+docker compose down -v         # stop and delete the database volume
+docker compose exec web bash   # shell inside the web container
 ```
 
----
+## Local development
 
-#### 3. Запуск тестів AI-агентом (Ізольована пісочниця)
-
-##### А. Усередині сесії обгортки (`bin/agent`) — Рекомендовано
-Усередині сеансу, запущеного через `./bin/agent`, середовище автоматично очищено через `env -i`, а змінні підключення вказують на порт `5434`. Ви або агент просто виконуєте:
 ```bash
+bundle install
+bin/rails db:prepare
+bin/dev
+```
+
+`bin/dev` starts Rails on port `3000` and the Tailwind watcher from `Procfile.dev`. If PostgreSQL runs in Docker, start only the database first and point the host process at its published port:
+
+```bash
+docker compose up -d db
+DB_HOST=localhost DB_PORT=5433 bin/dev
+```
+
+## Environment variables
+
+Database settings are read from environment variables. Do not commit real credentials.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5433` | PostgreSQL port |
+| `DB_USERNAME` | `postgres` | Database user |
+| `DB_PASSWORD` | `password` | Database password |
+| `DB_NAME` | `salary_management_development` | Development database |
+| `TEST_DB_NAME` | `my_app_test` | Test database; set explicitly |
+| `RAILS_MAX_THREADS` | `5` | Connection pool size |
+| `SALARY_MANAGEMENT_DATABASE_PASSWORD` | empty | Production database password |
+| `RAILS_MASTER_KEY` | — | Production credentials key |
+
+Store local values in `.env` (ignored by Git). Use `DB_PORT=5432` when Rails runs inside Docker and `DB_PORT=5433` when it runs on the host against the published database port.
+
+## Database backup and restore
+
+Backup scripts run through Docker Compose and do not require a local `psql`.
+
+```bash
+bin/backup-db
+bin/restore-db backups/salary-management-dump.sql --yes
+```
+
+> **Warning:** `restore-db` deletes and recreates the target database. Verify the database name first.
+
+## Testing
+
+Tests must run against an isolated database. From the host, never point tests at the system PostgreSQL on port `5432`.
+
+**Developer environment** — Docker is recommended:
+
+```bash
+docker compose exec -e TEST_DB_NAME=salary_management_test web bundle exec rspec
+```
+
+From the host, using the developer test database on port `5433`:
+
+```bash
+RAILS_ENV=test DB_PORT=5433 TEST_DB_NAME=salary_management_test bundle exec rspec
+```
+
+**AI agent environment** — launch through the wrapper:
+
+```bash
+bin/agent
+TEST_DB_NAME=salary_management_agent_test bundle exec rspec
+```
+
+Or run explicitly against the agent database on port `5434`:
+
+```bash
+RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 \
+TEST_DB_NAME=salary_management_agent_test \
+DB_USERNAME=sm_agent DB_PASSWORD=agent_password \
 bundle exec rspec
 ```
 
-##### Б. Явно з термінала хоста для бази агента
-Якщо потрібно виконати тести для бази агента напряму з вашого термінала:
+See [docs/agent-environment.md](docs/agent-environment.md) for isolation details and [docs/task-specs-guide.md](docs/task-specs-guide.md) for spec-writing patterns.
+
+## Tailwind CSS
+
 ```bash
-RAILS_ENV=test DB_HOST=localhost DB_PORT=5434 TEST_DB_NAME=salary_management_agent_test DB_USERNAME=sm_agent DB_PASSWORD=agent_password bundle exec rspec
+bin/rails tailwindcss:build   # build once
+bin/rails tailwindcss:watch   # rebuild on changes
 ```
 
----
+Commit `app/assets/builds/tailwind.css` with view changes so styles work after cloning.
 
-#### 4. Чек-лист безпеки
-- [x] Ніколи не запускайте `bundle exec rspec` з `DB_PORT=5432`, якщо у вас локально працює системний Postgres.
-- [x] Переконайтеся, що файл `.env` заігнорований у git, щоб тестові параметри не компрометували секрети.
+## Desktop app
 
----
-
-### 7. Агрегати доходів за період
-Податки із зарплати, відпускних і лікарняних рахуються один раз на працівника, місяць і тип доходу. Результати зберігаються в `employee_period_incomes` і використовуються у зведеному звіті.
-
-Після розгортання цієї функції на наявних даних агрегати заповнюються міграцією. Щоб перерахувати їх повторно (наприклад, після зміни податкових налаштувань), виконайте:
 ```bash
-bin/rails incomes:recalculate
+cd desktop
+npm install
+npm run shortcut          # create a desktop shortcut
+npm run shortcut:remove   # remove it
 ```
-Задача ідемпотентна — її можна запускати повторно.
 
-Імпорт історичних даних через **Імпорт старих даних** (`/historical_imports/new`) автоматично перераховує агрегати для кожного працівника, місяця й типу доходу, тому імпортовані рядки одразу з'являються у звітах. Податки з CSV зберігаються в окремих записах; перераховуються лише підсумки за місяць. Повторний імпорт оновлює запис із тим самим працівником, місяцем і підрозділом (для зарплати також враховується посада), тому зарплати за різними підрозділами в одному місяці зберігаються окремо. Зразок CSV із заголовками можна завантажити на сторінці імпорту й заповнити рядками з даними.
+The script creates `.command` on macOS, `.cmd` on Windows, and `.desktop` on Linux.
 
-На сторінці підрозділу вибір **посади** звужує список працівників, колонку зарплати та підсумок підрозділу до цієї посади. Зарплати без посади не враховуються, доки посаду вибрано. Колонка зарплати показує окремий рядок для кожної посади працівника — з сумою або посиланням **+ Додати**, тому працівник із кількома посадами може отримати окрему зарплату за кожною посадою, не залишаючи сторінку. Вбудована форма має явну кнопку **Зберегти**; вибір посади більше не надсилає порожню суму. Додавання зарплати без активного фільтра повертає на сторінку підрозділу без фільтра, щоб решта посад залишалася видимою. Під час редагування зарплати можна призначити або змінити посаду без повторного введення суми; вибраний період і фільтр зберігаються під час редагування посад працівника.
+## Domain notes
 
-На сторінці зарплат працівника додано таблицю **Підсумки за посадами** із сумою зарплати (gross) за кожним підрозділом і посадою за вибраний період (або за весь час, якщо місяць не вибрано). Це лише суми зарплат; податки залишаються місячними агрегатами в **Підсумки за періодами** і не розподіляються за посадами.
+- **Tax aggregates:** income taxes are calculated once per employee, month, and income type and stored in `employee_period_incomes`. Rebuild them with `bin/rails incomes:recalculate` (idempotent).
+- **Historical import:** `/historical_imports/new` imports previously calculated payroll rows and recalculates affected monthly aggregates. A CSV template is available on the page.
+- **Positions:** selecting a position on a department page scopes employees, salaries, and totals to that position. Each employee can receive a separate salary per position.
+- **Working month:** users select a current working month on the home page; it is the default period for new salaries, vacations, and sick days.
 
----
+## Project structure
 
-### 8. Поточний робочий місяць
-Кожен користувач може обрати **поточний робочий місяць** на головній сторінці. Значення зберігається для користувача і може відрізнятися від календарного місяця.
+```text
+app/controllers/  request handling
+app/models/       domain models and validations
+app/queries/      report and filtering queries
+app/services/     business logic and tax calculations
+app/views/        Hotwire and Tailwind templates
+config/           configuration and routes
+db/               migrations, schema, and seeds
+desktop/          Electron shell
+docs/             developer guides
+spec/             RSpec suite
+bin/              development and operations scripts
+```
 
-Обраний місяць використовується як період за замовчуванням під час додавання:
-- зарплат;
-- відпускних;
-- лікарняних.
+## Documentation
 
-Доки місяць не обрано, на головній сторінці відображається нагадування. Налаштування можна змінити будь-коли; воно стосується лише поточного користувача.
+- [AI agent environment](docs/agent-environment.md)
+- [Task specs creation guide](docs/task-specs-guide.md)
+
+## Security
+
+- Keep secrets in `.env` or Rails credentials; never commit them.
+- Do not commit `config/master.key`, `.env`, or database dumps.
+- Rake guards in `lib/tasks/protect_real_db.rake` block destructive commands against development databases.
+- AI agents must not edit `config/database.yml`, `docker-compose.yml`, or `bin/agent`.
+- Run host-side tests only on isolated ports: `5433` for developers, `5434` for agents.
+
+## Contributing
+
+1. Create a feature branch.
+2. Write or update specs before implementation.
+3. Run focused specs, the full suite, and RuboCop on changed Ruby files.
+4. Update documentation when behavior, configuration, or workflows change.
+5. Open a pull request with a clear summary and test results.

@@ -14,6 +14,15 @@ class Department < ApplicationRecord
     %w[id name created_at updated_at]
   end
 
+  # Number of distinct employees assigned to each department.
+  # Computed with a single grouped query so department lists can render counts
+  # without one query per card.
+  #
+  # @return [Hash{Integer => Integer}] department id to employee count
+  def self.employee_counts
+    DepartmentEmployee.group(:department_id).distinct.count(:employee_id)
+  end
+
   # Returns salary records for the given month. When +position+ is present,
   # only salaries linked to that position (or position id) are returned.
   def period_salaries(date = Date.current, position: nil)

@@ -12,7 +12,7 @@ class SickDayEntriesController < ApplicationController
     @sick_day = SickDay.new(sick_day_params)
 
     if @sick_day.save
-      redirect_to employee_sick_days_path(@sick_day.employee), notice: 'Лікарняний успішно додано.'
+      redirect_to employee_sick_days_path(@sick_day.employee), notice: t('flash.sick_day_entries.created')
     else
       load_form_data
       render :new, status: :unprocessable_content

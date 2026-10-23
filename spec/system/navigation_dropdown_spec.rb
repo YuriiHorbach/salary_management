@@ -15,7 +15,7 @@ RSpec.describe 'Navigation dropdown', type: :system, js: true do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
+    find('details summary', text: I18n.t('navigation.reports')).click
     sleep 0.2
 
     panel_position = evaluate_script("getComputedStyle(document.querySelector('details[open] > div')).position")
@@ -39,7 +39,7 @@ RSpec.describe 'Navigation dropdown', type: :system, js: true do
     nav_height_before = evaluate_script("document.querySelector('nav').getBoundingClientRect().height").to_i
     details_width_before = evaluate_script("document.querySelector('details').getBoundingClientRect().width").to_i
 
-    find('details summary', text: 'Звіти').click
+    find('details summary', text: I18n.t('navigation.reports')).click
     sleep 0.2
 
     nav_height_after = evaluate_script("document.querySelector('nav').getBoundingClientRect().height").to_i
@@ -49,75 +49,75 @@ RSpec.describe 'Navigation dropdown', type: :system, js: true do
     expect(details_width_after).to eq(details_width_before)
   end
 
-  it 'opens Звіти dropdown and shows sub-links' do
+  it 'opens the reports dropdown and shows sub-links' do
     sign_in_user
     visit root_path
 
-    expect(page).not_to have_text('Зведений звіт')
-    expect(page).not_to have_text('Детальний звіт')
+    expect(page).not_to have_text(I18n.t('navigation.summary_report'))
+    expect(page).not_to have_text(I18n.t('navigation.detailed_report'))
 
-    find('details summary', text: 'Звіти').click
+    find('details summary', text: I18n.t('navigation.reports')).click
 
-    expect(page).to have_text('Зведений звіт')
-    expect(page).to have_text('Детальний звіт')
+    expect(page).to have_text(I18n.t('navigation.summary_report'))
+    expect(page).to have_text(I18n.t('navigation.detailed_report'))
   end
 
-  it 'navigates to Зведений звіт when clicked' do
+  it 'navigates to the summary report when clicked' do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
-    click_link 'Зведений звіт'
+    find('details summary', text: I18n.t('navigation.reports')).click
+    click_link I18n.t('navigation.summary_report')
 
     expect(page).to have_current_path(summary_reports_path)
-    expect(page).to have_text('Зведений звіт по зарплатах (Pivot)')
+    expect(page).to have_text(I18n.t('reports.summary.title'))
   end
 
-  it 'navigates to Детальний звіт when clicked' do
+  it 'navigates to the detailed report when clicked' do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
-    click_link 'Детальний звіт'
+    find('details summary', text: I18n.t('navigation.reports')).click
+    click_link I18n.t('navigation.detailed_report')
 
     expect(page).to have_current_path(detailed_reports_path)
-    expect(page).to have_text('Детальний звіт по співробітникам')
+    expect(page).to have_text(I18n.t('reports.detailed.title'))
   end
 
   it 'closes dropdown when clicking outside' do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
-    expect(page).to have_text('Зведений звіт')
+    find('details summary', text: I18n.t('navigation.reports')).click
+    expect(page).to have_text(I18n.t('navigation.summary_report'))
 
     find('nav').click
 
-    expect(page).not_to have_text('Зведений звіт')
+    expect(page).not_to have_text(I18n.t('navigation.summary_report'))
   end
 
   it 'closes one dropdown when another opens' do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
-    expect(page).to have_text('Зведений звіт')
+    find('details summary', text: I18n.t('navigation.reports')).click
+    expect(page).to have_text(I18n.t('navigation.summary_report'))
 
-    find('details summary', text: 'Налаштування').click
-    expect(page).not_to have_text('Зведений звіт')
-    expect(page).to have_text('Налаштування системи')
+    find('details summary', text: I18n.t('navigation.settings')).click
+    expect(page).not_to have_text(I18n.t('navigation.summary_report'))
+    expect(page).to have_text(I18n.t('navigation.system_settings'))
   end
 
   it 'closes dropdown on Escape key' do
     sign_in_user
     visit root_path
 
-    find('details summary', text: 'Звіти').click
-    expect(page).to have_text('Зведений звіт')
+    find('details summary', text: I18n.t('navigation.reports')).click
+    expect(page).to have_text(I18n.t('navigation.summary_report'))
 
     send_keys :escape
     sleep 0.1
 
-    expect(page).not_to have_text('Зведений звіт')
+    expect(page).not_to have_text(I18n.t('navigation.summary_report'))
   end
 end

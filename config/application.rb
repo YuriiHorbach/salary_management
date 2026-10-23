@@ -21,6 +21,10 @@ require 'action_cable/engine'
 Bundler.require(*Rails.groups)
 
 module SalaryManagement
+  # UI languages supported by the application. Kept explicit so gems such as
+  # Faker cannot expand the language switcher through I18n.load_path.
+  SUPPORTED_LOCALES = %i[en uk de].freeze
+
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
@@ -47,5 +51,11 @@ module SalaryManagement
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # The application ships with English, Ukrainian and German UI translations.
+    # English is the fallback so partially translated locales stay usable.
+    config.i18n.available_locales = SUPPORTED_LOCALES
+    config.i18n.default_locale = :en
+    config.i18n.fallbacks = [:en]
   end
 end

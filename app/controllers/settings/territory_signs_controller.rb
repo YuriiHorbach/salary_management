@@ -17,7 +17,7 @@ class Settings::TerritorySignsController < Settings::BaseController
     @territory_sign = TerritorySign.new(territory_sign_params)
 
     if @territory_sign.save
-      redirect_to settings_territory_signs_path, notice: 'Теріторіальну ознаку додано.'
+      redirect_to settings_territory_signs_path, notice: t('flash.settings.territory_signs.created')
     else
       render :new, status: :unprocessable_content
     end
@@ -25,7 +25,7 @@ class Settings::TerritorySignsController < Settings::BaseController
 
   def update
     if @territory_sign.update(territory_sign_params)
-      redirect_to settings_territory_signs_path, notice: 'Теріторіальну оновлено.'
+      redirect_to settings_territory_signs_path, notice: t('flash.settings.territory_signs.updated')
     else
       render :edit, status: :unprocessable_content
     end
@@ -33,7 +33,7 @@ class Settings::TerritorySignsController < Settings::BaseController
 
   def destroy
     @territory_sign.destroy
-    redirect_to settings_territory_signs_path, notice: 'Теріторіальну ознаку видалено.'
+    redirect_to settings_territory_signs_path, notice: t('flash.settings.territory_signs.deleted')
   end
 
   private

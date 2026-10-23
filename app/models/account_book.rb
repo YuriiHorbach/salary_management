@@ -4,7 +4,7 @@ class AccountBook < ApplicationRecord
   belongs_to :employee, optional: true
 
   validates :code, presence: true,
-                   format: { with: /\A[А-ЯЄІЇҐA-Z]\d+\z/, message: 'має бути у форматі Б11 (літера бригади та номери)' }
+                   format: { with: /\A[А-ЯЄІЇҐA-Z]\d+\z/, message: :code_format }
 
   # Unique book codes available to assign to employees, ordered for selects.
   def self.available_codes

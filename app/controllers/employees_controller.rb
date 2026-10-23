@@ -20,13 +20,14 @@ class EmployeesController < ApplicationController
 
   def show
     @employee = Employee.find_by(id: params[:id])
-    return redirect_to employees_path, alert: 'Співробітника не знайдено.' if @employee.nil?
+    return redirect_to employees_path, alert: t('flash.employees.not_found') if @employee.nil?
 
     @permitted_params = params.permit(:year, :month, :direction, :sort, q: {})
 
     @salary_amount_uah = params.dig(:salary_q, :amount_cents_eq).to_s.strip
 
-    @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q) #used salary_q from params
+    # used salary_q from params
+    @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q)
     @employee_salaries = @salary_q.result.includes(:department).group_by(&:department)
 
     @departments = Department.all
@@ -51,7 +52,7 @@ class EmployeesController < ApplicationController
     if @employee.save
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to employees_path, notice: 'Employee created successfully!' }
+        format.html { redirect_to employees_path, notice: t('flash.employees.created') }
       end
     else
       render :new, status: :unprocessable_content
@@ -66,7 +67,7 @@ class EmployeesController < ApplicationController
     if @employee.update(employee_params)
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to employees_path, notice: 'Employee updated successfully!' }
+        format.html { redirect_to employees_path, notice: t('flash.employees.updated') }
       end
     else
       render :edit, status: :unprocessable_content
@@ -78,7 +79,7 @@ class EmployeesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream
-      format.html { redirect_to employees_path, notice: 'Employee deleted successfully!' }
+      format.html { redirect_to employees_path, notice: t('flash.employees.deleted') }
     end
   end
 

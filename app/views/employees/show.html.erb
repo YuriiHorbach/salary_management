@@ -1,22 +1,22 @@
 <%= turbo_frame_tag dom_id(@employee) do %>
   <div class="grid grid-cols-[8rem_1fr] gap-y-2 max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-    <div class="w-32 font-semibold text-gray-500">ID code</div>
+    <div class="w-32 font-semibold text-gray-500"><%= t('.id_code') %></div>
     <div class="text-gray-900"><%= @employee.id_code %></div>
 
-    <div class="w-32 font-semibold text-gray-500">Ідентифікатор книги</div>
+    <div class="w-32 font-semibold text-gray-500"><%= t('.identifier') %></div>
     <div class="text-gray-900"><%= @employee.identifier || '—' %></div>
 
-    <div class="w-32 font-semibold text-gray-500">Last name</div>
+    <div class="w-32 font-semibold text-gray-500"><%= t('.last_name') %></div>
     <div class="text-gray-900"><%= @employee.last_name %></div>
 
-    <div class="w-32 font-semibold text-gray-500">First name</div>
+    <div class="w-32 font-semibold text-gray-500"><%= t('.first_name') %></div>
     <div class="text-gray-900"><%= @employee.first_name %></div>
 
-    <div class="w-32 font-semibold text-gray-500">Patronic name</div>
+    <div class="w-32 font-semibold text-gray-500"><%= t('.patronic_name') %></div>
     <div class="text-gray-900"><%= @employee.patronic_name %></div>
 
     <div class="px-2 py-2 flex space-x-2">
-      <%= link_to "Edit", edit_employee_path(@employee), class: "btn btn-primary px-3 py-1 text-xs font-medium text-center inline-flex items-center", data: { turbo_frame: dom_id(@employee) } %>
+      <%= link_to t('.edit'), edit_employee_path(@employee), class: "btn btn-primary px-3 py-1 text-xs font-medium text-center inline-flex items-center", data: { turbo_frame: dom_id(@employee) } %>
     </div>
   </div>
 <% end %>
@@ -26,39 +26,39 @@
     <% input_classes = "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
 
     <div>
-      <%= f.label :amount_cents_eq, 'Сума', class: "block text-sm font-medium mb-1" %>
+      <%= f.label :amount_cents_eq, t('.salary_search.amount'), class: "block text-sm font-medium mb-1" %>
       <%= f.search_field :amount_cents_eq, value: @salary_amount_uah, class: input_classes %>
     </div>
 
     <div>
-      <%= f.label :by_year, 'Рік', class: "block text-sm font-medium mb-1" %>
-      <%= f.select :by_year, options_for_select((2020..Date.today.year), params.dig(:salary_q, :by_year)), { include_blank: 'Всі роки' }, class: input_classes %>
+      <%= f.label :by_year, t('.salary_search.year'), class: "block text-sm font-medium mb-1" %>
+      <%= f.select :by_year, options_for_select((2020..Date.today.year), params.dig(:salary_q, :by_year)), { include_blank: t('.salary_search.all_years') }, class: input_classes %>
     </div>
 
     <div>
-      <%= f.label :department_id_eq, 'Підрозділ', class: "block text-sm font-medium mb-1" %>
-      <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:salary_q, :department_id_eq)), { include_blank: 'Всі підрозділи' }, class: input_classes %>
+      <%= f.label :department_id_eq, t('.salary_search.department'), class: "block text-sm font-medium mb-1" %>
+      <%= f.select :department_id_eq, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:salary_q, :department_id_eq)), { include_blank: t('.salary_search.all_departments') }, class: input_classes %>
     </div>
 
     <div>
-      <%= f.submit 'Пошук зарплат', class: 'btn btn-primary px-4 py-2 rounded-md font-medium hover:bg-blue-600' %>
+      <%= f.submit t('.salary_search.submit'), class: 'btn btn-primary px-4 py-2 rounded-md font-medium hover:bg-blue-600' %>
     </div>
   <% end %>
 </div>
 
 <div class="m-5">
-  <h2 class="mt-8 mb-2 text-lg font-bold">Зарплати співробітника по підрозділах</h2>
+  <h2 class="mt-8 mb-2 text-lg font-bold"><%= t('.salaries_by_department') %></h2>
   <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border">
     <thead class="bg-gray-200 dark:bg-gray-700">
       <tr>
         <th class="px-2 py-1">
-          <%= sort_link(@salary_q, :department_name, 'Підрозділ', default_order: :asc) %>
+          <%= sort_link(@salary_q, :department_name, t('.department'), default_order: :asc) %>
         </th>
         <th class="px-2 py-1">
-          <%= sort_link(@salary_q, :amount_cents, 'Сума') %>
+          <%= sort_link(@salary_q, :amount_cents, t('.amount')) %>
         </th>
         <th class="px-2 py-1">
-          <%= sort_link(@salary_q, :paid_on, 'Дата виплати') %>
+          <%= sort_link(@salary_q, :paid_on, t('.paid_on')) %>
         </th>
       </tr>
     </thead>
@@ -67,26 +67,26 @@
         <% @employee_salaries.each do |department, salaries| %>
           <% salaries.each do |salary| %>
             <tr class="border-b border-gray-100 dark:border-gray-700">
-              <td class="px-2 py-1"><%= department&.name || 'Без підрозділу' %></td>
+              <td class="px-2 py-1"><%= department&.name || t('.no_department') %></td>
               <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
               <td class="px-2 py-1"><%= salary.paid_on&.strftime('%d-%m-%Y') %></td>
             </tr>
           <% end %>
         <% end %>
       <% else %>
-        <tr><td colspan="3" class="p-4 text-center text-gray-500 italic">Зарплат не знайдено</td></tr>
+        <tr><td colspan="3" class="p-4 text-center text-gray-500 italic"><%= t('.no_salaries') %></td></tr>
       <% end %>
     </tbody>
   </table>
 </div>
 
 <div class="m-5">
-  <h2 class="mt-8 mb-2 text-lg font-bold">Загальна зарплата по місяцях (підсумки)</h2>
+  <h2 class="mt-8 mb-2 text-lg font-bold"><%= t('.monthly_totals') %></h2>
   <table class="min-w-full text-left text-sm font-light text-surface dark:text-white border mb-8">
     <thead class="bg-gray-200 dark:bg-gray-700">
       <tr>
-        <th class="px-2 py-1">Місяць</th>
-        <th class="px-2 py-1">Сума</th>
+        <th class="px-2 py-1"><%= t('.month') %></th>
+        <th class="px-2 py-1"><%= t('.amount') %></th>
       </tr>
     </thead>
     <tbody>
@@ -101,15 +101,15 @@
 </div>
 
 <div class="m-5 border-t pt-8">
-  <h2 class="mb-2 text-lg font-bold text-gray-800">🏥 Лікарняні (зведені)</h2>
+  <h2 class="mb-2 text-lg font-bold text-gray-800">🏥 <%= t('.sick_days') %></h2>
   <div class="overflow-x-auto border rounded-lg shadow-sm">
     <table class="min-w-full text-left text-sm font-light">
       <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
         <tr>
-          <th class="px-4 py-2">📅 Період</th>
-          <th class="px-4 py-2 font-bold">💰 Разом</th>
-          <th class="px-4 py-2 text-red-600">📉 ПДФО (18%)</th>
-          <th class="px-4 py-2 text-red-600">🛡️ ВЗ (5%)</th>
+          <th class="px-4 py-2">📅 <%= t('.period') %></th>
+          <th class="px-4 py-2 font-bold">💰 <%= t('.total') %></th>
+          <th class="px-4 py-2 text-red-600">📉 <%= t('.income_tax') %></th>
+          <th class="px-4 py-2 text-red-600">🛡️ <%= t('.military_tax') %></th>
         </tr>
       </thead>
       <tbody>
@@ -123,27 +123,27 @@
             </tr>
           <% end %>
         <% else %>
-          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">Немає лікарняних</td></tr>
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic"><%= t('.no_sick_days') %></td></tr>
         <% end %>
       </tbody>
     </table>
   </div>
   <div class="mt-4 flex gap-2">
-    <%= link_to 'Переглянути всі', employee_sick_days_path(@employee), class: "text-blue-600 underline" %>
-    <%= link_to 'Додати', new_employee_sick_day_path(@employee), class: "text-green-600 underline" %>
+    <%= link_to t('.view_all'), employee_sick_days_path(@employee), class: "text-blue-600 underline" %>
+    <%= link_to t('.add'), new_employee_sick_day_path(@employee), class: "text-green-600 underline" %>
   </div>
 </div>
 
 <div class="m-5 border-t pt-8">
-  <h2 class="mb-2 text-lg font-bold text-gray-800">🏖️ Відпускні</h2>
+  <h2 class="mb-2 text-lg font-bold text-gray-800">🏖️ <%= t('.vacations') %></h2>
   <div class="overflow-x-auto border rounded-lg shadow-sm">
     <table class="min-w-full text-left text-sm font-light">
       <thead class="bg-gray-100 dark:bg-gray-700 font-medium border-b">
         <tr>
-          <th class="px-4 py-2">📅 Період</th>
-          <th class="px-4 py-2 font-bold">💰 Сума</th>
-          <th class="px-4 py-2 text-red-600">📉 ПДФО</th>
-          <th class="px-4 py-2 text-red-600">🛡️ ВЗ</th>
+          <th class="px-4 py-2">📅 <%= t('.period') %></th>
+          <th class="px-4 py-2 font-bold">💰 <%= t('.vacation_amount') %></th>
+          <th class="px-4 py-2 text-red-600">📉 <%= t('.income_tax') %></th>
+          <th class="px-4 py-2 text-red-600">🛡️ <%= t('.military_tax') %></th>
         </tr>
       </thead>
       <tbody>
@@ -157,13 +157,13 @@
             </tr>
           <% end %>
         <% else %>
-          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic">Немає відпускних</td></tr>
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 italic"><%= t('.no_vacations') %></td></tr>
         <% end %>
       </tbody>
     </table>
   </div>
   <div class="mt-4 flex gap-2">
-    <%= link_to 'Переглянути всі', employee_vacations_path(@employee), class: "text-blue-600 underline" %>
-    <%= link_to 'Додати', new_employee_vacation_path(@employee), class: "text-green-600 underline" %>
+    <%= link_to t('.view_all'), employee_vacations_path(@employee), class: "text-blue-600 underline" %>
+    <%= link_to t('.add'), new_employee_vacation_path(@employee), class: "text-green-600 underline" %>
   </div>
 </div>

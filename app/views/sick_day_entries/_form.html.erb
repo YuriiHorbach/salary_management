@@ -13,7 +13,7 @@
   <% end %>
 
   <div>
-    <%= f.label :employee_id, "Працівник", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :employee_id, t('sick_day_entries.form.employee'), class: "block text-sm font-medium mb-1" %>
 
     <% if @employee_search.present? %>
       <% if employees.any? %>
@@ -26,17 +26,17 @@
           <% end %>
         </div>
       <% else %>
-        <p class="text-sm text-red-600">Оберіть інший запит для пошуку працівника.</p>
+        <p class="text-sm text-red-600"><%= t('sick_day_entries.form.other_search') %></p>
       <% end %>
     <% else %>
       <%= f.collection_select :employee_id, employees, :id, :full_name_with_id_code,
-          { include_blank: "Оберіть працівника" },
+          { include_blank: t('sick_day_entries.form.select_employee') },
           { class: input_classes, required: true } %>
     <% end %>
   </div>
 
   <div>
-    <%= f.label :period, "Період", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :period, t('sick_day_entries.form.period'), class: "block text-sm font-medium mb-1" %>
     <%= f.month_field :period,
         class: input_classes,
         value: sick_day.period&.strftime("%Y-%m"),
@@ -44,22 +44,22 @@
   </div>
 
   <div>
-    <%= f.label :pfu_amount, "Лікарняний за рахунок ПФУ", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :pfu_amount, t('sick_day_entries.form.pfu'), class: "block text-sm font-medium mb-1" %>
     <%= f.number_field :pfu_amount,
         value: (sick_day.pfu_amount if sick_day.pfu_amount.to_f.positive?),
         min: 0, step: 0.01, class: "#{input_classes} text-right" %>
   </div>
 
   <div>
-    <%= f.label :enterprise_amount, "Лікарняний за рахунок підприємства", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :enterprise_amount, t('sick_day_entries.form.enterprise'), class: "block text-sm font-medium mb-1" %>
     <%= f.number_field :enterprise_amount,
         value: (sick_day.enterprise_amount if sick_day.enterprise_amount.to_f.positive?),
         min: 0, step: 0.01, class: "#{input_classes} text-right" %>
   </div>
 
   <div class="flex items-center gap-4">
-    <%= f.submit "Зберегти", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
-    <%= link_to "Скасувати", employees_path,
+    <%= f.submit t('sick_day_entries.form.save'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to t('sick_day_entries.form.cancel'), employees_path,
         class: "text-gray-600 hover:text-gray-900 underline",
         data: { turbo_frame: "_top" } %>
   </div>

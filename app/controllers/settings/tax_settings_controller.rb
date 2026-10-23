@@ -8,7 +8,7 @@ module Settings
 
     def update
       if @tax_setting.update(tax_setting_params)
-        redirect_to edit_settings_tax_settings_path, notice: 'Налаштування податків оновлено.'
+        redirect_to edit_settings_tax_settings_path, notice: t('flash.settings.tax_settings.updated')
       else
         render :edit, status: :unprocessable_content
       end

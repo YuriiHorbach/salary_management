@@ -24,7 +24,7 @@ module Reports
     private
 
     def header
-      ['Бригада', 'Книга', *column_labels]
+      [I18n.t('reports.csv.brigade'), I18n.t('reports.csv.book'), *column_labels]
     end
 
     def book_row(brigade_name, book_code, row)
@@ -32,11 +32,11 @@ module Reports
     end
 
     def brigade_total_row(brigade_name, total)
-      [csv_text("#{brigade_name} — Підсумок"), '', *money_row(total)]
+      [csv_text(I18n.t('reports.csv.brigade_total', brigade: brigade_name)), '', *money_row(total)]
     end
 
     def grand_total_row
-      [csv_text('Всього'), '', *money_row(@grand_total)]
+      [csv_text(I18n.t('reports.csv.total')), '', *money_row(@grand_total)]
     end
 
     def money_row(row)
@@ -44,7 +44,7 @@ module Reports
     end
 
     def column_labels
-      SalarySummaryQuery::COLUMN_KEYS.map { |key| SalarySummaryQuery::COLUMN_LABELS[key] }
+      SalarySummaryQuery::COLUMN_KEYS.map { |key| I18n.t("reports.summary_columns.#{key}") }
     end
   end
 end

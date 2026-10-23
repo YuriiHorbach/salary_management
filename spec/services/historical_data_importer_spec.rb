@@ -395,7 +395,7 @@ RSpec.describe HistoricalDataImporter do
 
       expect(result.created).to eq(0)
       expect(result.skipped).to eq(1)
-      expect(result.errors.first).to include('період')
+      expect(result.errors.first).to include('period')
     end
 
     it 'rejects an unsupported data type' do

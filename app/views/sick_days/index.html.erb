@@ -1,13 +1,13 @@
 <div class="container mx-auto px-4 py-6">
   <h1 class="text-2xl font-bold mb-6">
-    Лікарняні для <%= @employee.last_name %> <%= @employee.first_name %>
+    <%= t('sick_days.index.title', name: "#{@employee.last_name} #{@employee.first_name}") %>
   </h1>
 
   <div class="mb-8">
-    <%= link_to "Додати новий лікарняний", new_employee_sick_day_path(@employee),
+    <%= link_to t('sick_days.index.add'), new_employee_sick_day_path(@employee),
         class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm inline-block" %>
 
-    <%= link_to "Назад до профілю", employee_path(@employee),
+    <%= link_to t('sick_days.index.back'), employee_path(@employee),
         class: "ml-4 text-gray-600 hover:text-gray-900 underline" %>
   </div>
 

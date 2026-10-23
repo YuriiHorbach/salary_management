@@ -5,14 +5,14 @@
   <% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white" %>
 
   <div class="px-4">
-    <p>Період</p>
+    <p><%= t('vacations.form.period') %></p>
     <%= f.date_field :period,
         class: input_classes,
         value: f.object.period&.strftime("%Y-%m-%d") %>
   </div>
 
   <div class="px-4">
-    <p>Сума відпустки <span class="text-xs font-normal text-gray-500">(приклад: 1000,00)</span></p>
+    <p><%= t('vacations.form.amount') %> <span class="text-xs font-normal text-gray-500"><%= t('common.example') %></span></p>
     <%= f.number_field :vacation_amount,
         value: (vacation.vacation_amount if vacation.vacation_amount_cents.to_i.positive?),
         step: :any, class: "#{input_classes} text-right" %>
@@ -23,13 +23,13 @@
   </div>
 
   <div class="px-4 text-center flex items-center justify-center gap-4">
-    <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: "Зберегти" do %>
+    <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: t('vacations.form.save') do %>
       ✅
     <% end %>
 
     <%= link_to employee_vacations_path(@employee),
         class: "hover:scale-125 transition text-lg",
-        title: "Скасувати" do %>
+        title: t('vacations.form.cancel') do %>
       ❌
     <% end %>
   </div>

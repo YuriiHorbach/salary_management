@@ -32,10 +32,12 @@ RSpec.describe Reports::SalarySummaryCsvExporter do
     expect(described_class.new(result).call).to start_with(bom)
   end
 
-  it 'renders the header as two fixed labels followed by the COLUMN_LABELS values' do
-    labels = money_keys.map { |key| query::COLUMN_LABELS[key] }
+  it 'renders the header as two fixed labels followed by the translated column labels' do
+    labels = money_keys.map { |key| I18n.t("reports.summary_columns.#{key}") }
 
-    expect(parse(described_class.new(result).call).first).to eq(%w[Бригада Книга] + labels)
+    expected = [I18n.t('reports.csv.brigade'), I18n.t('reports.csv.book')] + labels
+
+    expect(parse(described_class.new(result).call).first).to eq(expected)
   end
 
   it 'renders one row per book with brigade, book code and money cells' do
@@ -48,13 +50,16 @@ RSpec.describe Reports::SalarySummaryCsvExporter do
   it 'renders a brigade total row with the label and an empty book cell' do
     row = parse(described_class.new(result).call)[3]
 
-    expect(row).to eq(['Бригада X — Підсумок', ''] + Array.new(money_keys.size, '30,00'))
+    expected = [I18n.t('reports.csv.brigade_total', brigade: 'Бригада X'), ''] +
+               Array.new(money_keys.size, '30,00')
+
+    expect(row).to eq(expected)
   end
 
   it 'renders the grand total row last' do
     row = parse(described_class.new(result).call).last
 
-    expect(row).to eq(['Всього', ''] + Array.new(money_keys.size, '100,00'))
+    expect(row).to eq([I18n.t('reports.csv.total'), ''] + Array.new(money_keys.size, '100,00'))
   end
 
   it 'renders the header, every book row, every brigade total and the grand total' do
@@ -66,7 +71,7 @@ RSpec.describe Reports::SalarySummaryCsvExporter do
     rows = parse(described_class.new(empty).call)
 
     expect(rows.size).to eq(2)
-    expect(rows.last).to eq(['Всього', ''] + Array.new(money_keys.size, '0,00'))
+    expect(rows.last).to eq([I18n.t('reports.csv.total'), ''] + Array.new(money_keys.size, '0,00'))
   end
 
   it 'escapes special characters in a brigade name through csv_text' do

@@ -1,19 +1,19 @@
-<% content_for :title, "Теріторіальні ознаки" %>
+<% content_for :title, t('settings.territory_signs.index.title') %>
 
-<h1 class="text-2xl font-bold mb-6">Теріторіальні ознаки (бригади)</h1>
+<h1 class="text-2xl font-bold mb-6"><%= t('settings.territory_signs.index.heading') %></h1>
 
-<%= link_to 'Додати нову', new_settings_territory_sign_path,
+<%= link_to t('settings.territory_signs.index.add'), new_settings_territory_sign_path,
             class: "btn btn-primary mb-4 inline-block" %>
 
-<%= link_to 'Назад до налаштувань', settings_root_path, class: "text-gray-600 hover:text-blue-600 mb-4 inline-block" %>
+<%= link_to t('settings.territory_signs.index.back'), settings_root_path, class: "text-gray-600 hover:text-blue-600 mb-4 inline-block" %>
 
 <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
   <table class="min-w-full divide-y divide-gray-200">
     <thead class="bg-gray-50">
       <tr>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Назва brigades</th>
-        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Код (перша літера)</th>
-        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Дія</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3"><%= t('settings.territory_signs.index.name') %></th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3"><%= t('settings.territory_signs.index.code') %></th>
+        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3"><%= t('settings.territory_signs.index.action') %></th>
       </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-200">
@@ -23,10 +23,10 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= sign.name %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><%= sign.name.to_s.strip[0]&.upcase || '—' %></td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <%= link_to 'Редагувати', edit_settings_territory_sign_path(sign),
+              <%= link_to t('settings.territory_signs.index.edit'), edit_settings_territory_sign_path(sign),
                           class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
-              <%= link_to 'Видалити', settings_territory_sign_path(sign),
-                          data: { turbo_method: :delete, turbo_confirm: 'Ви дійсно хочете видалити цю бригаду?' },
+              <%= link_to t('settings.territory_signs.index.delete'), settings_territory_sign_path(sign),
+                          data: { turbo_method: :delete, turbo_confirm: t('settings.territory_signs.index.confirm_delete') },
                           class: "text-red-600 hover:text-red-800 underline text-sm ml-4" %>
             </td>
           </tr>
@@ -34,7 +34,7 @@
       <% else %>
         <tr>
           <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
-            Бригад не знайдено. Додайте першу.
+            <%= t('settings.territory_signs.index.empty') %>
           </td>
         </tr>
       <% end %>

@@ -1,7 +1,7 @@
 <%= turbo_frame_tag dom_id(@department) do %>
   <%= form_with model: @department, local: true, class:'m-5 max-w-sm p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700' do |form| %>
     <div>
-      <h2 class="text-2xl font-semibold mb-6 text-gray-700">Department</h2>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-700"><%= t('.heading') %></h2>
 
       <div class="mb-4">
         <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
@@ -9,8 +9,8 @@
       </div>
 
       <div class="flex justify-items-start items-stretch">
-        <%= form.submit "Submit", class: "btn btn-primary btn-xs m-1 px-3 py-2 text-xs font-medium text-center inline-flex items-center focus:ring-4 focus:outline-none focus:ring-blue-300" %>
-        <%= link_to "Cancel", departments_path, class: "btn btn-secondary btn-xs m-1 px-3 py-2 text-xs font-medium text-center inline-flex items-center focus:ring-4 focus:outline-none focus:ring-green-300" %>
+        <%= form.submit t('.submit'), class: "btn btn-primary btn-xs m-1 px-3 py-2 text-xs font-medium text-center inline-flex items-center focus:ring-4 focus:outline-none focus:ring-blue-300" %>
+        <%= link_to t('common.cancel'), departments_path, class: "btn btn-secondary btn-xs m-1 px-3 py-2 text-xs font-medium text-center inline-flex items-center focus:ring-4 focus:outline-none focus:ring-green-300" %>
       </div>
     </div>
   <% end %>

@@ -15,8 +15,8 @@ RSpec.describe 'Vacations', type: :request do
 
       get employee_vacations_path(employee)
 
-      expect(response.body).to include('Загальна сума відпускних: 10000,00')
-      expect(response.body).not_to include('Загальна сума відпускних: 5000,00', '₴10000,00', '$10000,00')
+      expect(response.body).to include(I18n.t('vacations.index.total', amount: '10000,00'))
+      expect(response.body).not_to include(I18n.t('vacations.index.total', amount: '5000,00'), '₴10000,00', '$10000,00')
     end
   end
 
@@ -28,7 +28,7 @@ RSpec.describe 'Vacations', type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(amount_input['value']).to be_blank
-      expect(response.body).to include('1000,00')
+      expect(response.body).to include(I18n.t('common.example'))
     end
 
     context 'when a current working month is selected' do

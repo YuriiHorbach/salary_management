@@ -1,4 +1,4 @@
-<h3>Add Employees to <%= @department.name %></h3>
+<h3><%= t('department_employees.new.title', department: @department.name) %></h3>
 
 <div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
   <%= search_form_for @q, url: new_department_employee_path(department_id: @department.id), method: :get do |f| %>
@@ -7,23 +7,23 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
       <div class="flex flex-col">
-        <%= f.label :id_code_cont, "ID-code", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :id_code_cont, t('department_employees.new.id_code'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :id_code_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :last_name_cont, "Last name", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :last_name_cont, t('department_employees.new.last_name'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :last_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex flex-col">
-        <%= f.label :first_name_cont, "First name", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= f.label :first_name_cont, t('department_employees.new.first_name'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= f.search_field :first_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
       <div class="flex items-center space-x-2 h-10">
-        <%= f.submit "Submit 🔍", class: "btn btn-primary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
-        <%= link_to "Clear", new_department_employee_path(department_id: @department.id), class: "btn btn-secondary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-gray-800 cursor-pointer text-sm shadow-md" %>
+        <%= f.submit t('department_employees.new.submit'), class: "btn btn-primary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
+        <%= link_to t('department_employees.new.clear'), new_department_employee_path(department_id: @department.id), class: "btn btn-secondary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-gray-800 cursor-pointer text-sm shadow-md" %>
       </div>
 
     </div>
@@ -37,14 +37,14 @@
   <div class="m-5 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-200">
     <div class="flex flex-col sm:flex-row sm:items-end gap-3">
       <div class="flex flex-col">
-        <%= form.label :position_id, "Посада", class: "text-xs font-bold text-gray-600 mb-1" %>
+        <%= form.label :position_id, t('department_employees.new.position'), class: "text-xs font-bold text-gray-600 mb-1" %>
         <%= form.select :position_id,
                         options_from_collection_for_select(@positions, :id, :position_name, params[:position_id]),
-                        { include_blank: 'Без посади' },
+                        { include_blank: t('department_employees.new.no_position') },
                         class: "border border-gray-300 rounded-lg p-2 text-sm" %>
       </div>
       <p class="text-xs text-gray-500 sm:pb-2">
-        Обрана посада буде додана всім вибраним працівникам. Працівник може мати кілька посад.
+        <%= t('department_employees.new.position_hint') %>
       </p>
     </div>
   </div>
@@ -52,10 +52,10 @@
   <table class="min-w-full table-auto border-collapse border border-gray-200">
     <thead>
     <tr>
-      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :id_code, "ID-code") %></th>
-      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :last_name, "Last name") %></th>
-      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :first_name, "First name") %></th>
-      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :patronic_name, "Patronic name") %></th>
+      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :id_code, t('department_employees.new.id_code')) %></th>
+      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :last_name, t('department_employees.new.last_name')) %></th>
+      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :first_name, t('department_employees.new.first_name')) %></th>
+      <th class="px-4 py-2 border border-gray-300"><%= sort_link(@q, :patronic_name, t('department_employees.new.patronic_name')) %></th>
       <th class="px-4 py-2 border border-gray-300">
         <label class="inline-flex items-center gap-2 cursor-pointer select-none">
           <%= check_box_tag "select_all", "1", false,
@@ -63,7 +63,7 @@
                             class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer",
                             data: { bulk_select_target: "toggleAll",
                                     action: "change->bulk-select#toggleAll" } %>
-          <span>Add all</span>
+          <span><%= t('department_employees.new.add_all') %></span>
         </label>
       </th>
     </tr>
@@ -90,9 +90,9 @@
   </table>
 
   <div class="mt-2 flex items-center gap-3">
-    <%= form.submit "Add Employees",
+    <%= form.submit t('department_employees.new.add_employees'),
                     class: "btn btn-primary mt-4 px-4 py-2 rounded hover:bg-blue-700",
                     data: { bulk_select_target: "submit" } %>
-    <span class="text-sm text-gray-600" data-bulk-select-target="count">0 selected</span>
+    <span class="text-sm text-gray-600" data-bulk-select-target="count"><%= t('department_employees.new.selected_count', count: 0) %></span>
   </div>
 <% end %>

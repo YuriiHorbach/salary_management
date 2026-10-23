@@ -27,7 +27,7 @@ RSpec.describe 'SickDays', type: :request do
         get employee_sick_days_path(employee)
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('РАЗОМ ЗА')
+        expect(response.body).to include(I18n.t('sick_days.summary.total_for').split.first(2).join(' '))
         expect(response.body).to include('60,00', '40,00', '100,00')
         expect(response.body).not_to include('$60,00', '₴60,00')
       end
@@ -53,7 +53,7 @@ RSpec.describe 'SickDays', type: :request do
       expect(enterprise_input['value'].to_s).to be_empty
       expect(pfu_input['min']).to eq('0')
       expect(enterprise_input['min']).to eq('0')
-      expect(page.text).to include('1000,00')
+      expect(page.text).to include(I18n.t('common.example'))
     end
 
     it 'defaults the period to the current month' do
@@ -264,7 +264,7 @@ RSpec.describe 'SickDays', type: :request do
         expect(response.media_type).to eq('text/vnd.turbo-stream.html')
         expect(response.body).to include(%(action="remove" target="sick_day_#{sick_day.id}"))
         expect(response.body).to include(%(target="summary_2026-01"))
-        expect(response.body).to include('РАЗОМ ЗА')
+        expect(response.body).to include(I18n.t('sick_days.summary.total_for').split.first(2).join(' '))
       end
 
       it 'removes the summary row when no records are left in that period' do
@@ -280,7 +280,7 @@ RSpec.describe 'SickDays', type: :request do
         delete employee_sick_day_path(employee, sick_day), as: :turbo_stream
 
         expect(response.body).to include('turbo-stream action="replace" target="sick_days_list"')
-        expect(response.body).to include('Записів про лікарняні поки що немає')
+        expect(response.body).to include(I18n.t('sick_days.list.empty'))
       end
     end
   end

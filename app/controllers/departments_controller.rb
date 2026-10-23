@@ -49,7 +49,7 @@ class DepartmentsController < ApplicationController
     if @department.save
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to employees_path, notice: 'Listing was successfully created.' }
+        format.html { redirect_to employees_path, notice: t('flash.departments.created') }
       end
     else
       render :new, status: :unprocessable_content
@@ -60,7 +60,7 @@ class DepartmentsController < ApplicationController
     if @department.update(department_params)
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to employees_path, notice: 'Department updated successfully!' }
+        format.html { redirect_to employees_path, notice: t('flash.departments.updated') }
       end
     else
       render :edit, status: :unprocessable_content

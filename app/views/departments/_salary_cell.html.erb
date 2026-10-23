@@ -15,7 +15,7 @@
                                    period: period.strftime('%Y-%m'),
                                    position_id: position.id } %>
           <% add_salary_params[:position] = filter_position_id if filter_position_id.present? %>
-          <%= link_to '+ Додати',
+          <%= link_to t('.add'),
                       new_employee_salary_path(employee, add_salary_params),
                       class: "text-blue-600 hover:underline font-mono text-xs whitespace-nowrap" %>
         <% end %>
@@ -26,7 +26,7 @@
     <% if positionless_amount_cents %>
       <div id="salary_position_<%= employee.id %>_none"
            class="flex items-center justify-between gap-2">
-        <span class="text-xs text-gray-600 truncate">Без посади:</span>
+        <span class="text-xs text-gray-600 truncate"><%= t('.no_position') %></span>
         <%= link_to number_to_currency(positionless_amount_cents / 100.0),
                     employee_salaries_path(employee, period: period.strftime('%Y-%m')),
                     data: { turbo_frame: '_top' },
@@ -36,7 +36,7 @@
       <% add_salary_params = { department_id: department.id, period: period.strftime('%Y-%m') } %>
       <% add_salary_params[:position] = filter_position_id if filter_position_id.present? %>
       <div id="salary_position_<%= employee.id %>_none">
-        <%= link_to '+ Додати',
+        <%= link_to t('.add'),
                     new_employee_salary_path(employee, add_salary_params),
                     class: "text-blue-600 hover:underline font-mono text-xs whitespace-nowrap" %>
       </div>

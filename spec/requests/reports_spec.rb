@@ -68,8 +68,8 @@ RSpec.describe 'Reports', type: :request do
       get summary_reports_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Загальний дохід')
-      expect(response.body).to include('Загальний податок')
+      expect(response.body).to include(I18n.t('reports.summary_columns.total_income'))
+      expect(response.body).to include(I18n.t('reports.summary_columns.total_tax'))
     end
 
     it 'splits the first column into separate Brigade and Book headers' do
@@ -78,9 +78,9 @@ RSpec.describe 'Reports', type: :request do
       doc = Nokogiri::HTML(response.body)
       headers = doc.css('table thead tr').first.css('th').map { |th| th.text.strip }
 
-      expect(headers.first).to eq('Бригада')
-      expect(headers.second).to eq('Книга')
-      expect(headers).not_to include('Бригада / Книга')
+      expect(headers.first).to eq(I18n.t('reports.summary.brigade'))
+      expect(headers.second).to eq(I18n.t('reports.summary.book'))
+      expect(headers).not_to include("#{I18n.t('reports.summary.brigade')} / #{I18n.t('reports.summary.book')}")
     end
 
     it 'renders one header cell per table column' do
@@ -102,7 +102,7 @@ RSpec.describe 'Reports', type: :request do
         link = doc.at_css('a[href*="/reports/summary.csv"]')
 
         expect(link).to be_present
-        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link.text.strip).to eq(I18n.t('reports.summary.export_csv'))
         expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
                                          'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
         expect(link['data-turbo']).to eq('false')
@@ -144,8 +144,8 @@ RSpec.describe 'Reports', type: :request do
 
         expect(rows).to be_an(Array)
         expect(rows.first).to be_present
-        expect(rows.first.first(2)).to eq(%w[Бригада Книга])
-        expect(rows.last.first).to eq('Всього')
+        expect(rows.first.first(2)).to eq([I18n.t('reports.csv.brigade'), I18n.t('reports.csv.book')])
+        expect(rows.last.first).to eq(I18n.t('reports.csv.total'))
       end
 
       it 'keeps the html behavior untouched when no format is given' do
@@ -167,8 +167,8 @@ RSpec.describe 'Reports', type: :request do
       get detailed_reports_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('ІПН')
-      expect(response.body).to include('ПІБ')
+      expect(response.body).to include(I18n.t('reports.detailed_columns.id_code'))
+      expect(response.body).to include(I18n.t('reports.detailed_columns.full_name'))
       expect(response.body).to include('detailed_report_table')
     end
 
@@ -291,8 +291,8 @@ RSpec.describe 'Reports', type: :request do
       doc = Nokogiri::HTML(response.body)
       headers = doc.css('table thead tr').first.css('th').map { |th| th.text.strip }
 
-      expect(headers).to include('Брутто зп+відп')
-      expect(headers.last).to eq('Чиста виплата')
+      expect(headers).to include(I18n.t('reports.detailed_columns.gross_vacation'))
+      expect(headers.last).to eq(I18n.t('reports.detailed_columns.net_pay'))
     end
 
     it 'renders the header cells with the exact labels, order and alignment classes' do
@@ -301,10 +301,10 @@ RSpec.describe 'Reports', type: :request do
       doc = Nokogiri::HTML(response.body)
       header_cells = doc.css('table thead tr').first.css('th')
 
-      Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_with_index do |(key, label), index|
+      Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_with_index do |(key, _label), index|
         alignment = Reports::EmployeeDetailedQuery::TEXT_COLUMNS.include?(key) ? 'text-left' : 'text-right'
 
-        expect(header_cells[index].text.strip).to eq(label)
+        expect(header_cells[index].text.strip).to eq(I18n.t("reports.detailed_columns.#{key}"))
         expect(header_cells[index]['class']).to include(alignment)
       end
     end
@@ -369,7 +369,7 @@ RSpec.describe 'Reports', type: :request do
       end
 
       it 'drops the commit and page params from the sort links' do
-        get detailed_reports_path(commit: 'Фільтрувати', page: 2)
+        get detailed_reports_path(commit: I18n.t('reports.detailed.filter'), page: 2)
 
         href = header_links.first['href']
 
@@ -417,7 +417,7 @@ RSpec.describe 'Reports', type: :request do
 
         expect(cells.size).to eq(16)
         expect(cells.first['colspan']).to eq('5')
-        expect(cells.first.text.strip).to eq('Загалом')
+        expect(cells.first.text.strip).to eq(I18n.t('reports.detailed.total'))
         expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
       end
     end
@@ -430,12 +430,12 @@ RSpec.describe 'Reports', type: :request do
 
         doc = Nokogiri::HTML(response.body)
         link = doc.at_css('a[href*=".csv"]')
-        reset_link = doc.xpath("//a[normalize-space(text())='Скинути']").first
+        reset_link = doc.xpath("//a[normalize-space(text())='#{I18n.t('reports.detailed.reset')}']").first
 
         expect(link).to be_present
         expect(reset_link).to be_present
         expect(link.parent).to eq(reset_link.parent)
-        expect(link.text.strip).to eq('Експорт CSV')
+        expect(link.text.strip).to eq(I18n.t('reports.detailed.export_csv'))
         expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
                                          'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
         expect(link['data-turbo']).to eq('false')
@@ -484,11 +484,11 @@ RSpec.describe 'Reports', type: :request do
         expect(response.headers['Content-Disposition']).to include("detailed-#{Date.current}.csv")
       end
 
-      it 'renders a parseable CSV document headed by ІПН' do
+      it 'renders a parseable CSV document headed by the ID code column' do
         get detailed_reports_path(format: :csv)
 
         expect(csv_rows).to be_an(Array)
-        expect(csv_rows.first.first).to eq('ІПН')
+        expect(csv_rows.first.first).to eq(I18n.t('reports.detailed_columns.id_code'))
       end
 
       it 'includes both employees from different brigades' do
@@ -637,7 +637,7 @@ RSpec.describe 'Reports', type: :request do
     end
 
     it 'drops the commit param from the pagination links' do
-      get detailed_reports_path(commit: 'Фільтрувати')
+      get detailed_reports_path(commit: I18n.t('reports.detailed.filter'))
 
       link = parsed_doc.at_css('a[href*="page=2"]')
 
@@ -648,7 +648,7 @@ RSpec.describe 'Reports', type: :request do
       get detailed_reports_path(format: :csv, page: 2)
 
       csv = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
-      ids = csv[1..].reject { |row| row.first == 'Загалом' }.map(&:first)
+      ids = csv[1..].reject { |row| row.first == I18n.t('reports.detailed.total') }.map(&:first)
 
       expect(ids).to match_array(employees.map { |e| e.id_code.to_s })
     end

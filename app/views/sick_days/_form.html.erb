@@ -4,7 +4,7 @@
   <% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white" %>
 
   <div class="px-4">
-    <p>Select month</p>
+    <p><%= t('sick_days.form.select_month') %></p>
     <%= f.month_field :period,
         class: input_classes,
         value: f.object.period&.strftime("%Y-%m"),
@@ -12,7 +12,7 @@
   </div>
 
   <div class="px-4">
-    <p>PFU <span class="text-xs font-normal text-gray-500">(1000,00)</span></p>
+    <p><%= t('sick_days.form.pfu') %> <span class="text-xs font-normal text-gray-500"><%= t('common.example') %></span></p>
     <% if f.object.pfu_amount.to_f > 0 || f.object.new_record? %>
       <%= f.number_field :pfu_amount,
           value: (f.object.pfu_amount if f.object.pfu_amount_cents.to_i.positive?),
@@ -24,7 +24,7 @@
   </div>
 
   <div class="px-4">
-    <p>Enterprise <span class="text-xs font-normal text-gray-500">(1000,00)</span></p>
+    <p><%= t('sick_days.form.enterprise') %> <span class="text-xs font-normal text-gray-500"><%= t('common.example') %></span></p>
     <% if f.object.enterprise_amount.to_f > 0 || f.object.new_record? %>
       <%= f.number_field :enterprise_amount,
           value: (f.object.enterprise_amount if f.object.enterprise_amount_cents.to_i.positive?),
@@ -40,13 +40,13 @@
   </div>
 
   <div class="px-4 text-center flex items-center justify-center gap-4">
-    <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: "Зберегти" do %>
+    <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: t('sick_days.form.save') do %>
       ✅
     <% end %>
 
     <%= link_to employee_sick_days_path(@employee),
         class: "hover:scale-125 transition text-lg",
-        title: "Скасувати" do %>
+        title: t('sick_days.form.cancel') do %>
       ❌
     <% end %>
   </div>

@@ -13,7 +13,7 @@
   <% end %>
 
   <div>
-    <%= f.label :employee_id, "Працівник", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :employee_id, t('vacation_entries.form.employee'), class: "block text-sm font-medium mb-1" %>
 
     <% if @employee_search.present? %>
       <% if employees.any? %>
@@ -26,17 +26,17 @@
           <% end %>
         </div>
       <% else %>
-        <p class="text-sm text-red-600">Оберіть інший запит для пошуку працівника.</p>
+        <p class="text-sm text-red-600"><%= t('vacation_entries.form.other_search') %></p>
       <% end %>
     <% else %>
       <%= f.collection_select :employee_id, employees, :id, :full_name_with_id_code,
-          { include_blank: "Оберіть працівника" },
+          { include_blank: t('vacation_entries.form.select_employee') },
           { class: input_classes, required: true } %>
     <% end %>
   </div>
 
   <div>
-    <%= f.label :period, "Період", class: "block text-sm font-medium mb-1" %>
+    <%= f.label :period, t('vacation_entries.form.period'), class: "block text-sm font-medium mb-1" %>
     <%= f.date_field :period,
         class: input_classes,
         value: vacation.period&.strftime("%Y-%m-%d"),
@@ -45,7 +45,7 @@
 
   <div>
     <%= f.label :vacation_amount, class: "block text-sm font-medium mb-1" do %>
-      Сума відпустки <span class="text-xs font-normal text-gray-500">(приклад: 1000,00)</span>
+      <%= t('vacation_entries.form.vacation_amount') %> <span class="text-xs font-normal text-gray-500"><%= t('common.example') %></span>
     <% end %>
     <%= f.number_field :vacation_amount,
         value: (vacation.vacation_amount if vacation.vacation_amount_cents.to_i.positive?),
@@ -54,8 +54,8 @@
   </div>
 
   <div class="flex items-center gap-4">
-    <%= f.submit "Зберегти", class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
-    <%= link_to "Скасувати", employees_path,
+    <%= f.submit t('vacation_entries.form.save'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to t('vacation_entries.form.cancel'), employees_path,
         class: "text-gray-600 hover:text-gray-900 underline",
         data: { turbo_frame: "_top" } %>
   </div>

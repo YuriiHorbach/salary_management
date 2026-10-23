@@ -8,6 +8,6 @@ class DepartmentEmployee < ApplicationRecord
   validates :employee_id,
             uniqueness: {
               scope: %i[department_id position_id],
-              message: 'вже має цю посаду в цьому підрозділі'
+              message: :position_taken
             }
 end

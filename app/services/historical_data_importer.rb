@@ -78,7 +78,7 @@ class HistoricalDataImporter
     table = parse_csv
 
     if table.headers.compact.empty?
-      result.errors << 'CSV не містить заголовків'
+      result.errors << I18n.t('historical_imports.errors.no_headers')
       return result
     end
 
@@ -122,17 +122,21 @@ class HistoricalDataImporter
   def process_row(attributes, line_number, result)
     type = normalize_type(attributes['type']) || normalize_type(@default_type)
 
-    return skip(result, line_number, 'невідомий тип даних (очікується salary, sick_day або vacation)') unless type
+    return skip(result, line_number, I18n.t('historical_imports.errors.unknown_type')) unless type
 
     employee_id = employee_id_for(attributes)
 
     unless employee_id
       return skip(result, line_number,
-                  "працівника з кодом #{identifier_for(attributes).inspect} не знайдено")
+                  I18n.t('historical_imports.errors.employee_not_found', code: identifier_for(attributes).inspect))
     end
 
     period = ValueParser.period(attributes['period'])
-    return skip(result, line_number, "некоректний період #{attributes['period'].inspect}") unless period
+    unless period
+      return skip(result, line_number,
+                  I18n.t('historical_imports.errors.invalid_period',
+                         period: attributes['period'].inspect))
+    end
 
     store_row(type, attributes, employee_id, period, result)
   end
@@ -253,13 +257,9 @@ class HistoricalDataImporter
       result.created += 1
     end
 
-    mark_touched(attributes[:employee_id], attributes[:period], income_type)
+    @touched_incomes[[attributes[:employee_id], attributes[:period], income_type]] = true
   end
   # rubocop:enable Rails/SkipsModelValidations
-
-  def mark_touched(employee_id, period, income_type)
-    @touched_incomes[[employee_id, period, income_type]] = true
-  end
 
   # Rebuilds +EmployeePeriodIncome+ once per touched employee, month and income
   # type so reports include the imported rows. Taxes are calculated on the
@@ -275,8 +275,7 @@ class HistoricalDataImporter
   end
 
   def employee_record(employee_id)
-    @employee_records ||= {}
-    @employee_records[employee_id] ||= Employee.find(employee_id)
+    (@employee_records ||= {})[employee_id] ||= Employee.find(employee_id)
   end
 
   def net_amount(attributes, gross, income, military)
@@ -322,6 +321,6 @@ class HistoricalDataImporter
 
   def skip(result, line_number, message)
     result.skipped += 1
-    result.errors << "Рядок #{line_number}: #{message}"
+    result.errors << I18n.t('historical_imports.errors.row', line: line_number, message: message)
   end
 end

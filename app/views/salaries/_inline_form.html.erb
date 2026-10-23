@@ -12,7 +12,7 @@
 
     <% if positions.any? %>
       <%= form.collection_select :position_id, positions, :id, :position_name,
-                                 { include_blank: filter_position_id.present? ? false : 'Без посади' },
+                                 { include_blank: filter_position_id.present? ? false : t('salaries.inline_form.no_position') },
                                  class: "p-1 text-xs border rounded border-gray-300 bg-white font-mono" %>
     <% end %>
 
@@ -29,7 +29,7 @@
                           value: typed_amount || persisted_amount,
                           autofocus: true,
                           class: "w-20 p-1 text-xs border rounded border-blue-500 outline-none focus:ring-1 focus:ring-blue-500 font-mono" %>
-    <%= form.submit 'Зберегти',
+    <%= form.submit t('salaries.inline_form.save'),
                     class: "ml-1 px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer" %>
   <% end %>
 <% end %>

@@ -2,14 +2,25 @@
 
 # Base controller for the application.
 #
-# Exposes the user-selected +current_working_month+ to controllers and views so
-# payroll entry forms can default to the month the user is actually working on.
+# Resolves the active UI locale from the +locale+ query parameter or the
+# application default stored in +ApplicationSetting+, exposes the user-selected
+# +current_working_month+ to controllers and views, and keeps an explicitly
+# selected locale in generated URLs so navigation never silently switches back
+# to the configured default language.
 class ApplicationController < ActionController::Base
   include Pagy::Method
 
   helper_method :current_working_month
 
+  before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
+
+  # Keeps an explicitly requested locale in every generated URL.
+  #
+  # @return [Hash] locale option for explicit selections, otherwise an empty hash
+  def default_url_options
+    @locale_from_param ? { locale: I18n.locale } : {}
+  end
 
   protected
 
@@ -22,5 +33,32 @@ class ApplicationController < ActionController::Base
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: %i[id_code first_name patronic_name last_name])
+  end
+
+  private
+
+  # Applies a supported locale from the query string; unsupported or missing
+  # values fall back to the application-wide default locale.
+  #
+  # @return [Symbol] the locale assigned to the current request
+  def set_locale
+    requested = params[:locale]
+    @locale_from_param = supported_locale?(requested)
+    I18n.locale = @locale_from_param ? requested.to_sym : default_locale
+  end
+
+  # Returns the persisted application default, guarding against invalid values
+  # written outside the model validations.
+  #
+  # @return [Symbol] supported default locale
+  def default_locale
+    configured = ApplicationSetting.default_locale.to_s
+    supported_locale?(configured) ? configured.to_sym : I18n.default_locale
+  end
+
+  # @param locale [String, Symbol, nil] requested locale
+  # @return [Boolean] whether the application ships translations for it
+  def supported_locale?(locale)
+    SalaryManagement::SUPPORTED_LOCALES.map(&:to_s).include?(locale.to_s)
   end
 end

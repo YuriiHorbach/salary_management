@@ -93,7 +93,7 @@ RSpec.describe 'SickDayEntries', type: :request do
       doc = Nokogiri::HTML(response.body)
 
       expect(doc.at_css('#sick_day_employee_search_count').text.strip).to eq('0')
-      expect(doc.text).to include('Працівників за таким запитом не знайдено.')
+      expect(doc.text).to include(I18n.t('common.no_matches'))
     end
 
     it 'keeps the search term in the search field' do
@@ -110,8 +110,8 @@ RSpec.describe 'SickDayEntries', type: :request do
       doc = Nokogiri::HTML(response.body)
       link = doc.at_css("a[href='#{new_sick_day_entry_path}']")
 
-      expect(link.text.strip).to eq('Лікарняні')
-      expect(doc.text).to include('Додатково')
+      expect(link.text.strip).to eq(I18n.t('navigation.sick_days'))
+      expect(doc.text).to include(I18n.t('navigation.more'))
     end
 
     context 'when a current working month is selected' do

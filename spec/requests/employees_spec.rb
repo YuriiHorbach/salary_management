@@ -56,6 +56,33 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees id code search' do
+    let!(:matching_employee) { create(:employee, id_code: '9999999901') }
+    let!(:non_matching_employee) { create(:employee, id_code: '8888888802') }
+
+    it 'finds employees by a partial id code' do
+      get employees_path, params: { q: { id_code_cont: '99999' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:employees)).to include(matching_employee)
+      expect(assigns(:employees)).not_to include(non_matching_employee)
+    end
+
+    it 'ignores surrounding whitespace in the id code fragment' do
+      get employees_path, params: { q: { id_code_cont: '  99999  ' } }
+
+      expect(assigns(:employees)).to include(matching_employee)
+    end
+
+    it 'finds passport-style id codes typed in lowercase' do
+      passport_employee = create(:employee, id_code: 'АА123456')
+
+      get employees_path, params: { q: { id_code_cont: 'аа12' } }
+
+      expect(assigns(:employees)).to include(passport_employee)
+    end
+  end
+
   describe 'GET /employees/:id with salary search' do
     let!(:salary_1200_40) do
       create(:salary, employee: employee, amount_cents: 120_040, period: Date.new(2025, 1, 1))

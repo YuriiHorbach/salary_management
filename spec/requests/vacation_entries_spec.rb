@@ -37,28 +37,70 @@ RSpec.describe 'VacationEntries', type: :request do
       expect(doc.at_css('input[name="vacation[vacation_amount]"]')).to be_present
     end
 
-    it 'filters the employee dropdown by a case-insensitive name search' do
+    it 'filters the employee list by name case-insensitively' do
       get new_vacation_entry_path(employee_search: 'петренко')
 
-      select = Nokogiri::HTML(response.body).at_css('select[name="vacation[employee_id]"]')
+      doc = Nokogiri::HTML(response.body)
 
-      expect(select.text).to include(petrenko.id_code.to_s)
-      expect(select.text).not_to include(ivanenko.id_code.to_s)
+      expect(doc.text).to include(petrenko.full_name_with_id_code)
+      expect(doc.text).not_to include(ivanenko.full_name_with_id_code)
     end
 
-    it 'filters the employee dropdown by a partial id code' do
-      get new_vacation_entry_path(employee_search: '98765')
+    it 'shows employees matching a partial id code as selectable options' do
+      get new_vacation_entry_path(employee_search: '9876')
 
-      select = Nokogiri::HTML(response.body).at_css('select[name="vacation[employee_id]"]')
+      doc = Nokogiri::HTML(response.body)
+      radio_values = doc.css('input[type="radio"][name="vacation[employee_id]"]').map { |radio| radio['value'] }
 
-      expect(select.text).to include(ivanenko.id_code.to_s)
-      expect(select.text).not_to include(petrenko.id_code.to_s)
+      expect(radio_values).to eq([ivanenko.id.to_s])
+      expect(doc.text).to include(ivanenko.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code)
+    end
+
+    it 'shows a passport book id code match typed in lowercase' do
+      passport_employee = create(:employee, id_code: 'АА123456', last_name: 'Шевченко',
+                                            first_name: 'Тарас', patronic_name: 'Григорович')
+
+      get new_vacation_entry_path(employee_search: 'аа12')
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.text).to include(passport_employee.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code, ivanenko.full_name_with_id_code)
+    end
+
+    it 'ignores whitespace around a partial id code' do
+      get new_vacation_entry_path(employee_search: '  9876  ')
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.text).to include(ivanenko.full_name_with_id_code)
+      expect(doc.text).not_to include(petrenko.full_name_with_id_code)
+    end
+
+    it 'shows how many employees matched the partial id code' do
+      get new_vacation_entry_path(employee_search: '9876')
+
+      count = Nokogiri::HTML(response.body).at_css('#vacation_employee_search_count')
+
+      expect(count.text.strip).to eq('1')
+    end
+
+    it 'shows an empty state when no employee matches' do
+      get new_vacation_entry_path(employee_search: '0000')
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.at_css('#vacation_employee_search_count').text.strip).to eq('0')
+      expect(doc.text).to include('Працівників за таким запитом не знайдено.')
     end
 
     it 'keeps the search term after filtering' do
       get new_vacation_entry_path(employee_search: 'петренко')
 
-      expect(response.body).to include('value="петренко"')
+      input = Nokogiri::HTML(response.body).at_css('input[name="employee_search"]')
+
+      expect(input['value']).to eq('петренко')
     end
 
     it 'does not prefill the vacation amount and shows the input format hint' do
@@ -132,14 +174,46 @@ RSpec.describe 'VacationEntries', type: :request do
       expect(response.body).to include('Період')
     end
 
-    it 'keeps the employee search after a failed submission' do
+    it 're-selects the chosen employee when a different validation fails' do
       post vacation_entries_path, params: {
-        employee_search: employee.last_name,
         vacation: { employee_id: employee.id, period: '', vacation_amount: '100.00' }
       }
 
-      expect(response.body).to include("value=\"#{employee.last_name}\"")
-      expect(response.body).to include(employee.full_name_with_id_code)
+      expect(response).to have_http_status(:unprocessable_content)
+
+      select = Nokogiri::HTML(response.body).at_css('select[name="vacation[employee_id]"]')
+      selected_values = select.css('option[selected]').map { |option| option['value'] }
+
+      expect(selected_values).to include(employee.id.to_s)
+    end
+
+    it 'keeps the partially filtered employee list after a failed create' do
+      matching_employee = create(:employee, id_code: '9876543210')
+      non_matching_employee = create(:employee, id_code: '1111111111')
+
+      post vacation_entries_path, params: {
+        employee_search: '9876',
+        vacation: { employee_id: matching_employee.id, period: '', vacation_amount: '100.00' }
+      }
+
+      doc = Nokogiri::HTML(response.body)
+      selected_radio = doc.at_css(
+        "input[type='radio'][name='vacation[employee_id]'][value='#{matching_employee.id}'][checked]"
+      )
+      expect(selected_radio).to be_present
+      expect(doc.text).to include(matching_employee.full_name_with_id_code)
+      expect(doc.text).not_to include(non_matching_employee.full_name_with_id_code)
+    end
+
+    it 'keeps the search filter after a failed create' do
+      post vacation_entries_path, params: {
+        employee_search: '1234',
+        vacation: { employee_id: employee.id, period: '', vacation_amount: '100.00' }
+      }
+
+      input = Nokogiri::HTML(response.body).at_css('input[name="employee_search"]')
+
+      expect(input['value']).to eq('1234')
     end
   end
 

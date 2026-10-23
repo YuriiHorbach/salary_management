@@ -25,6 +25,35 @@ RSpec.describe 'Departments', type: :request do
       end
     end
 
+    context 'with employee counts' do
+      it 'shows the number of employees for each department' do
+        sign_in(user)
+        department = create(:department)
+        empty_department = create(:department)
+        create_list(:department_employee, 2, department: department)
+
+        get departments_path
+
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.at_css("#department_#{department.id}_employee_count").text.strip).to eq('2')
+        expect(doc.at_css("#department_#{empty_department.id}_employee_count").text.strip).to eq('0')
+      end
+
+      it 'does not count an employee twice when they have several positions' do
+        sign_in(user)
+        department = create(:department)
+        position = create(:position, department: department)
+        employee = create(:employee)
+        create(:department_employee, employee: employee, department: department)
+        create(:department_employee, employee: employee, department: department, position: position)
+
+        get departments_path
+
+        count = Nokogiri::HTML(response.body).at_css("#department_#{department.id}_employee_count")
+        expect(count.text.strip).to eq('1')
+      end
+    end
+
     context 'when admin unauthorized' do
       it 'does not see users list' do
         get departments_path
@@ -55,6 +84,29 @@ RSpec.describe 'Departments', type: :request do
         get department_path(department.id)
 
         expect(response).to be_successful
+      end
+
+      it 'shows the number of employees in the department' do
+        get department_path(department)
+
+        count = Nokogiri::HTML(response.body).at_css('#department_employees_count')
+        expect(count.text.strip).to eq('2')
+      end
+
+      it 'does not double count an employee with several positions' do
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+
+        get department_path(department)
+
+        count = Nokogiri::HTML(response.body).at_css('#department_employees_count')
+        expect(count.text.strip).to eq('2')
+      end
+
+      it 'keeps the total headcount when filtering by position' do
+        get department_path(department, position: engineer_position.id)
+
+        count = Nokogiri::HTML(response.body).at_css('#department_employees_count')
+        expect(count.text.strip).to eq('2')
       end
 
       it 'sorts employees by last name ascending' do

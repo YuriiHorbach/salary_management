@@ -59,4 +59,29 @@ RSpec.describe Department, type: :model do
       expect(department.monthly_total(period, position: position)).to eq(500.0)
     end
   end
+
+  describe '.employee_counts' do
+    it 'returns the number of distinct employees for each department' do
+      department = create(:department)
+      other_department = create(:department)
+      position = create(:position, department: department)
+      employee = create(:employee)
+      other_employee = create(:employee)
+
+      create(:department_employee, employee: employee, department: department, position: position)
+      create(:department_employee, employee: employee, department: department)
+      create(:department_employee, employee: other_employee, department: other_department)
+
+      expect(described_class.employee_counts).to include(
+        department.id => 1,
+        other_department.id => 1
+      )
+    end
+
+    it 'omits departments without employees' do
+      department = create(:department)
+
+      expect(described_class.employee_counts).not_to have_key(department.id)
+    end
+  end
 end

@@ -14,6 +14,7 @@ class DepartmentsController < ApplicationController
 
   def index
     @departments = Department.all
+    @employee_counts = Department.employee_counts
   end
 
   def new
@@ -22,6 +23,7 @@ class DepartmentsController < ApplicationController
 
   def show
     @q = @department.employees.ransack(params[:q])
+    @employees_count = @department.department_employees.distinct.count(:employee_id)
     @positions = @department.positions.order(:position_name)
     @position = @department.positions.find_by(id: params[:position])
     @employees = filtered_employees.to_a

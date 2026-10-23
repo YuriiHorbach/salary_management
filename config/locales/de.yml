@@ -147,6 +147,7 @@ de:
       account_book: Buch
       territory_sign: Brigade
       tax_setting: Steuereinstellungen
+      application_setting: Standardsprache
     attributes:
       employee:
         id_code: Steuer-ID
@@ -181,6 +182,8 @@ de:
       territory_sign:
         name: Name
         code: Code
+      application_setting:
+        default_locale: Standardsprache
     errors:
       models:
         employee:
@@ -195,6 +198,10 @@ de:
           attributes:
             employee_id:
               position_taken: hat diese Position bereits in der Abteilung
+        application_setting:
+          attributes:
+            default_locale:
+              inclusion: ist keine unterstützte Sprache
         salary:
           attributes:
             period:
@@ -725,6 +732,9 @@ de:
       books_title: "\U0001F4DA Kontobücher"
       books_description: 'Verwalten Sie Bücher: Name, Buchnummer, Seitenzahl.'
       add_book: Buch hinzufügen
+      locale_title: "🌐 Standardsprache"
+      locale_description: Wählen Sie die Sprache, die verwendet wird, wenn keine Sprache ausdrücklich ausgewählt ist.
+      change_locale: Standardsprache ändern
     account_books:
       index:
         title: Kontobücher
@@ -784,6 +794,15 @@ de:
         back: Zurück zur Liste
         errors: 'Fehler:'
         name: Brigadename
+        save: Speichern
+        cancel: Abbrechen
+    application_settings:
+      edit:
+        title: Standardsprache
+        back: Zurück zu Einstellungen
+        errors: 'Fehler:'
+        default_locale: Standardsprache
+        hint: Diese Sprache wird verwendet, wenn keine andere Sprache ausgewählt ist. Benutzer können die Sprache weiterhin vorübergehend in der Navigationsleiste wechseln.
         save: Speichern
         cancel: Abbrechen
     tax_settings:
@@ -925,3 +944,5 @@ de:
         deleted: Gebietsmerkmal gelöscht.
       tax_settings:
         updated: Steuereinstellungen aktualisiert.
+      application_settings:
+        updated: Standardsprache aktualisiert.

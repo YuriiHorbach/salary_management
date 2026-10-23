@@ -53,7 +53,7 @@ uk:
     'yes': Так
     'no': Ні
   navigation:
-    app_name: Управління зарплатами
+    app_name: Зарплатний менеджмент
     departments: Підрозділи
     employees: Працівники
     more: Додатково
@@ -147,6 +147,7 @@ uk:
       account_book: Книга
       territory_sign: Бригада
       tax_setting: Налаштування податків
+      application_setting: Мова за замовчуванням
     attributes:
       employee:
         id_code: ІПН
@@ -181,6 +182,8 @@ uk:
       territory_sign:
         name: Назва
         code: Код
+      application_setting:
+        default_locale: Мова за замовчуванням
     errors:
       models:
         employee:
@@ -195,6 +198,10 @@ uk:
           attributes:
             employee_id:
               position_taken: вже має цю посаду в цьому підрозділі
+        application_setting:
+          attributes:
+            default_locale:
+              inclusion: не є підтримуваною мовою
         salary:
           attributes:
             period:
@@ -724,6 +731,9 @@ uk:
       books_title: "\U0001F4DA Облікові книги"
       books_description: 'Керуйте книгами: назва, номер книги, номер сторінки.'
       add_book: Додати книгу
+      locale_title: "🌐 Мова за замовчуванням"
+      locale_description: Виберіть мову, яка використовується, коли мову не вибрано явно.
+      change_locale: Змінити мову за замовчуванням
     account_books:
       index:
         title: Облікові книги
@@ -783,6 +793,15 @@ uk:
         back: Назад до списку
         errors: 'Помилки:'
         name: Назва бригади
+        save: Зберегти
+        cancel: Скасувати
+    application_settings:
+      edit:
+        title: Мова за замовчуванням
+        back: Назад до налаштувань
+        errors: 'Помилки:'
+        default_locale: Мова за замовчуванням
+        hint: Ця мова використовується, коли іншу мову не вибрано. Користувачі все одно можуть тимчасово змінювати мову в навігаційному меню.
         save: Зберегти
         cancel: Скасувати
     tax_settings:
@@ -921,3 +940,5 @@ uk:
         deleted: Територіальну ознаку видалено.
       tax_settings:
         updated: Налаштування податків оновлено.
+      application_settings:
+        updated: Мову за замовчуванням оновлено.

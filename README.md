@@ -14,7 +14,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 - Historical CSV import for previously calculated payroll data.
 - Per-user working month used as the default period for new records.
 - Search, filtering, sorting, and pagination.
-- Multilingual UI (English, Ukrainian, German) with a navbar language switcher.
+- Multilingual UI (English, Ukrainian, German) with a navbar language switcher and a configurable default language.
 
 ## Tech stack
 
@@ -137,11 +137,12 @@ See [docs/agent-environment.md](docs/agent-environment.md) for isolation details
 
 ## Localization
 
-The application ships with English (`en`), Ukrainian (`uk`), and German (`de`) locales. English is the default and the fallback for missing translations.
+The application ships with English (`en`), Ukrainian (`uk`), and German (`de`) locales. English is the initial default and the fallback for missing translations.
 
 - Translation files live in `config/locales/en.yml`, `uk.yml`, and `de.yml`.
+- Administrators can change the application default under **Settings → Default language** (`/settings/application_setting/edit`). It is stored in the `application_settings` table.
 - Users switch languages from the navbar, which preserves the current path and query string and adds `?locale=uk` (or `de`).
-- Controllers expose the selected locale through `ApplicationController#set_locale`; invalid values fall back to the default locale.
+- Controllers expose the selected locale through `ApplicationController#set_locale`; invalid values fall back to the configured default locale.
 - Report column headers, CSV exports, validation errors, flash messages, and mailers are all translated.
 - When adding a new locale, update `config.i18n.available_locales` in `config/application.rb` and add the matching YAML file and navbar label under `locales`.
 

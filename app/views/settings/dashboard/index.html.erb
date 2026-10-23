@@ -24,6 +24,15 @@
   </div>
 
   <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+    <h2 class="text-lg font-semibold mb-4 text-purple-700"><%= t('settings.dashboard.locale_title') %></h2>
+    <p class="text-gray-600 mb-4"><%= t('settings.dashboard.locale_description') %></p>
+    <div class="flex gap-2">
+      <%= link_to t('settings.dashboard.change_locale'), edit_settings_application_setting_path,
+                  class: "btn btn-primary" %>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4 text-green-700"><%= t('settings.dashboard.books_title') %></h2>
     <p class="text-gray-600 mb-4"><%= t('settings.dashboard.books_description') %></p>
     <div class="flex gap-2">

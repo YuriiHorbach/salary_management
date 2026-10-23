@@ -48,5 +48,6 @@ Rails.application.routes.draw do
     resources :territory_signs, except: [:show]
     resources :account_books, except: [:show]
     resource :tax_settings, only: %i[edit update]
+    resource :application_setting, only: %i[edit update]
   end
 end

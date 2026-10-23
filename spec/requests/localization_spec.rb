@@ -53,6 +53,42 @@ RSpec.describe 'Localization', type: :request do
     end
   end
 
+  describe 'configured default locale' do
+    before { ApplicationSetting.create!(default_locale: 'uk') }
+
+    it 'uses the configured default when no locale is requested' do
+      get root_path
+
+      expect(I18n.locale).to eq(:uk)
+      expect(response.body).to include('Головна сторінка')
+    end
+
+    it 'falls back to the configured default for unsupported locales' do
+      get root_path(locale: :fr)
+
+      expect(I18n.locale).to eq(:uk)
+    end
+
+    it 'lets an explicit locale override the configured default' do
+      get root_path(locale: :en)
+
+      expect(I18n.locale).to eq(:en)
+    end
+
+    it 'does not add a locale parameter when rendering with the configured default' do
+      get employees_path
+
+      expect(response.body).to include('/employees/new')
+      expect(response.body).not_to include('/employees/new?locale=uk')
+    end
+
+    it 'keeps an explicitly selected locale in generated URLs' do
+      get employees_path(locale: :en)
+
+      expect(response.body).to include('/employees/new?locale=en')
+    end
+  end
+
   describe 'locale preservation' do
     it 'adds the active locale to generated URLs' do
       get employees_path(locale: :uk)

@@ -147,6 +147,7 @@ en:
       account_book: Book
       territory_sign: Brigade
       tax_setting: Tax settings
+      application_setting: Default language
     attributes:
       employee:
         id_code: ID code
@@ -181,6 +182,8 @@ en:
       territory_sign:
         name: Name
         code: Code
+      application_setting:
+        default_locale: Default language
     errors:
       models:
         employee:
@@ -195,6 +198,10 @@ en:
           attributes:
             employee_id:
               position_taken: already has this position in the department
+        application_setting:
+          attributes:
+            default_locale:
+              inclusion: is not a supported language
         salary:
           attributes:
             period:
@@ -723,6 +730,9 @@ en:
       books_title: "\U0001F4DA Account books"
       books_description: 'Manage books: name, book number, page number.'
       add_book: Add book
+      locale_title: "🌐 Default language"
+      locale_description: Choose the language used when no language is selected explicitly.
+      change_locale: Change default language
     account_books:
       index:
         title: Account books
@@ -782,6 +792,15 @@ en:
         back: Back to list
         errors: 'Errors:'
         name: Brigade name
+        save: Save
+        cancel: Cancel
+    application_settings:
+      edit:
+        title: Default language
+        back: Back to settings
+        errors: 'Errors:'
+        default_locale: Default language
+        hint: This language is used when no other language is selected. Users can still switch languages temporarily from the navigation bar.
         save: Save
         cancel: Cancel
     tax_settings:
@@ -923,3 +942,5 @@ en:
         deleted: Territorial sign deleted.
       tax_settings:
         updated: Tax settings updated.
+      application_settings:
+        updated: Default language updated.

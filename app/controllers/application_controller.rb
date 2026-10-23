@@ -2,10 +2,11 @@
 
 # Base controller for the application.
 #
-# Resolves the active UI locale from the +locale+ query parameter, exposes the
-# user-selected +current_working_month+ to controllers and views, and keeps the
-# active locale in generated URLs so navigation never silently switches back to
-# the default language.
+# Resolves the active UI locale from the +locale+ query parameter or the
+# application default stored in +ApplicationSetting+, exposes the user-selected
+# +current_working_month+ to controllers and views, and keeps an explicitly
+# selected locale in generated URLs so navigation never silently switches back
+# to the configured default language.
 class ApplicationController < ActionController::Base
   include Pagy::Method
 
@@ -14,11 +15,11 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # Adds the active non-default locale to every generated URL.
+  # Keeps an explicitly requested locale in every generated URL.
   #
-  # @return [Hash] locale option, or an empty hash for the default locale
+  # @return [Hash] locale option for explicit selections, otherwise an empty hash
   def default_url_options
-    I18n.locale == I18n.default_locale ? {} : { locale: I18n.locale }
+    @locale_from_param ? { locale: I18n.locale } : {}
   end
 
   protected
@@ -37,12 +38,22 @@ class ApplicationController < ActionController::Base
   private
 
   # Applies a supported locale from the query string; unsupported or missing
-  # values fall back to English.
+  # values fall back to the application-wide default locale.
   #
   # @return [Symbol] the locale assigned to the current request
   def set_locale
     requested = params[:locale]
-    I18n.locale = supported_locale?(requested) ? requested.to_sym : I18n.default_locale
+    @locale_from_param = supported_locale?(requested)
+    I18n.locale = @locale_from_param ? requested.to_sym : default_locale
+  end
+
+  # Returns the persisted application default, guarding against invalid values
+  # written outside the model validations.
+  #
+  # @return [Symbol] supported default locale
+  def default_locale
+    configured = ApplicationSetting.default_locale.to_s
+    supported_locale?(configured) ? configured.to_sym : I18n.default_locale
   end
 
   # @param locale [String, Symbol, nil] requested locale

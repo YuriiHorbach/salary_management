@@ -105,6 +105,46 @@ RSpec.describe 'DepartmentEmployees', type: :request do
         )
       end
 
+      it 'filters employees by a partial id code' do
+        matching_employee = create(:employee, id_code: '7777777701')
+        non_matching_employee = create(:employee, id_code: '6666666602')
+
+        get new_department_employee_path(department_id: department.id, q: { id_code_cont: '77777' })
+
+        employee_ids = Nokogiri::HTML(response.body)
+                               .css('input[name="employee_ids[]"]')
+                               .map { |checkbox| checkbox['value'] }
+
+        expect(employee_ids).to include(matching_employee.id.to_s)
+        expect(employee_ids).not_to include(non_matching_employee.id.to_s)
+      end
+
+      it 'finds passport-style id codes typed in lowercase' do
+        passport_employee = create(:employee, id_code: 'ББ654321')
+
+        get new_department_employee_path(department_id: department.id, q: { id_code_cont: 'бб65' })
+
+        employee_ids = Nokogiri::HTML(response.body)
+                               .css('input[name="employee_ids[]"]')
+                               .map { |checkbox| checkbox['value'] }
+
+        expect(employee_ids).to include(passport_employee.id.to_s)
+      end
+
+      it 'keeps sorting when filtering by a partial id code' do
+        create(:employee, id_code: '5555555501')
+        create(:employee, id_code: '5555555502')
+
+        get new_department_employee_path(department_id: department.id,
+                                         q: { id_code_cont: '55555', s: 'id_code desc' })
+
+        employee_codes = Nokogiri::HTML(response.body)
+                                 .css('tbody tr td:first-child')
+                                 .map { |cell| cell.text.strip }
+
+        expect(employee_codes).to eq(%w[5555555502 5555555501])
+      end
+
       it 'renders controls for selecting and adding several employees at once' do
         get new_department_employee_path(department_id: department.id)
 

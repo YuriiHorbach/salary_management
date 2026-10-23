@@ -2,11 +2,13 @@
 
 # app/controllers/department_employees_controller.rb
 class DepartmentEmployeesController < ApplicationController
+  SEARCH_KEYS = %i[id_code_cont last_name_cont first_name_cont patronic_name_cont s].freeze
+
   before_action :authenticate_user!
   before_action :set_department, only: %i[new create]
 
   def new
-    @q = Employee.ransack(params[:q])
+    @q = Employee.ransack(employee_search_params)
     @employees = @q.result(distinct: true)
     @positions = @department.positions.order(:position_name)
   end
@@ -46,6 +48,14 @@ class DepartmentEmployeesController < ApplicationController
   end
 
   private
+
+  def employee_search_params
+    return {} if params[:q].blank?
+
+    params[:q].permit(*SEARCH_KEYS).to_h.tap do |search|
+      search['id_code_cont'] = search['id_code_cont'].to_s.strip.upcase if search['id_code_cont'].present?
+    end
+  end
 
   def selected_employee_ids
     Array(params[:employee_ids]).filter_map { |id| Integer(id.to_s, exception: false) }.uniq

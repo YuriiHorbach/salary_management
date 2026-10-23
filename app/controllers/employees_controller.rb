@@ -2,7 +2,7 @@
 
 class EmployeesController < ApplicationController
   SEARCH_KEYS = %i[
-    id_code_eq last_name_cont first_name_cont patronic_name_cont
+    id_code_cont last_name_cont first_name_cont patronic_name_cont
     territory_info_cont children_count_gt disability_group_eq
     chaes_true contract_true s
   ].freeze
@@ -101,6 +101,7 @@ class EmployeesController < ApplicationController
 
     params[:q].permit(*SEARCH_KEYS).to_h.tap do |search|
       CHECKBOX_FILTER_KEYS.each { |key| search.delete(key) if search[key] == '0' }
+      search['id_code_cont'] = search['id_code_cont'].to_s.strip.upcase if search['id_code_cont'].present?
     end
   end
 

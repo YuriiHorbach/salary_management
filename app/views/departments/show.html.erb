@@ -35,9 +35,13 @@
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :last_name, t('common.last_name')) %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :first_name, t('common.first_name')) %></th>
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :patronic_name, t('common.patronic_name')) %></th>
-      <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap"><%= t('.position') %></th>
       <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">
-        <%= t('.salary_for', period: @period.strftime('%m-%Y')) %>
+        <%= department_custom_sort_link('position', t('.position'), @department) %>
+      </th>
+      <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap">
+        <%= department_custom_sort_link('salary',
+                                        t('.salary_for', period: @period.strftime('%m-%Y')),
+                                        @department) %>
       </th>
       <th class="px-3 py-2 border border-gray-300 text-left whitespace-nowrap"><%= t('.view_salary') %></th>
       <th class="px-3 py-2 border border-gray-300 text-center whitespace-nowrap"><%= t('.remove_employee') %></th>

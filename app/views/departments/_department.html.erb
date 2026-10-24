@@ -8,7 +8,12 @@
       </span>
     </p>
     <div class="flex justify-between items-center mt-4">
-      <%= link_to t('departments.card.edit'), edit_department_path(department), class: "mx-2 text-blue-600 hover:text-blue-800" %>
+      <%= link_to t('departments.card.edit'), edit_department_path(department), class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+      <%= button_to t('departments.card.delete', default: t('common.delete', default: 'Delete')),
+                    department_path(department),
+                    method: :delete,
+                    data: { turbo_confirm: t('common.confirm_delete', default: 'Are you sure?') },
+                    class: "text-red-600 hover:text-red-800 text-sm font-medium transition cursor-pointer" %>
     </div>
   </div>
 <% end %>

@@ -50,3 +50,5 @@ storage/*.dump
 .opencode/
 .continue/
 docs/
+.vscode
+AGENTS.md

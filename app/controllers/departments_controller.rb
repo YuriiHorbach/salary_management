@@ -16,7 +16,7 @@ class DepartmentsController < ApplicationController
   DEFAULT_EMPLOYEE_SORT = 'last_name asc'
 
   before_action :authenticate_user!
-  before_action :set_department, only: %i[edit update show]
+  before_action :set_department, only: %i[edit update show destroy]
 
   def index
     @departments = Department.all
@@ -63,6 +63,15 @@ class DepartmentsController < ApplicationController
       end
     else
       render :edit, status: :unprocessable_content
+    end
+  end
+
+  # Deletes a department and removes its card via Turbo Stream or redirects to departments_path.
+  def destroy
+    @department.destroy!
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove(@department) }
+      format.html { redirect_to departments_path, notice: t('flash.departments.deleted') }
     end
   end
 

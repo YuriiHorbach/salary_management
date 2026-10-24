@@ -109,6 +109,16 @@ RSpec.describe 'Departments', type: :request do
         expect(count.text.strip).to eq('2')
       end
 
+      it 'sorts employees by last name ascending by default' do
+        bravo = create(:employee, id_code: '5000000003', last_name: 'Bravo', first_name: 'Bob',
+                                  patronic_name: 'Bohdanovych')
+        create(:department_employee, employee: bravo, department: department)
+
+        get department_path(department)
+
+        expect(rendered_last_names).to eq(%w[Alpha Bravo Zeta])
+      end
+
       it 'sorts employees by last name ascending' do
         get department_path(department, q: { s: 'last_name asc' })
 
@@ -231,7 +241,9 @@ RSpec.describe 'Departments', type: :request do
 
         headers = Nokogiri::HTML(response.body).css('thead th a')
 
-        expect(headers.map(&:text)).to include('ID', 'Last name', 'First name', I18n.t('common.patronic_name'))
+        expect(headers.map(&:text)).to include(
+          'ID', a_string_including('Last name'), 'First name', I18n.t('common.patronic_name')
+        )
         expect(headers.map { |link| link['href'] }).to all(include('q%5Bs%5D'))
       end
 

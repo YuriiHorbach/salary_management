@@ -341,6 +341,18 @@ RSpec.describe 'Reports', type: :request do
         Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
       end
 
+      it 'sorts rows by last name ascending by default' do
+        brigade = create(:territory_sign, name: 'Бригада Сортування за замовчуванням')
+        create(:employee, id_code: '1111111111', first_name: 'Anna', last_name: 'Zulu',
+                          territory_sign: brigade)
+        create(:employee, id_code: '2222222222', first_name: 'Bohdan', last_name: 'Alpha',
+                          territory_sign: brigade)
+
+        get detailed_reports_path(brigade: brigade.id)
+
+        expect(report_id_codes).to eq(%w[2222222222 1111111111])
+      end
+
       it 'renders a Ransack sort link in every header cell' do
         get detailed_reports_path
 

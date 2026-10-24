@@ -152,7 +152,10 @@ module Reports
     end
 
     def base_employees
-      @base_employees ||= build_base_scope.to_a.uniq(&:id).sort_by(&:id_code)
+      @base_employees ||= build_base_scope
+                          .order(:last_name, :first_name, :id_code)
+                          .to_a
+                          .uniq(&:id)
     end
 
     def employee_ids

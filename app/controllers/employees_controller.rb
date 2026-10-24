@@ -7,6 +7,7 @@ class EmployeesController < ApplicationController
     chaes_true contract_true s
   ].freeze
   CHECKBOX_FILTER_KEYS = %w[chaes_true contract_true].freeze
+  DEFAULT_EMPLOYEE_SORT = 'last_name asc'
   EMPLOYEES_PER_PAGE = 15
 
   before_action :authenticate_user!
@@ -15,6 +16,7 @@ class EmployeesController < ApplicationController
 
   def index
     @q = Employee.ransack(employee_search_params)
+    @q.sorts = [DEFAULT_EMPLOYEE_SORT] if @q.sorts.empty?
     @pagy, @employees = pagy(:offset, @q.result(distinct: true), limit: EMPLOYEES_PER_PAGE)
   end
 

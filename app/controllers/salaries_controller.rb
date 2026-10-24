@@ -3,9 +3,10 @@
 # Manages salary records for an employee, including the inline add form used on
 # the department page. The inline form offers the employee's positions in the
 # department, defaults to the selected filter or the only available position,
-# and submits only through its explicit save button so choosing a position cannot
-# send an empty amount. Successful inline creates replace the employee's whole
-# salary cell, preserving one line per position.
+# and saves when focus leaves the inline form. The form-level focusout keeps
+# position selection from submitting early, while the explicit save button and
+# browser validation remain available. Successful inline creates replace the
+# employee's whole salary cell, preserving one line per position.
 #
 # The index also exposes a gross salary breakdown grouped by department and
 # position for the selected period. Taxes remain monthly aggregates and are not

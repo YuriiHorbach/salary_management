@@ -174,6 +174,21 @@ RSpec.describe Reports::EmployeeDetailedQuery do
     end
 
     describe 'sorting' do
+      it 'sorts by last name ascending by default' do
+        result = described_class.new.call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
+      end
+
+      it 'uses first name and id code to break last-name ties' do
+        emp1.update!(last_name: 'Same', first_name: 'Zed')
+        emp2.update!(last_name: 'Same', first_name: 'Anna')
+
+        result = described_class.new.call
+
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
+      end
+
       it 'sorts numeric columns descending' do
         result = described_class.new(q: { s: 'base_salary desc' }).call
 
@@ -201,10 +216,10 @@ RSpec.describe Reports::EmployeeDetailedQuery do
         expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
       end
 
-      it 'falls back to the default order for an unknown column' do
+      it 'falls back to the last-name default for an unknown column' do
         result = described_class.new(q: { s: 'not_a_column desc' }).call
 
-        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[1234567890 2233445566])
+        expect(result[:employees].map { |e| e[:id_code] }).to eq(%w[2233445566 1234567890])
       end
 
       it 'keeps the totals row unchanged' do

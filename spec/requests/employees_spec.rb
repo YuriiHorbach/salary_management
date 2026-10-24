@@ -56,6 +56,36 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees default sorting' do
+    before do
+      create(:employee, id_code: '7700000001', last_name: 'Zulu', first_name: 'Anna')
+      create(:employee, id_code: '7700000002', last_name: 'Alpha', first_name: 'Bohdan')
+      create(:employee, id_code: '7700000003', last_name: 'Bravo', first_name: 'Carla')
+    end
+
+    it 'sorts the full name column by last name ascending by default' do
+      get employees_path, params: { q: { id_code_cont: '77000000' } }
+
+      expect(assigns(:employees).map(&:last_name)).to eq(%w[Alpha Bravo Zulu])
+    end
+
+    it 'marks the full name column as the default sort' do
+      get employees_path, params: { q: { id_code_cont: '77000000' } }
+
+      header = Nokogiri::HTML(response.body).css('.grid > div').find do |cell|
+        cell.text.include?(I18n.t('employees.index.headers.full_name'))
+      end
+
+      expect(header.text).to include('▲')
+    end
+
+    it 'keeps an explicit last-name sort' do
+      get employees_path, params: { q: { id_code_cont: '77000000', s: 'last_name desc' } }
+
+      expect(assigns(:employees).map(&:last_name)).to eq(%w[Zulu Bravo Alpha])
+    end
+  end
+
   describe 'GET /employees id code search' do
     let!(:matching_employee) { create(:employee, id_code: '9999999901') }
     let!(:non_matching_employee) { create(:employee, id_code: '8888888802') }

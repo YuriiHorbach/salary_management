@@ -8,7 +8,11 @@
 # show one line per position, with a separate add link for every position that
 # has no salary yet. The view links each employee to
 # +DepartmentEmployeePositionsController#edit+ to manage assignments.
+# Employees are ordered by last name ascending unless the user requests another
+# Ransack sort.
 class DepartmentsController < ApplicationController
+  DEFAULT_EMPLOYEE_SORT = 'last_name asc'
+
   before_action :authenticate_user!
   before_action :set_department, only: %i[edit update show]
 
@@ -22,7 +26,7 @@ class DepartmentsController < ApplicationController
   end
 
   def show
-    @q = @department.employees.ransack(params[:q])
+    @q = employee_search
     @employees_count = @department.department_employees.distinct.count(:employee_id)
     @positions = @department.positions.order(:position_name)
     @position = @department.positions.find_by(id: params[:position])
@@ -71,6 +75,16 @@ class DepartmentsController < ApplicationController
 
   def set_department
     @department = Department.find(params[:id])
+  end
+
+  # Builds the Ransack search and applies the default order when the request
+  # does not specify one.
+  #
+  # @return [Ransack::Search] employee search for the department
+  def employee_search
+    search = @department.employees.ransack(params[:q])
+    search.sorts = [DEFAULT_EMPLOYEE_SORT] if search.sorts.empty?
+    search
   end
 
   def department_params

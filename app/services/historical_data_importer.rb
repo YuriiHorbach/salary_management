@@ -312,7 +312,7 @@ class HistoricalDataImporter
     key = value.to_s.strip
     return key.to_i if key.match?(/\A\d+\z/) && Department.exists?(id: key.to_i)
 
-    Department.find_by('LOWER(name) = ?', key.downcase)&.id
+    Department.find_by('name ILIKE ?', key)&.id
   end
 
   def normalize_type(value)

@@ -62,6 +62,44 @@ RSpec.describe 'Departments', type: :request do
     end
   end
 
+  describe 'POST /create' do
+    before { sign_in(user) }
+
+    it 'creates a department and renders its card in a turbo stream' do
+      expect do
+        post departments_path,
+             params: { department: { name: 'New department' } },
+             headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+      end.to change(Department, :count).by(1)
+
+      department = Department.last
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(response.body).to include("department_#{department.id}_employee_count")
+      expect(response.body).to include('0')
+    end
+  end
+
+  describe 'PATCH /update' do
+    let(:department) { create(:department, name: 'Old name') }
+
+    before { sign_in(user) }
+
+    it 'updates a department and renders its employee count in a turbo stream' do
+      create(:department_employee, department: department)
+
+      patch department_path(department),
+            params: { department: { name: 'New name' } },
+            headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(response.body).to include("department_#{department.id}_employee_count")
+      expect(response.body).to include('1')
+      expect(department.reload.name).to eq('New name')
+    end
+  end
+
   describe 'GET /show' do
     context 'when authorized' do
       let(:department) { create(:department) }

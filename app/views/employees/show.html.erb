@@ -43,6 +43,10 @@
     <div>
       <%= f.submit t('.salary_search.submit'), class: 'btn btn-primary px-4 py-2 rounded-md font-medium hover:bg-blue-600' %>
     </div>
+
+    <div>
+      <%= link_to "Назад", :back, class: "btn btn-primary px-3 py-1 text-xs font-medium text-center inline-flex items-center" %>
+    </div>
   <% end %>
 </div>
 
@@ -166,4 +170,7 @@
     <%= link_to t('.view_all'), employee_vacations_path(@employee), class: "text-blue-600 underline" %>
     <%= link_to t('.add'), new_employee_vacation_path(@employee), class: "text-green-600 underline" %>
   </div>
+</div>
+<div class="m-5 border-t pt-8">
+  <%= link_to "Назад", :back, class: "btn btn-primary px-3 py-1 text-xs font-medium text-center inline-flex items-center" %>
 </div>

@@ -4,6 +4,8 @@
                                                       period: salary.month,
                                                       position: filter_position_id.presence),
                 method: :post,
+                data: { controller: "auto-submit",
+                        action: "focusout->auto-submit#submit" },
                 class: "inline-block" do |form| %>
 
     <%= form.hidden_field :department_id %>

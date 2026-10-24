@@ -76,12 +76,13 @@ RSpec.describe 'Salaries', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it 'renders an explicit submit button without auto-submit' do
+    it 'renders the auto-submit controller together with the explicit submit button' do
       get urls.new_employee_salary_path(employee, department_id: department.id)
 
       page = Nokogiri::HTML(response.body)
+      form = page.at_css('form[data-controller="auto-submit"]')
 
-      expect(response.body).not_to include('auto-submit')
+      expect(form['data-action']).to eq('focusout->auto-submit#submit')
       expect(page.at_css('input[type="submit"]')).to be_present
     end
 

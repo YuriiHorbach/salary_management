@@ -44,6 +44,7 @@ class DepartmentsController < ApplicationController
   def create
     @department = Department.new(department_params)
     if @department.save
+      @employee_counts = Department.employee_counts
       respond_to do |format|
         format.turbo_stream
         format.html { redirect_to employees_path, notice: t('flash.departments.created') }
@@ -55,6 +56,7 @@ class DepartmentsController < ApplicationController
 
   def update
     if @department.update(department_params)
+      @employee_counts = Department.employee_counts
       respond_to do |format|
         format.turbo_stream
         format.html { redirect_to employees_path, notice: t('flash.departments.updated') }

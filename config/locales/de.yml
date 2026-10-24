@@ -222,7 +222,6 @@ de:
     card:
       employees: Mitarbeiter
       edit: Bearbeiten
-      delete: Löschen
     show:
       period: Zeitraum
       position: Position

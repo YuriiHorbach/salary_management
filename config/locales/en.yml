@@ -222,7 +222,6 @@ en:
     card:
       employees: Employees
       edit: Edit
-      delete: Delete
     show:
       period: Period
       position: Position
@@ -891,7 +890,6 @@ en:
     departments:
       created: Department created successfully.
       updated: Department updated successfully.
-      deleted: Department deleted successfully.
     employees:
       not_found: Employee not found.
       created: Employee created successfully.

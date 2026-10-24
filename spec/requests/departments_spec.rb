@@ -100,47 +100,6 @@ RSpec.describe 'Departments', type: :request do
     end
   end
 
-  describe 'DELETE /destroy' do
-    let!(:department) { create(:department) }
-
-    context 'when user is authorized' do
-      before { sign_in(user) }
-
-      it 'deletes a department and removes its card in a turbo stream' do
-        position = create(:position, department: department)
-
-        expect do
-          delete department_path(department),
-                 headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
-        end.to change(Department, :count).by(-1)
-
-        expect(response).to have_http_status(:ok)
-        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
-        expect(response.body).to include('action="remove"', ActionView::RecordIdentifier.dom_id(department))
-        expect(Position.exists?(position.id)).to be false
-      end
-
-      it 'deletes a department and redirects to departments_path for HTML requests' do
-        expect do
-          delete department_path(department)
-        end.to change(Department, :count).by(-1)
-
-        expect(response).to redirect_to(departments_path)
-        expect(flash[:notice]).to be_present
-      end
-    end
-
-    context 'when user is unauthorized' do
-      it 'does not delete the department and redirects to login' do
-        expect do
-          delete department_path(department)
-        end.not_to change(Department, :count)
-
-        expect(response).to redirect_to(user_session_path)
-      end
-    end
-  end
-
   describe 'GET /show' do
     context 'when authorized' do
       let(:department) { create(:department) }

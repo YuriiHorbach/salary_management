@@ -2,7 +2,7 @@
 
 A Rails application for managing employees, departments, positions, salaries, vacations, sick leave, taxes, and payroll reports. The UI is available in English, Ukrainian, and German (English is the default); developer documentation is in English.
 
-**Contents:** [Features](#features) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quick start](#quick-start-with-docker) · [Local development](#local-development) · [Environment variables](#environment-variables) · [Testing](#testing) · [Localization](#localization) · [Tailwind](#tailwind-css) · [Desktop app](#desktop-app) · [Docs](#documentation) · [Security](#security) · [Contributing](#contributing)
+**Contents:** [Features](#features) · [Tech stack](#tech-stack) · [Requirements](#requirements) · [Quick start](#quick-start-with-docker) · [Local development](#local-development) · [Environment variables](#environment-variables) · [Testing](#testing) · [Performance baseline](#performance-baseline) · [Localization](#localization) · [Tailwind](#tailwind-css) · [Desktop app](#desktop-app) · [Docs](#documentation) · [Security](#security) · [Contributing](#contributing)
 
 ## Features
 
@@ -134,6 +134,26 @@ bundle exec rspec
 ```
 
 See [docs/agent-environment.md](docs/agent-environment.md) for isolation details and [docs/task-specs-guide.md](docs/task-specs-guide.md) for spec-writing patterns.
+
+## Performance baseline
+
+The scale seed and benchmark tasks are restricted to isolated agent databases. They abort unless the connected database name ends with `_agent`.
+
+```bash
+RAILS_ENV=development DB_HOST=localhost DB_PORT=5434 \
+DB_NAME=salary_management_agent DB_USERNAME=sm_agent DB_PASSWORD=agent_password \
+bundle exec rake agent:seed_scale SCALE=20
+```
+
+`agent:seed_scale` creates `60 * SCALE` synthetic employees (default `20`, i.e. 1,200) with 12 months of salaries, vacations, sick days, and `employee_period_incomes`. Re-running it is idempotent by `id_code`.
+
+```bash
+RAILS_ENV=development DB_HOST=localhost DB_PORT=5434 \
+DB_NAME=salary_management_agent DB_USERNAME=sm_agent DB_PASSWORD=agent_password \
+bundle exec rake agent:benchmark
+```
+
+`agent:benchmark` records wall-clock time and uncached SQL query counts for the detailed report, summary report, employee search, and detailed CSV export, then appends the result to `docs/performance-baseline.md`. Never point these tasks at ports `5433` or `5432`.
 
 ## Localization
 

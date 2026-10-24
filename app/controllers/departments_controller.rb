@@ -9,7 +9,9 @@
 # has no salary yet. The view links each employee to
 # +DepartmentEmployeePositionsController#edit+ to manage assignments.
 # Employees are ordered by last name ascending unless the user requests another
-# Ransack sort.
+# sort. Standard columns use Ransack; position and salary use
+# +DepartmentEmployeeSortQuery+ because their values depend on the selected
+# period and position filter.
 class DepartmentsController < ApplicationController
   DEFAULT_EMPLOYEE_SORT = 'last_name asc'
 
@@ -30,19 +32,10 @@ class DepartmentsController < ApplicationController
     @employees_count = @department.department_employees.distinct.count(:employee_id)
     @positions = @department.positions.order(:position_name)
     @position = @department.positions.find_by(id: params[:position])
-    @employees = filtered_employees.to_a
     @period = selected_period
-    @period_salaries = @department.salary_amounts_by_employee_and_position(
-      @period,
-      position: @position,
-      employee_ids: @employees.map(&:id)
-    )
-    @employee_positions = DepartmentEmployeePositionsQuery.new(
-      @department,
-      employee_ids: @employees.map(&:id),
-      period_salaries: @period_salaries,
-      position: @position
-    ).call
+    employees = filtered_employees.to_a
+    load_employee_salary_context(employees)
+    @employees = sort_employees(employees)
     @department_total = @department.monthly_total(@period, position: @position)
   end
 
@@ -77,14 +70,60 @@ class DepartmentsController < ApplicationController
     @department = Department.find(params[:id])
   end
 
+  def load_employee_salary_context(employees)
+    employee_ids = employees.map(&:id)
+    @period_salaries = @department.salary_amounts_by_employee_and_position(
+      @period,
+      position: @position,
+      employee_ids: employee_ids
+    )
+    @employee_positions = DepartmentEmployeePositionsQuery.new(
+      @department,
+      employee_ids: employee_ids,
+      period_salaries: @period_salaries,
+      position: @position
+    ).call
+  end
+
   # Builds the Ransack search and applies the default order when the request
-  # does not specify one.
+  # does not specify one. Custom position/salary sorts are removed before
+  # Ransack sees them and applied later by +DepartmentEmployeeSortQuery+.
   #
   # @return [Ransack::Search] employee search for the department
   def employee_search
-    search = @department.employees.ransack(params[:q])
-    search.sorts = [DEFAULT_EMPLOYEE_SORT] if search.sorts.empty?
+    search = @department.employees.ransack(ransack_search_params)
+    search.sorts = [DEFAULT_EMPLOYEE_SORT] if search.sorts.empty? && !custom_sort?
     search
+  end
+
+  def ransack_search_params
+    return {} if params[:q].blank?
+
+    permitted = params[:q].permit(:s).to_h
+    permitted.delete('s') if custom_sort?
+    permitted
+  end
+
+  def custom_sort?
+    DepartmentEmployeeSortQuery.custom_sort?(params.dig(:q, :s))
+  end
+
+  # Applies position or salary ordering after the displayed positions and
+  # period salaries have been loaded. Standard Ransack sorts pass through
+  # unchanged.
+  def sort_employees(employees)
+    DepartmentEmployeeSortQuery.new(
+      employees,
+      sort: params.dig(:q, :s),
+      positions_by_employee: @employee_positions,
+      salary_totals: employee_salary_totals
+    ).call
+  end
+
+  def employee_salary_totals
+    @period_salaries.each_with_object(Hash.new(0)) do |((employee_id, _position_id), amount), totals|
+      totals[employee_id] += amount
+    end
   end
 
   def department_params

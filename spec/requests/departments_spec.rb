@@ -93,6 +93,21 @@ RSpec.describe 'Departments', type: :request do
         expect(count.text.strip).to eq('2')
       end
 
+      it 'renders every employee without pagination even when a page param is present' do
+        20.times do |index|
+          employee = create(:employee, id_code: format('700000%04d', index),
+                                       last_name: format('Employee%02d', index),
+                                       first_name: 'Test', patronic_name: 'Testovych')
+          create(:department_employee, employee: employee, department: department)
+        end
+
+        get department_path(department, page: 2)
+
+        expect(rendered_last_names.size).to eq(22)
+        expect(assigns(:pagy)).to be_nil
+        expect(Nokogiri::HTML(response.body).at_css('nav.pagy')).to be_nil
+      end
+
       it 'does not double count an employee with several positions' do
         create(:department_employee, employee: alpha, department: department, position: engineer_position)
 
@@ -134,6 +149,71 @@ RSpec.describe 'Departments', type: :request do
 
       it 'sorts employees by id code' do
         get department_path(department, q: { s: 'id_code desc' })
+
+        expect(rendered_last_names).to eq(%w[Zeta Alpha])
+      end
+
+      it 'sorts employees by position name ascending' do
+        get department_path(department, q: { s: 'position asc' })
+
+        expect(rendered_last_names).to eq(%w[Zeta Alpha])
+      end
+
+      it 'sorts employees by position name descending' do
+        get department_path(department, q: { s: 'position desc' })
+
+        expect(rendered_last_names).to eq(%w[Alpha Zeta])
+      end
+
+      it 'sorts employees by salary for the selected period ascending' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, amount_cents: 50_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', q: { s: 'salary asc' })
+
+        expect(rendered_last_names).to eq(%w[Zeta Alpha])
+      end
+
+      it 'sorts employees by salary for the selected period descending' do
+        create(:salary, employee: alpha, department: department, amount_cents: 100_000,
+                        period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, amount_cents: 50_000,
+                        period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', q: { s: 'salary desc' })
+
+        expect(rendered_last_names).to eq(%w[Alpha Zeta])
+      end
+
+      it 'sorts by the total salary across all positions' do
+        create(:department_employee, employee: alpha, department: department,
+                                     position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, position: engineer_position,
+                        amount_cents: 120_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', q: { s: 'salary desc' })
+
+        expect(rendered_last_names).to eq(%w[Alpha Zeta])
+      end
+
+      it 'sorts by the salary of the filtered position only' do
+        create(:department_employee, employee: alpha, department: department,
+                                     position: engineer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 900_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, position: engineer_position,
+                        amount_cents: 200_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03', position: engineer_position.id,
+                                        q: { s: 'salary desc' })
 
         expect(rendered_last_names).to eq(%w[Zeta Alpha])
       end
@@ -185,12 +265,14 @@ RSpec.describe 'Departments', type: :request do
         expect(selected['value']).to eq(engineer_position.id.to_s)
       end
 
-      it 'keeps the position filter in the sort links' do
-        get department_path(department, position: engineer_position.id)
+      it 'keeps the position filter and period in the sort links' do
+        get department_path(department, position: engineer_position.id, period: '2025-03')
 
-        link = Nokogiri::HTML(response.body).at_css('thead th a')
+        links = Nokogiri::HTML(response.body).css('thead th a')
 
-        expect(link['href']).to include("position=#{engineer_position.id}")
+        expect(links.map { |link| link['href'] }).to all(
+          include("position=#{engineer_position.id}", 'period=2025-03')
+        )
       end
 
       it 'does not duplicate an employee who has several positions' do
@@ -242,7 +324,9 @@ RSpec.describe 'Departments', type: :request do
         headers = Nokogiri::HTML(response.body).css('thead th a')
 
         expect(headers.map(&:text)).to include(
-          'ID', a_string_including('Last name'), 'First name', I18n.t('common.patronic_name')
+          'ID', a_string_including('Last name'), 'First name', I18n.t('common.patronic_name'),
+          I18n.t('departments.show.position'),
+          I18n.t('departments.show.salary_for', period: Date.current.strftime('%m-%Y'))
         )
         expect(headers.map { |link| link['href'] }).to all(include('q%5Bs%5D'))
       end

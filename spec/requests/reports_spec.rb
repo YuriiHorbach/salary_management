@@ -55,6 +55,39 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).to include('3000,00')
       expect(response.body).not_to include('$3000,00', '₴3000,00', '3000,00 ₴')
     end
+
+    context 'when two departments contain salaries with the same amount' do
+      let!(:salary) { nil } # disable the shared salary so the footer is deterministic
+      let(:first_department) { create(:department, name: 'Відділ C1 A') }
+      let(:second_department) { create(:department, name: 'Відділ C1 B') }
+
+      before do
+        create(:salary, employee: create(:employee), department: first_department,
+                        amount_cents: 100_000, income_tax_cents: 18_000,
+                        military_tax_cents: 5_000, net_amount_cents: 77_000)
+        create(:salary, employee: create(:employee), department: second_department,
+                        amount_cents: 100_000, income_tax_cents: 18_000,
+                        military_tax_cents: 5_000, net_amount_cents: 77_000)
+      end
+
+      it 'renders a footer total equal to the sum of the department rows' do
+        get reports_path
+
+        doc = Nokogiri::HTML(response.body)
+        department_totals = doc.css('table tbody tr').map do |row|
+          row.css('td').drop(1).map { |cell| money_value(cell.text) }
+        end
+        footer_totals = doc.css('table tfoot td').map { |cell| money_value(cell.text) }
+
+        expect(department_totals.size).to eq(2)
+        expect(footer_totals).to eq(department_totals.transpose.map(&:sum))
+        expect(footer_totals.first).to eq(2_000.0)
+      end
+    end
+  end
+
+  def money_value(text)
+    text.gsub(/[^\d,]/, '').tr(',', '.').to_f
   end
 
   describe 'GET /reports/summary' do

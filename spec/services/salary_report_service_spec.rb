@@ -87,5 +87,49 @@ RSpec.describe SalaryReportService, type: :service do
         expect(report[:military_tax]).to eq(expected_zero)
       end
     end
+
+    context 'when two employees have the same salary amount in the same month' do
+      let(:period) { Date.current.beginning_of_month }
+      let(:records) { Salary.where(period: period).distinct }
+
+      subject(:report) { described_class.new(records).call }
+
+      before do
+        create(:salary, employee: create(:employee), amount_cents: 500_000,
+                        income_tax_cents: 90_000, military_tax_cents: 25_000,
+                        net_amount_cents: 385_000, period: period, paid_on: period)
+        create(:salary, employee: create(:employee), amount_cents: 500_000,
+                        income_tax_cents: 90_000, military_tax_cents: 25_000,
+                        net_amount_cents: 385_000, period: period, paid_on: period)
+      end
+
+      it 'counts both salary rows' do
+        expect(report[:gross]).to eq(1_000_000)
+        expect(report[:income_tax]).to eq(180_000)
+        expect(report[:military_tax]).to eq(50_000)
+        expect(report[:net]).to eq(770_000)
+      end
+
+      it 'loads overall and department totals in two queries' do
+        service = described_class.new(records)
+
+        queries = sql_query_count do
+          service.call
+          service.department_totals
+        end
+
+        expect(queries).to eq(2)
+      end
+    end
+  end
+
+  def sql_query_count(&block)
+    count = 0
+    callback = lambda do |_name, _started, _finished, _id, payload|
+      count += 1 unless payload[:cached] || payload[:name] == 'SCHEMA'
+    end
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+    count
   end
 end

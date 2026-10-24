@@ -296,6 +296,8 @@ de:
       first_name: Vorname
       patronic_name: Vatersname
       edit: Bearbeiten
+      back: Zurück
+      return_to_previous_page: Zurück zur vorherigen Seite
       salary_search:
         amount: Betrag
         year: Jahr
@@ -378,6 +380,7 @@ de:
       actions: Aktionen
       back_to_department: 'Zurück zur Abteilung:'
       back_to_employee: Zurück zum Mitarbeiter
+      back: Zurück
     show:
       title: Gehaltsdetails
       salary: Gehalt

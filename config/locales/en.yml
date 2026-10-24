@@ -296,6 +296,8 @@ en:
       first_name: First name
       patronic_name: Patronymic
       edit: Edit
+      back: Back
+      return_to_previous_page: Return to previous page
       salary_search:
         amount: Amount
         year: Year
@@ -378,6 +380,7 @@ en:
       actions: Actions
       back_to_department: 'Back to department:'
       back_to_employee: Back to employee
+      back: Back
     show:
       title: Salary record details
       salary: Salary

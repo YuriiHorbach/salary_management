@@ -295,6 +295,8 @@ uk:
       first_name: Ім'я
       patronic_name: По батькові
       edit: Редагувати
+      back: Назад
+      return_to_previous_page: Повернутися на попередню сторінку
       salary_search:
         amount: Сума
         year: Рік
@@ -377,6 +379,7 @@ uk:
       actions: Дії
       back_to_department: 'Повернутися до підрозділу:'
       back_to_employee: Назад до працівника
+      back: Назад
     show:
       title: Деталі зарплати
       salary: Зарплата

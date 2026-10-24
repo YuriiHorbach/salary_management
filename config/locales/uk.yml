@@ -221,6 +221,7 @@ uk:
     card:
       employees: Працівники
       edit: Редагувати
+      delete: Видалити
     show:
       period: Період
       position: Посада
@@ -888,6 +889,7 @@ uk:
     departments:
       created: Підрозділ успішно створено.
       updated: Підрозділ успішно оновлено.
+      deleted: Підрозділ успішно видалено.
     employees:
       not_found: Співробітника не знайдено.
       created: Співробітника успішно створено.

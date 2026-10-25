@@ -254,6 +254,88 @@ RSpec.describe Employee, type: :model do
     end
   end
 
+  describe '.search_by_id_code_or_name' do
+    let!(:petrenko) do
+      create(:employee, id_code: '1234567890', last_name: 'Петренко',
+                        first_name: 'Іван', patronic_name: 'Іванович')
+    end
+    let!(:ivanenko) do
+      create(:employee, id_code: '9876543210', last_name: 'Іваненко',
+                        first_name: 'Марія', patronic_name: 'Петрівна')
+    end
+
+    it 'matches by last name case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('петренко')).to contain_exactly(petrenko)
+    end
+
+    it 'matches by first name case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('мАрІя')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by patronymic case-insensitively' do
+      expect(described_class.search_by_id_code_or_name('петрівна')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by a partial id code' do
+      expect(described_class.search_by_id_code_or_name('12345')).to contain_exactly(petrenko)
+    end
+
+    it 'returns every employee when the term is blank' do
+      expect(described_class.search_by_id_code_or_name(nil)).to contain_exactly(petrenko, ivanenko)
+      expect(described_class.search_by_id_code_or_name('  ')).to contain_exactly(petrenko, ivanenko)
+    end
+
+    it 'escapes LIKE wildcards so they are treated literally' do
+      expect(described_class.search_by_id_code_or_name('%')).to be_empty
+    end
+  end
+
+  describe '.search_by_text' do
+    let!(:petrenko) do
+      create(:employee, id_code: '1234567890', last_name: 'Петренко',
+                        first_name: 'Іван', patronic_name: 'Іванович')
+    end
+    let!(:ivanenko) do
+      create(:employee, id_code: '9876543210', last_name: 'Іваненко',
+                        first_name: 'Марія', patronic_name: 'Петрівна')
+    end
+
+    it 'matches by last name case-insensitively' do
+      expect(described_class.search_by_text('петренко')).to contain_exactly(petrenko)
+    end
+
+    it 'matches by first name case-insensitively' do
+      expect(described_class.search_by_text('мАрІя')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by patronymic case-insensitively' do
+      expect(described_class.search_by_text('петрівна')).to contain_exactly(ivanenko)
+    end
+
+    it 'matches by a partial id code' do
+      expect(described_class.search_by_text('12345')).to contain_exactly(petrenko)
+    end
+
+    it 'returns none when the term is blank' do
+      expect(described_class.search_by_text(nil)).to be_empty
+      expect(described_class.search_by_text('  ')).to be_empty
+      expect(described_class.search_by_text('')).to be_empty
+    end
+
+    it 'escapes LIKE wildcards so they are treated literally' do
+      expect(described_class.search_by_text('%')).to be_empty
+      expect(described_class.search_by_text('_')).to be_empty
+    end
+
+    it 'limits results to 50 records when chained' do
+      create_list(:employee, 200, last_name: 'Іванов', first_name: 'Іван', patronic_name: 'Іванович')
+
+      results = described_class.search_by_text('іванов').limit(50)
+
+      expect(results.size).to eq(50)
+    end
+  end
+
   describe '#full_name' do
     it 'returns the last name, first name and patronymic in that order' do
       employee = build(:employee, last_name: 'Петренко', first_name: 'Іван', patronic_name: 'Іванович')

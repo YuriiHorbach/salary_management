@@ -13,6 +13,7 @@ class Employee < ApplicationRecord
 
   before_validation :normalize_id_code
   before_validation :set_birthdate_from_id_code, if: :id_code_changed?
+  before_save :refresh_search_text, if: :search_fields_changed?
 
   has_many :department_employees
   has_many :departments, through: :department_employees
@@ -58,6 +59,18 @@ class Employee < ApplicationRecord
     end
 
     where(id: ids)
+  }
+
+  # Case-insensitive substring search on the precomputed search_text column
+  # using pg_trgm GIN index. Returns +none+ for an empty term.
+  #
+  # PostgreSQL C collation does not fold Cyrillic in SQL LIKE/ILIKE, so the
+  # term is downcased in Ruby and the search_text column is stored downcased.
+  scope :search_by_text, lambda { |term|
+    return none if term.blank?
+
+    normalized = term.to_s.strip.downcase
+    where('search_text LIKE ?', "%#{sanitize_sql_like(normalized)}%")
   }
 
   def self.ransackable_attributes(_auth_object = nil)
@@ -168,5 +181,29 @@ class Employee < ApplicationRecord
     return if ID_CODE_PATTERNS.any? { |pattern| id_code.match?(pattern) }
 
     errors.add(:id_code, :invalid_id_code)
+  end
+
+  # Rebuilds search_text from the searchable fields when any of them changed.
+  # Stored downcased because C collation does not fold Cyrillic in SQL LOWER().
+  def refresh_search_text
+    self.search_text = build_search_text
+  end
+
+  # Returns true when any field that feeds search_text was modified.
+  def search_fields_changed?
+    will_save_change_to_id_code? ||
+      will_save_change_to_last_name? ||
+      will_save_change_to_first_name? ||
+      will_save_change_to_patronic_name?
+  end
+
+  # Concatenates all searchable fields into a single downcased string.
+  def build_search_text
+    [
+      id_code.to_s,
+      last_name.to_s,
+      first_name.to_s,
+      patronic_name.to_s
+    ].compact_blank.join(' ').downcase
   end
 end

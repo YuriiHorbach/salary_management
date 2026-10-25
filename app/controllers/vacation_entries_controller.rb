@@ -23,7 +23,13 @@ class VacationEntriesController < ApplicationController
 
   def load_form_data
     @employee_search = params[:employee_search].to_s.strip
-    @employees = Employee.search_by_id_code_or_name(@employee_search).order(:last_name, :first_name)
+    if @employee_search.present?
+      @employees = Employee.search_by_text(@employee_search)
+                           .order(:last_name, :first_name)
+                           .limit(50)
+    else
+      @employees = Employee.all.order(:last_name, :first_name).limit(50)
+    end
   end
 
   def vacation_params

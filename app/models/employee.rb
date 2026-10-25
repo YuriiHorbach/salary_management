@@ -47,6 +47,19 @@ class Employee < ApplicationRecord
     where(id: ids)
   }
 
+  # Case-insensitive search by a single field. Loads ids + field into Ruby,
+  # filters by downcased substring, then queries by ids — works with C collation.
+  scope :search_by_field_ci, lambda { |field, term|
+    next all if term.blank?
+
+    normalized = term.to_s.strip.downcase
+    ids = pluck(:id, field).filter_map do |id, value|
+      id if value.to_s.downcase.include?(normalized)
+    end
+
+    where(id: ids)
+  }
+
   def self.ransackable_attributes(_auth_object = nil)
     # Ensure amount_cents is listed here to allow searching through associations
     %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group

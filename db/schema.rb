@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_24_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_24_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -44,6 +44,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_130000) do
     t.datetime "updated_at", null: false
     t.bigint "position_id"
     t.index ["department_id"], name: "index_department_employees_on_department_id"
+    t.index ["employee_id", "department_id", "position_id"], name: "index_department_employees_on_emp_dept_pos_not_null", unique: true, where: "(position_id IS NOT NULL)"
+    t.index ["employee_id", "department_id"], name: "index_department_employees_on_emp_dept_pos_null", unique: true, where: "(position_id IS NULL)"
     t.index ["employee_id"], name: "index_department_employees_on_employee_id"
     t.index ["position_id"], name: "index_department_employees_on_position_id"
   end
@@ -121,6 +123,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_130000) do
     t.index ["employee_id", "period", "department_id"], name: "index_salaries_unique_department_per_period", unique: true, where: "(position_id IS NULL)"
     t.index ["employee_id", "period", "position_id"], name: "index_salaries_unique_position_per_period", unique: true, where: "(position_id IS NOT NULL)"
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
+    t.index ["period"], name: "index_salaries_on_period"
     t.index ["position_id"], name: "index_salaries_on_position_id"
   end
 
@@ -137,6 +140,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_130000) do
     t.bigint "department_id"
     t.index ["department_id"], name: "index_sick_days_on_department_id"
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
+    t.index ["period"], name: "index_sick_days_on_period"
   end
 
   create_table "tax_settings", force: :cascade do |t|
@@ -180,6 +184,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_130000) do
     t.bigint "department_id"
     t.index ["department_id"], name: "index_vacations_on_department_id"
     t.index ["employee_id"], name: "index_vacations_on_employee_id"
+    t.index ["period"], name: "index_vacations_on_period"
   end
 
   add_foreign_key "account_books", "employees"

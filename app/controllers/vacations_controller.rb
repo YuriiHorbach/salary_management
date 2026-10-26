@@ -3,13 +3,16 @@
 class VacationsController < ApplicationController
   include ActionView::RecordIdentifier
 
+  VACATIONS_PER_PAGE = 15
+
   before_action :set_employee
   before_action :set_vacation, only: %i[edit update destroy]
 
   def index
     @q = @employee.vacations.ransack(params[:q])
 
-    @vacations = @q.result(distinct: true).order(period: :desc)
+    @pagy, @vacations = pagy(:offset, @q.result(distinct: true).order(period: :desc),
+                             limit: VACATIONS_PER_PAGE)
 
     @total_vacation_amount = @q.result.distinct(false).unscope(:order).sum(:vacation_amount_cents)
   end

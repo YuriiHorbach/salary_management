@@ -187,6 +187,27 @@ RSpec.describe 'Departments', type: :request do
         expect(Nokogiri::HTML(response.body).at_css('nav.pagy')).to be_nil
       end
 
+      def create_salaried_employee(id_code, last_name)
+        employee = create(:employee, id_code: id_code, last_name: last_name,
+                                     first_name: 'Test', patronic_name: 'Testovych')
+        create(:department_employee, employee: employee, department: department, position: manager_position)
+        create(:salary, employee: employee, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.current.beginning_of_month)
+      end
+
+      it 'executes the same number of queries regardless of the employee and salary count' do
+        create_salaried_employee('6000009999', 'Seed')
+
+        # Warm up one-time session and authentication lookups before measuring.
+        get department_path(department)
+        first_request_queries = count_sql_queries { get department_path(department) }
+
+        3.times { |index| create_salaried_employee(format('600000%04d', index), format('Extra%02d', index)) }
+        second_request_queries = count_sql_queries { get department_path(department) }
+
+        expect(second_request_queries).to eq(first_request_queries)
+      end
+
       it 'does not double count an employee with several positions' do
         create(:department_employee, employee: alpha, department: department, position: engineer_position)
 

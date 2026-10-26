@@ -30,8 +30,8 @@ class DepartmentsController < ApplicationController
   def show
     @q = employee_search
     @employees_count = @department.department_employees.distinct.count(:employee_id)
-    @positions = @department.positions.order(:position_name)
-    @position = @department.positions.find_by(id: params[:position])
+    @positions = @department.positions.order(:position_name).to_a
+    @position = @positions.find { |position| position.id.to_s == params[:position].to_s } if params[:position].present?
     @period = selected_period
     employees = filtered_employees.to_a
     load_employee_salary_context(employees)

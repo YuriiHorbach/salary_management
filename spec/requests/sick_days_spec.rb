@@ -32,6 +32,31 @@ RSpec.describe 'SickDays', type: :request do
         expect(response.body).not_to include('$60,00', '₴60,00')
       end
     end
+
+    it 'executes the same number of queries regardless of the sick day count' do
+      create(:sick_day, employee: employee, period: Date.new(2026, 1, 1))
+
+      # Warm up one-time session and authentication lookups before measuring.
+      get employee_sick_days_path(employee)
+
+      first_request_queries = count_sql_queries { get employee_sick_days_path(employee) }
+
+      3.times do |index|
+        create(:sick_day, employee: employee, period: Date.new(2026, index + 2, 1))
+      end
+
+      second_request_queries = count_sql_queries { get employee_sick_days_path(employee) }
+
+      expect(second_request_queries).to eq(first_request_queries)
+    end
+
+    it 'loads the sick day list once per request' do
+      create_list(:sick_day, 3, employee: employee)
+
+      queries = count_sql_queries(matching: /FROM "sick_days"/) { get employee_sick_days_path(employee) }
+
+      expect(queries).to eq(1)
+    end
   end
 
   describe 'GET /employees/:employee_id/sick_days/new' do

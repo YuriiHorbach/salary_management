@@ -194,6 +194,20 @@ RSpec.describe 'Salaries', type: :request do
     end
   end
 
+  describe 'GET /show' do
+    it 'renders the payment date as month and year without the day or time' do
+      salary = create(:salary, employee: employee, department: department,
+                               amount_cents: 100_000, period: Date.new(2025, 9, 1),
+                               paid_on: Date.new(2025, 9, 15))
+
+      get urls.employee_salary_path(employee, salary)
+
+      expect(response.body).to include(I18n.l(salary.reload.paid_on.to_date, format: :short))
+      expect(response.body).not_to include('15 Вер')
+      expect(response.body).not_to include('15-09-2025')
+    end
+  end
+
   describe 'GET /edit' do
     it 'renders the persisted amount as a browser-valid number' do
       salary = create(:salary, employee: employee, department: department,

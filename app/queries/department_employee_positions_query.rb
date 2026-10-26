@@ -16,6 +16,7 @@ class DepartmentEmployeePositionsQuery
   def initialize(department, employee_ids:, period_salaries:, position: nil)
     @department = department
     @employee_ids = Array(employee_ids)
+    @employee_id_set = @employee_ids.to_set
     @period_salaries = period_salaries || {}
     @position = position
   end
@@ -38,13 +39,13 @@ class DepartmentEmployeePositionsQuery
   end
 
   def merge_salary_positions!(grouped)
-    scope = @department.positions.where(id: salary_position_ids)
+    scope = @department.positions.where(id: salary_position_ids.to_a)
     scope = scope.where(id: position_id) if position_id.present?
 
     salary_positions = scope.index_by(&:id)
 
     @period_salaries.each_key do |employee_id, position_id|
-      next unless @employee_ids.include?(employee_id)
+      next unless @employee_id_set.include?(employee_id)
       next if position_id.blank?
 
       position = salary_positions[position_id]
@@ -57,8 +58,8 @@ class DepartmentEmployeePositionsQuery
 
   def salary_position_ids
     @period_salaries.keys.filter_map do |employee_id, position_id|
-      position_id if @employee_ids.include?(employee_id) && position_id.present?
-    end.uniq
+      position_id if @employee_id_set.include?(employee_id) && position_id.present?
+    end.to_set
   end
 
   def position_id

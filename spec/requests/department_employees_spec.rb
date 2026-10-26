@@ -187,6 +187,44 @@ RSpec.describe 'DepartmentEmployees', type: :request do
         expect(department.department_employees.where(employee_id: employee1.id).count).to eq(1)
       end
 
+      def assign_employees(count, assigned_position)
+        create_list(:employee, count).each do |employee|
+          create(:department_employee, employee: employee, department: department, position: assigned_position)
+        end
+      end
+
+      def post_assignment(employees, assigned_position)
+        post department_employees_path, params: {
+          department_id: department.id,
+          employee_ids: employees.map(&:id),
+          position_id: assigned_position.id
+        }
+      end
+
+      it 'executes the same number of queries regardless of how many employees are already assigned' do
+        already_assigned = assign_employees(2, position)
+
+        # Warm up one-time session and authentication lookups before measuring.
+        get new_department_employee_path(department_id: department.id)
+        first_request_queries = count_sql_queries { post_assignment(already_assigned, position) }
+
+        extra_assigned = assign_employees(3, position)
+        second_request_queries = count_sql_queries do
+          post_assignment(already_assigned + extra_assigned, position)
+        end
+
+        expect(second_request_queries).to eq(first_request_queries)
+      end
+
+      it 'paginates the employee list on the add page' do
+        create_list(:employee, 16)
+
+        get new_department_employee_path(department_id: department.id)
+
+        expect(assigns(:pagy).last).to eq(2)
+        expect(assigns(:employees).size).to eq(DepartmentEmployeesController::EMPLOYEES_PER_PAGE)
+      end
+
       it 'removes employee from department' do
         department.employees << employee1
         delete remove_department_employee_path(department, employee1)

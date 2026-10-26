@@ -3,13 +3,14 @@
 # app/controllers/department_employees_controller.rb
 class DepartmentEmployeesController < ApplicationController
   SEARCH_KEYS = %i[id_code_cont last_name_cont first_name_cont patronic_name_cont s].freeze
+  EMPLOYEES_PER_PAGE = 15
 
   before_action :authenticate_user!
   before_action :set_department, only: %i[new create]
 
   def new
     @q = Employee.ransack(employee_search_params)
-    @employees = @q.result(distinct: true)
+    @pagy, @employees = pagy(:offset, @q.result(distinct: true), limit: EMPLOYEES_PER_PAGE)
     @positions = @department.positions.order(:position_name)
   end
 
@@ -26,7 +27,8 @@ class DepartmentEmployeesController < ApplicationController
       return redirect_with_alert(t('flash.department_employee_positions.not_found'))
     end
 
-    new_ids = employee_ids.reject { |employee_id| assignment_exists?(employee_id, position) }
+    existing_ids = existing_assignment_employee_ids(employee_ids, position)
+    new_ids = employee_ids - existing_ids
     return redirect_with_alert(duplicate_message(position)) if new_ids.empty?
 
     insert_assignments(new_ids, position)
@@ -67,10 +69,11 @@ class DepartmentEmployeesController < ApplicationController
     @department.positions.find_by(id: params[:position_id])
   end
 
-  def assignment_exists?(employee_id, position)
-    assignments = @department.department_employees.where(employee_id: employee_id)
+  def existing_assignment_employee_ids(employee_ids, position)
+    assignments = @department.department_employees.where(employee_id: employee_ids)
+    assignments = assignments.where(position_id: position.id) if position
 
-    position ? assignments.exists?(position_id: position.id) : assignments.exists?
+    assignments.pluck(:employee_id)
   end
 
   # rubocop:disable Rails/SkipsModelValidations

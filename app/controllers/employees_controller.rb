@@ -69,7 +69,6 @@ class EmployeesController < ApplicationController
 
   def new
     @employee = Employee.new
-    @employee.build_account_book
   end
 
   def create
@@ -85,9 +84,7 @@ class EmployeesController < ApplicationController
     end
   end
 
-  def edit
-    @employee.build_account_book unless @employee.account_book
-  end
+  def edit; end
 
   def update
     if @employee.update(employee_params)
@@ -116,7 +113,7 @@ class EmployeesController < ApplicationController
   end
 
   def load_form_collections
-    @account_book_codes = AccountBook.available_codes
+    @account_books = AccountBook.order(:code)
     @territory_signs = TerritorySign.ordered
   end
 
@@ -142,7 +139,7 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count,
-                                     account_book_attributes: %i[id code _destroy])
+                                     :account_book_id)
   end
 
   def sanitized_salary_search_params

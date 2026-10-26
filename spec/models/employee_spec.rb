@@ -118,7 +118,7 @@ RSpec.describe Employee, type: :model do
   end
 
   describe 'associations' do
-    it { should have_one(:account_book).dependent(:destroy) }
+    it { should belong_to(:account_book).optional }
     it { should belong_to(:territory_sign).optional }
   end
 
@@ -165,6 +165,15 @@ RSpec.describe Employee, type: :model do
       book.update!(code: 'Б12')
       employee.reload
       expect(employee.identifier).to eq('Б12')
+    end
+
+    it 'clears identifier when the account book is unassigned' do
+      employee = create(:employee)
+      create(:account_book, employee: employee, code: 'Б11')
+
+      employee.update!(account_book: nil)
+
+      expect(employee.reload.identifier).to be_nil
     end
   end
 

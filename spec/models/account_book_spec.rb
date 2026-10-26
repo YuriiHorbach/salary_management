@@ -22,21 +22,28 @@ RSpec.describe AccountBook, type: :model do
       expect(build(:account_book, code: 'А1')).to be_valid
     end
 
-    it 'allows duplicate codes' do
+    it 'rejects a duplicate code' do
       create(:account_book, code: 'Б11')
-      expect(build(:account_book, code: 'Б11')).to be_valid
+
+      expect(build(:account_book, code: 'Б11')).to be_invalid
+    end
+
+    it 'normalizes the code before validation' do
+      book = build(:account_book, code: ' б11 ')
+
+      expect(book).to be_valid
+      expect(book.code).to eq('Б11')
     end
   end
 
   describe 'associations' do
-    it { should belong_to(:employee).optional }
+    it { should have_many(:employees) }
   end
 
   describe '.available_codes' do
     it 'returns unique codes ordered alphabetically' do
       create(:account_book, code: 'B11')
       create(:account_book, code: 'A1')
-      create(:account_book, code: 'B11')
 
       expect(AccountBook.available_codes).to eq(%w[A1 B11])
     end

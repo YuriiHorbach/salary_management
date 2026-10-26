@@ -124,8 +124,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:employees].first[:book_code]).to eq('Б11')
     end
 
-    it 'returns all employees that share the same account book code' do
-      emp2.account_book.update!(code: 'Б11')
+    it 'returns all employees that share the same account book' do
+      emp2.update!(account_book: book1)
 
       result = described_class.new(account_book: 'Б11').call
 

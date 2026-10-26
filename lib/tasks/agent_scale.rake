@@ -124,6 +124,16 @@ namespace :agent do
     first_names = %w[Олександр Андрій Іван Петро Микола Василь Сергій Олег Тарас Богдан]
     last_names = %w[Шевченко Коваль Бондаренко Мельник Ткаченко Кравець Лисенко Мороз]
 
+    book_codes = new_codes.map { |code| "S#{code}" }
+    existing_book_codes = AccountBook.where(code: book_codes).pluck(:code).to_set
+    new_book_codes = book_codes.reject { |code| existing_book_codes.include?(code) }
+
+    account_book_rows = new_book_codes.map do |code|
+      { code: code, created_at: now, updated_at: now }
+    end
+    AgentScale.insert_batches(AccountBook, account_book_rows)
+    account_book_ids = AccountBook.where(code: book_codes).pluck(:code, :id).to_h
+
     employee_rows = new_codes.map do |code|
       index = code_to_index.fetch(code)
 
@@ -139,6 +149,7 @@ namespace :agent do
         contract: rand < 0.15,
         birthday: Date.new(1899, 12, 31) + code[0, 5].to_i,
         territory_sign_id: brigades[index % brigades.size].id,
+        account_book_id: account_book_ids.fetch("S#{code}"),
         identifier: "S#{code}",
         created_at: now,
         updated_at: now
@@ -149,11 +160,6 @@ namespace :agent do
     Employee.insert_all(employee_rows)
     # rubocop:enable Rails/SkipsModelValidations
     employees = Employee.where(id_code: new_codes).pluck(:id, :id_code).to_h { |id, code| [code, id] }
-
-    account_book_rows = new_codes.map do |code|
-      { employee_id: employees.fetch(code), code: "S#{code}", created_at: now, updated_at: now }
-    end
-    AgentScale.insert_batches(AccountBook, account_book_rows)
 
     assignment_rows = new_codes.map do |code|
       index = code_to_index.fetch(code)

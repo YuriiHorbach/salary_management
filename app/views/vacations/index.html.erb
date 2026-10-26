@@ -71,6 +71,11 @@
       </table>
     </div>
 
+    <%= render 'shared/pagination',
+               pagy: @pagy,
+               pagination_id: 'vacations_pagination',
+               margin_class: 'mt-4' %>
+
     <% if @total_vacation_amount.present? %>
       <div class="mt-6 p-4 border rounded-lg shadow-sm bg-gray-100 text-lg font-semibold">
         <%= t('vacations.index.total', amount: number_to_currency(Money.new(@total_vacation_amount, 'UAH'))) %>

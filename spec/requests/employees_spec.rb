@@ -173,6 +173,18 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees/:id salary payment date' do
+    it 'renders the payment date as month and year without the day' do
+      salary.update!(period: Date.new(2025, 3, 1), paid_on: Date.new(2025, 3, 15))
+
+      get employee_path(employee)
+
+      expect(response.body).to include(I18n.l(salary.reload.paid_on.to_date, format: :short))
+      expect(response.body).not_to include('15-03-2025')
+      expect(response.body).not_to include('15 Бер')
+    end
+  end
+
   describe 'GET /employees/:id query efficiency' do
     it 'executes the same number of queries regardless of the salary and vacation count' do
       # Keep at least one vacation in both samples so the paginated vacations

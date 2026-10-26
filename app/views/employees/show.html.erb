@@ -73,7 +73,7 @@
             <tr class="border-b border-gray-100 dark:border-gray-700">
               <td class="px-2 py-1"><%= department&.name || t('.no_department') %></td>
               <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
-              <td class="px-2 py-1"><%= salary.paid_on&.strftime('%d-%m-%Y') %></td>
+              <td class="px-2 py-1"><%= l(salary.paid_on.to_date, format: :short) if salary.paid_on %></td>
             </tr>
           <% end %>
         <% end %>

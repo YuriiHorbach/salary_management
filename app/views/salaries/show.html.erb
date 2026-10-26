@@ -3,23 +3,16 @@
   <div class="bg-white shadow rounded-lg p-6 space-y-4">
     <div>
       <strong class="text-gray-700"><%= t('salaries.show.salary') %>:</strong>
-      <span><%= @salary_record&.salary %></span>
-      <span><%= @salary_record&.salary %></span>
+      <span><%= humanized_money @salary.amount %></span>
     </div>
     <div>
       <strong class="text-gray-700"><%= t('salaries.show.paid_on') %>:</strong>
-      <span><%= @salary_record&.paid_on %></span>
-    </div>
-    <div>
-      <strong class="text-gray-700"><%= t('salaries.show.notes') %>:</strong>
-      <p class="text-gray-600"><%= @salary_record&.notes %></p>
+      <span><%= l(@salary.paid_on.to_date, format: :short) if @salary.paid_on %></span>
     </div>
   </div>
 <% end %>
 
 <div class="mt-4">
-  <% if @salary_record %>
-    <%= link_to t('salaries.show.edit'), edit_employee_salary_path(@employee, @salary_record), class: 'btn btn-primary btn-xs rounded' %>
-  <% end %>
+  <%= link_to t('salaries.show.edit'), edit_employee_salary_path(@employee, @salary), class: 'btn btn-primary btn-xs rounded' %>
   <%= link_to t('salaries.show.back'), employee_salaries_path(@employee), class: 'ml-2 text-blue-500 hover:underline' %>
 </div>

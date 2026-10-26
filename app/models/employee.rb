@@ -120,8 +120,13 @@ class Employee < ApplicationRecord
     end
   end
 
-  def sick_days_summaries
-    sick_days.group_by(&:period).transform_values do |days|
+  # Aggregates sick-day amounts by period.
+  #
+  # @param records [ActiveRecord::Relation, Array<SickDay>] already loaded
+  #   sick days; pass the relation used by the caller to avoid a second query
+  # @return [Hash{ Date => Hash{Symbol => Money} }]
+  def sick_days_summaries(records = sick_days)
+    records.group_by(&:period).transform_values do |days|
       {
         pfu: days.map(&:pfu_amount).sum,
         enterprise: days.map(&:enterprise_amount).sum,

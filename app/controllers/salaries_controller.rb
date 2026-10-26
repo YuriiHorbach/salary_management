@@ -12,14 +12,17 @@
 # position for the selected period. Taxes remain monthly aggregates and are not
 # allocated per position.
 class SalariesController < ApplicationController
+  SALARIES_PER_PAGE = 15
+
   before_action :authenticate_user!
   before_action :set_employee
   before_action :set_salary, only: %i[show edit update destroy]
 
   def index
     @period = requested_period if params[:period].present?
-    @salaries = @employee.salaries.includes(:department, :position).order(period: :desc)
-    @salaries = @salaries.where(period: @period) if @period
+    salaries = @employee.salaries.includes(:department, :position).order(period: :desc)
+    salaries = salaries.where(period: @period) if @period
+    @pagy, @salaries = pagy(:offset, salaries, limit: SALARIES_PER_PAGE)
     @period_incomes = EmployeePeriodIncome.where(employee: @employee).order(period: :desc)
     @period_incomes = @period_incomes.for_period(@period) if @period
     @departments = @employee.departments.distinct.order(:name)

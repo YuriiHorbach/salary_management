@@ -8,8 +8,6 @@ class SickDay < ApplicationRecord
   belongs_to :employee
   belongs_to :department, optional: true
 
-  attribute :period, :date
-
   before_validation :assign_taxes, if: :amounts_changed?
 
   after_destroy :refresh_period_income

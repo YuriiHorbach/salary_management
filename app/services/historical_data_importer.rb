@@ -312,7 +312,9 @@ class HistoricalDataImporter
     key = value.to_s.strip
     return key.to_i if key.match?(/\A\d+\z/) && Department.exists?(id: key.to_i)
 
-    Department.find_by('LOWER(name) = ?', key.downcase)&.id
+    # PostgreSQL C collation does not fold Cyrillic in SQL ILIKE/LOWER,
+    # so compare names case-insensitively in Ruby.
+    Department.find { |dept| dept.name.casecmp?(key) }&.id
   end
 
   def normalize_type(value)

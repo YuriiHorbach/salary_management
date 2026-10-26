@@ -173,6 +173,52 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees/:id query efficiency' do
+    it 'executes the same number of queries regardless of the salary and vacation count' do
+      # Keep at least one vacation in both samples so the paginated vacations
+      # relation is loaded in each request.
+      create(:vacation, employee: employee, period: Date.new(2023, 12, 1), vacation_amount: 100)
+
+      # Warm up one-time session and authentication lookups before measuring.
+      get employee_path(employee)
+
+      first_request_queries = count_sql_queries { get employee_path(employee) }
+
+      3.times do |index|
+        paid_on = Date.new(2024, 1, 1) + index.months
+        create(:salary, employee: employee, department: salary.department,
+                        amount_cents: 100_000, paid_on: paid_on, period: paid_on)
+        create(:vacation, employee: employee, period: paid_on, vacation_amount: 100)
+      end
+
+      second_request_queries = count_sql_queries { get employee_path(employee) }
+
+      expect(second_request_queries).to eq(first_request_queries)
+    end
+
+    it 'paginates the salary list' do
+      15.times do |index|
+        paid_on = Date.new(2024, 1, 1) + index.months
+        create(:salary, employee: employee, department: salary.department,
+                        amount_cents: 100_000, paid_on: paid_on, period: paid_on)
+      end
+
+      get employee_path(employee)
+
+      expect(assigns(:pagy_salaries).last).to eq(2)
+      expect(assigns(:employee_salaries).values.flatten.size).to eq(EmployeesController::SALARIES_PER_PAGE)
+    end
+
+    it 'paginates the vacation list' do
+      create_list(:vacation, 16, employee: employee)
+
+      get employee_path(employee)
+
+      expect(assigns(:pagy_vacations).last).to eq(2)
+      expect(assigns(:vacations).size).to eq(EmployeesController::VACATIONS_PER_PAGE)
+    end
+  end
+
   describe 'GET /employees/:id vacation amounts' do
     it 'shows vacation amounts in currency units instead of cents' do
       create(:vacation, employee: employee, period: '2026-02-01', vacation_amount: 1000)

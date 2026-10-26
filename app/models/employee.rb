@@ -13,6 +13,7 @@ class Employee < ApplicationRecord
 
   before_validation :normalize_id_code
   before_validation :set_birthdate_from_id_code, if: :id_code_changed?
+  before_save :refresh_search_text, if: :search_fields_changed?
 
   has_many :department_employees
   has_many :departments, through: :department_employees
@@ -45,6 +46,31 @@ class Employee < ApplicationRecord
     end
 
     where(id: ids)
+  }
+
+  # Case-insensitive search by a single field. Loads ids + field into Ruby,
+  # filters by downcased substring, then queries by ids — works with C collation.
+  scope :search_by_field_ci, lambda { |field, term|
+    next all if term.blank?
+
+    normalized = term.to_s.strip.downcase
+    ids = pluck(:id, field).filter_map do |id, value|
+      id if value.to_s.downcase.include?(normalized)
+    end
+
+    where(id: ids)
+  }
+
+  # Case-insensitive substring search on the precomputed search_text column
+  # using pg_trgm GIN index. Returns +none+ for an empty term.
+  #
+  # PostgreSQL C collation does not fold Cyrillic in SQL LIKE/ILIKE, so the
+  # term is downcased in Ruby and the search_text column is stored downcased.
+  scope :search_by_text, lambda { |term|
+    return none if term.blank?
+
+    normalized = term.to_s.strip.downcase
+    where('search_text LIKE ?', "%#{sanitize_sql_like(normalized)}%")
   }
 
   def self.ransackable_attributes(_auth_object = nil)
@@ -94,8 +120,13 @@ class Employee < ApplicationRecord
     end
   end
 
-  def sick_days_summaries
-    sick_days.group_by(&:period).transform_values do |days|
+  # Aggregates sick-day amounts by period.
+  #
+  # @param records [ActiveRecord::Relation, Array<SickDay>] already loaded
+  #   sick days; pass the relation used by the caller to avoid a second query
+  # @return [Hash{ Date => Hash{Symbol => Money} }]
+  def sick_days_summaries(records = sick_days)
+    records.group_by(&:period).transform_values do |days|
       {
         pfu: days.map(&:pfu_amount).sum,
         enterprise: days.map(&:enterprise_amount).sum,
@@ -155,5 +186,29 @@ class Employee < ApplicationRecord
     return if ID_CODE_PATTERNS.any? { |pattern| id_code.match?(pattern) }
 
     errors.add(:id_code, :invalid_id_code)
+  end
+
+  # Rebuilds search_text from the searchable fields when any of them changed.
+  # Stored downcased because C collation does not fold Cyrillic in SQL LOWER().
+  def refresh_search_text
+    self.search_text = build_search_text
+  end
+
+  # Returns true when any field that feeds search_text was modified.
+  def search_fields_changed?
+    will_save_change_to_id_code? ||
+      will_save_change_to_last_name? ||
+      will_save_change_to_first_name? ||
+      will_save_change_to_patronic_name?
+  end
+
+  # Concatenates all searchable fields into a single downcased string.
+  def build_search_text
+    [
+      id_code.to_s,
+      last_name.to_s,
+      first_name.to_s,
+      patronic_name.to_s
+    ].compact_blank.join(' ').downcase
   end
 end

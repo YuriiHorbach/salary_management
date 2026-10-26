@@ -9,13 +9,34 @@ class EmployeesController < ApplicationController
   CHECKBOX_FILTER_KEYS = %w[chaes_true contract_true].freeze
   DEFAULT_EMPLOYEE_SORT = 'last_name asc'
   EMPLOYEES_PER_PAGE = 15
+  SALARIES_PER_PAGE = 15
+  VACATIONS_PER_PAGE = 15
 
   before_action :authenticate_user!
   before_action :set_employee, only: %i[edit update destroy]
   before_action :load_form_collections, only: %i[new edit create update]
 
   def index
-    @q = Employee.ransack(employee_search_params)
+    search_params = employee_search_params
+
+    # Extract name params for case-insensitive search. PostgreSQL C collation
+    # does not fold Cyrillic in SQL LIKE/ILIKE/LOWER, so we filter by field in Ruby
+    # via search_by_field_ci (pluck ids + field, downcase-compare, query by ids).
+    # Applied to the base scope before Ransack to avoid DISTINCT/ORDER BY conflicts.
+    name_filters = {}
+    %w[last_name first_name patronic_name].each do |field|
+      key = "#{field}_cont"
+      if search_params[key].present?
+        name_filters[field] = search_params.delete(key)
+      end
+    end
+
+    base_scope = Employee
+    name_filters.each do |field, term|
+      base_scope = base_scope.search_by_field_ci(field, term)
+    end
+
+    @q = base_scope.ransack(search_params)
     @q.sorts = [DEFAULT_EMPLOYEE_SORT] if @q.sorts.empty?
     @pagy, @employees = pagy(:offset, @q.result(distinct: true), limit: EMPLOYEES_PER_PAGE)
   end
@@ -30,17 +51,20 @@ class EmployeesController < ApplicationController
 
     # used salary_q from params
     @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q)
-    @employee_salaries = @salary_q.result.includes(:department).group_by(&:department)
+    salary_scope = @salary_q.result
+    @pagy_salaries, salary_records = pagy(:offset, salary_scope.includes(:department),
+                                          limit: SALARIES_PER_PAGE, page_key: 'salaries_page')
+    @employee_salaries = salary_records.group_by(&:department)
 
     @departments = Department.all
 
-    prepare_monthly_totals(@salary_q)
+    prepare_monthly_totals(salary_scope)
 
     @vacation_q = @employee.vacations.ransack(params[:vacation_q], search_key: :vacation_q)
-    @vacations = @vacation_q.result.order(period: :desc)
+    @pagy_vacations, @vacations = pagy(:offset, @vacation_q.result.order(period: :desc),
+                                       limit: VACATIONS_PER_PAGE, page_key: 'vacations_page')
 
     @sick_days_summaries = @employee.addition_income_summaries(@employee.sick_days)
-    @vacations_summaries = @employee.addition_income_summaries(@employee.vacations)
   end
 
   def new
@@ -144,9 +168,9 @@ class EmployeesController < ApplicationController
     cents if cents.positive?
   end
 
-  def prepare_monthly_totals(q)
-    @monthly_totals = q.result.group_by { |s| s.paid_on.strftime('%Y-%m') }
-                       .transform_values { |sals| sals.sum(&:amount_cents) / 100.0 }
+  def prepare_monthly_totals(scope)
+    grouped = scope.group_by { |salary| salary.paid_on.strftime('%Y-%m') }
+    @monthly_totals = grouped.transform_values { |salaries| salaries.sum(&:amount_cents) / 100.0 }
 
     if params[:month].present?
       month_param = params[:month].rjust(2, '0')

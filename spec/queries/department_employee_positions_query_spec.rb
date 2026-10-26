@@ -71,4 +71,26 @@ RSpec.describe DepartmentEmployeePositionsQuery do
 
     expect(result).to be_empty
   end
+
+  describe 'SQL query efficiency' do
+    it 'executes the same number of queries regardless of the employee and salary position count' do
+      create(:department_employee, employee: employee, department: department, position: manager)
+      other_employees = create_list(:employee, 3)
+      employee_ids = [employee.id, *other_employees.map(&:id)]
+      small_salaries = { [employee.id, manager.id] => 100_000 }
+
+      first_query_count = count_sql_queries do
+        described_class.new(department, employee_ids: employee_ids, period_salaries: small_salaries).call
+      end
+
+      large_salaries = small_salaries.merge(
+        other_employees.to_h { |other| [[other.id, engineer.id], 50_000] }
+      )
+      second_query_count = count_sql_queries do
+        described_class.new(department, employee_ids: employee_ids, period_salaries: large_salaries).call
+      end
+
+      expect(second_query_count).to eq(first_query_count)
+    end
+  end
 end

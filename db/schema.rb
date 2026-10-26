@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_24_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "account_books", force: :cascade do |t|
     t.bigint "employee_id"
@@ -44,6 +45,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.datetime "updated_at", null: false
     t.bigint "position_id"
     t.index ["department_id"], name: "index_department_employees_on_department_id"
+    t.index ["employee_id", "department_id", "position_id"], name: "index_department_employees_on_emp_dept_pos_not_null", unique: true, where: "(position_id IS NOT NULL)"
+    t.index ["employee_id", "department_id"], name: "index_department_employees_on_emp_dept_pos_null", unique: true, where: "(position_id IS NULL)"
     t.index ["employee_id"], name: "index_department_employees_on_employee_id"
     t.index ["position_id"], name: "index_department_employees_on_position_id"
   end
@@ -67,6 +70,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.datetime "updated_at", null: false
     t.index ["employee_id", "period", "income_type"], name: "index_employee_period_incomes_unique", unique: true
     t.index ["employee_id"], name: "index_employee_period_incomes_on_employee_id"
+    t.index ["period"], name: "index_employee_period_incomes_on_period"
   end
 
   create_table "employees", force: :cascade do |t|
@@ -84,8 +88,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.date "birthday"
     t.bigint "territory_sign_id"
     t.string "identifier"
+    t.text "search_text"
     t.index ["id_code"], name: "index_employees_on_id_code", unique: true
     t.index ["identifier"], name: "index_employees_on_identifier"
+    t.index ["search_text"], name: "index_employees_on_search_text_gin_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["territory_sign_id"], name: "index_employees_on_territory_sign_id"
   end
 
@@ -121,6 +127,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.index ["employee_id", "period", "department_id"], name: "index_salaries_unique_department_per_period", unique: true, where: "(position_id IS NULL)"
     t.index ["employee_id", "period", "position_id"], name: "index_salaries_unique_position_per_period", unique: true, where: "(position_id IS NOT NULL)"
     t.index ["employee_id"], name: "index_salaries_on_employee_id"
+    t.index ["period"], name: "index_salaries_on_period"
     t.index ["position_id"], name: "index_salaries_on_position_id"
   end
 
@@ -128,7 +135,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.bigint "employee_id", null: false
     t.integer "pfu_amount_cents", default: 0, null: false
     t.integer "enterprise_amount_cents", default: 0, null: false
-    t.string "period", null: false
+    t.date "period", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "income_tax_cents", default: 0, null: false
@@ -137,6 +144,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.bigint "department_id"
     t.index ["department_id"], name: "index_sick_days_on_department_id"
     t.index ["employee_id"], name: "index_sick_days_on_employee_id"
+    t.index ["period"], name: "index_sick_days_on_period"
   end
 
   create_table "tax_settings", force: :cascade do |t|
@@ -180,6 +188,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_120000) do
     t.bigint "department_id"
     t.index ["department_id"], name: "index_vacations_on_department_id"
     t.index ["employee_id"], name: "index_vacations_on_employee_id"
+    t.index ["period"], name: "index_vacations_on_period"
   end
 
   add_foreign_key "account_books", "employees"

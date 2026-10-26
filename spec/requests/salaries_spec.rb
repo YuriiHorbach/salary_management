@@ -268,6 +268,19 @@ RSpec.describe 'Salaries', type: :request do
       expect(assigns(:salaries).map(&:amount_cents)).to contain_exactly(100_000, 200_000)
     end
 
+    it 'paginates the salary list' do
+      16.times do |index|
+        paid_on = Date.new(2024, 1, 1) + index.months
+        create(:salary, employee: employee, department: department, amount_cents: 100_000,
+                        paid_on: paid_on, period: paid_on)
+      end
+
+      get urls.employee_salaries_path(employee)
+
+      expect(assigns(:pagy).last).to eq(2)
+      expect(assigns(:salaries).size).to eq(SalariesController::SALARIES_PER_PAGE)
+    end
+
     it 'renders the aggregated period totals from employee_period_incomes' do
       create(:salary, employee: employee, department: department, amount_cents: 100_000,
                       period: Date.new(2025, 10, 1))

@@ -83,6 +83,11 @@
 
   <%= turbo_frame_tag "new_salary" %>
   <%= render partial: 'salary', collection: @salaries, as: :salary %>
+
+  <%= render 'shared/pagination',
+             pagy: @pagy,
+             pagination_id: 'salaries_pagination',
+             margin_class: 'mt-4' %>
 </div>
 
 <% if @departments.any? %>

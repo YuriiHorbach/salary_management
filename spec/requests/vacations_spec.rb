@@ -18,6 +18,15 @@ RSpec.describe 'Vacations', type: :request do
       expect(response.body).to include(I18n.t('vacations.index.total', amount: '10000,00'))
       expect(response.body).not_to include(I18n.t('vacations.index.total', amount: '5000,00'), '₴10000,00', '$10000,00')
     end
+
+    it 'paginates the vacation list' do
+      create_list(:vacation, 16, employee: employee)
+
+      get employee_vacations_path(employee)
+
+      expect(assigns(:pagy).last).to eq(2)
+      expect(assigns(:vacations).size).to eq(VacationsController::VACATIONS_PER_PAGE)
+    end
   end
 
   describe 'GET /employees/:employee_id/vacations/new' do

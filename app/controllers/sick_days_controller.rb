@@ -7,8 +7,7 @@ class SickDaysController < ApplicationController
   before_action :set_sick_day, only: %i[edit update destroy]
 
   def index
-    @sick_days = @employee.sick_days.order(period: :desc)
-    @sick_days_summaries = @employee.sick_days_summaries
+    load_sick_days
   end
 
   def new
@@ -30,7 +29,10 @@ class SickDaysController < ApplicationController
   def update
     if @sick_day.update(sick_day_params)
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: sick_days_list_turbo_stream(@employee.sick_days_summaries) }
+        format.turbo_stream do
+          load_sick_days
+          render turbo_stream: sick_days_list_turbo_stream(@sick_days_summaries)
+        end
         format.html do
           redirect_to employee_sick_days_path(@employee), notice: t('flash.sick_days.updated')
         end
@@ -45,7 +47,10 @@ class SickDaysController < ApplicationController
     @sick_day.destroy
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: destroy_turbo_streams(destroyed_period) }
+      format.turbo_stream do
+        load_sick_days
+        render turbo_stream: destroy_turbo_streams(destroyed_period)
+      end
       format.html do
         redirect_to employee_sick_days_path(@employee), notice: t('flash.sick_days.deleted')
       end
@@ -54,10 +59,13 @@ class SickDaysController < ApplicationController
 
   private
 
-  def destroy_turbo_streams(period)
-    summaries = @employee.sick_days_summaries
+  def load_sick_days
+    @sick_days = @employee.sick_days.order(period: :desc)
+    @sick_days_summaries = @employee.sick_days_summaries(@sick_days)
+  end
 
-    [turbo_stream.remove(@sick_day), summary_turbo_stream(period, summaries)]
+  def destroy_turbo_streams(period)
+    [turbo_stream.remove(@sick_day), summary_turbo_stream(period, @sick_days_summaries)]
   end
 
   def summary_turbo_stream(period, summaries)
@@ -71,10 +79,7 @@ class SickDaysController < ApplicationController
     turbo_stream.replace(
       'sick_days_list',
       partial: 'sick_days/list',
-      locals: {
-        sick_days: @employee.sick_days.order(period: :desc),
-        sick_days_summaries: summaries
-      }
+      locals: { sick_days: @sick_days, sick_days_summaries: summaries }
     )
   end
 

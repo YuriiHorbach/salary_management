@@ -39,6 +39,7 @@ brigade_books = {
 puts 'Створення бригад і довідника книг...'
 territory_signs = brigade_books.keys.index_with { |name| TerritorySign.create!(name: name) }
 brigade_books.each_value { |codes| codes.each { |code| AccountBook.create!(code: code) } }
+books_by_code = AccountBook.all.index_by(&:code)
 
 male_names = {
   first: %w[Олександр Андрій Іван Петро Микола Василь Сергій Олег Тарас Богдан Віктор Юрій],
@@ -81,7 +82,7 @@ employees_count.times do
     contract: rand < 0.15,
     territory_sign: territory_signs[brigade]
   )
-  AccountBook.create!(employee: employee, code: brigade_books[brigade].sample) if brigade
+  employee.update!(account_book: books_by_code.fetch(brigade_books[brigade].sample)) if brigade
   DepartmentEmployee.create!(employee: employee, department: department)
 
   next if rand < 0.05 # «новачки» без виплат, як у реальних звітах

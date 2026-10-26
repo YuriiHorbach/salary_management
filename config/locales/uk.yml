@@ -33,7 +33,7 @@ uk:
     name: Назва
     code: Код
     notes: Примітки
-    paid_on: Дата виплати
+    paid_on: Зарплата за
     select: Оберіть
     select_employee: Оберіть працівника
     no_position: Без посади
@@ -167,7 +167,7 @@ uk:
         period: Період
         department: Підрозділ
         position: Посада
-        paid_on: Дата виплати
+        paid_on: Зарплата за
         notes: Примітки
       sick_day:
         period: Період
@@ -307,7 +307,7 @@ uk:
       salaries_by_department: Зарплати працівника по підрозділах
       department: Підрозділ
       amount: Сума
-      paid_on: Дата виплати
+      paid_on: Зарплата за
       no_department: Без підрозділу
       no_salaries: Зарплат не знайдено
       monthly_totals: Загальна зарплата по місяцях (підсумки)
@@ -383,7 +383,7 @@ uk:
     show:
       title: Деталі зарплати
       salary: Зарплата
-      paid_on: Дата виплати
+      paid_on: Зарплата за
       notes: Примітки
       edit: Редагувати
       back: Назад
@@ -702,7 +702,7 @@ uk:
           when: Необов'язково. Використовується, щоб розрізняти зарплати за підрозділами
             в одному місяці.
         paid_on:
-          meaning_html: Дата виплати у форматі <code>YYYY-MM-DD</code>.
+          meaning_html: Зарплата за у форматі <code>YYYY-MM-DD</code>.
           when_html: Необов'язково (тільки <code>salary</code>); за замовчуванням
             — перший день <code>period</code>.
       sample_hint: Зразок містить лише заголовки — додайте до нього рядки з даними.

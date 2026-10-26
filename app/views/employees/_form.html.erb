@@ -98,21 +98,19 @@
       </div>
     </div>
 
-    <%= form.fields_for :account_book do |ab_form| %>
-      <div class="mb-5">
-        <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          <%= ab_form.label :code, t('.account_book_code') %>
+    <div class="mb-5">
+      <div class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <%= form.label :account_book_id, t('.account_book_code') %>
 
-        </div>
-        <div>
-          <%= ab_form.collection_select :code,
-                            @account_book_codes,
-                            :to_s, :to_s,
-                            { include_blank: t('.no_book') },
-                            { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
-        </div>
       </div>
-    <% end %>
+      <div>
+        <%= form.collection_select :account_book_id,
+                          @account_books,
+                          :id, :code,
+                          { include_blank: t('.no_book') },
+                          { class: "p-1 cursor-pointer border-2 outline-none focus:border-4 focus:border-gray-500 rounded-lg" } %>
+      </div>
+    </div>
 
     <div class="mt-3">
       <%= form.submit t('.submit'), class: "btn btn-primary px-3 py-2 text-xs font-medium text-center inline-flex items-center" %>

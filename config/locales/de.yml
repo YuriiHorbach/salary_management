@@ -33,7 +33,7 @@ de:
     name: Name
     code: Code
     notes: Notizen
-    paid_on: Ausgezahlt am
+    paid_on: das Gehalt für
     select: Auswählen
     select_employee: Mitarbeiter auswählen
     no_position: Ohne Position
@@ -167,7 +167,7 @@ de:
         period: Zeitraum
         department: Abteilung
         position: Position
-        paid_on: Ausgezahlt am
+        paid_on: das Gehalt für
         notes: Notizen
       sick_day:
         period: Zeitraum
@@ -308,7 +308,7 @@ de:
       salaries_by_department: Mitarbeitergehälter nach Abteilung
       department: Abteilung
       amount: Betrag
-      paid_on: Ausgezahlt am
+      paid_on: das Gehalt für
       no_department: Ohne Abteilung
       no_salaries: Keine Gehälter gefunden
       monthly_totals: Gesamtgehalt nach Monat (Übersicht)
@@ -384,7 +384,7 @@ de:
     show:
       title: Gehaltsdetails
       salary: Gehalt
-      paid_on: Ausgezahlt am
+      paid_on: das Gehalt für
       notes: Notizen
       edit: Bearbeiten
       back: Zurück
@@ -705,7 +705,7 @@ de:
           when: Optional. Wird verwendet, um Gehälter nach Abteilung im selben Monat
             zu unterscheiden.
         paid_on:
-          meaning_html: Auszahlungsdatum im Format <code>YYYY-MM-DD</code>.
+          meaning_html: Gehaltperiod <code>YYYY-MM-DD</code>.
           when_html: Optional (nur <code>salary</code>); standardmäßig der erste Tag
             von <code>period</code>.
       sample_hint: Das Beispiel enthält nur Kopfzeilen — fügen Sie Datenzeilen hinzu.

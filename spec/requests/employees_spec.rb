@@ -313,40 +313,62 @@ RSpec.describe 'Employees update', type: :request do
   end
 
   describe 'book code selection' do
-    it 'assigns the selected book code to the employee profile' do
-      patch employee_path(employee), params: {
-        employee: { account_book_attributes: { code: 'О11' } }
-      }
+    it 'assigns the existing catalog book to the employee profile' do
+      book = create(:account_book, code: 'О11')
+
+      expect do
+        patch employee_path(employee), params: { employee: { account_book_id: book.id } }
+      end.not_to change(AccountBook, :count)
 
       expect(response).to have_http_status(:redirect)
-      employee.reload
-      expect(employee.account_book.code).to eq('О11')
+      expect(employee.reload.account_book).to eq(book)
       expect(employee.identifier).to eq('О11')
     end
 
-    it 'changes the book code when another code is selected' do
-      create(:account_book, employee: employee, code: 'О11')
+    it 'does not duplicate a book added in settings when assigned from the profile' do
+      book = create(:account_book, code: 'О12')
 
-      patch employee_path(employee), params: {
-        employee: { account_book_attributes: { code: 'Б22' } }
-      }
+      patch employee_path(employee), params: { employee: { account_book_id: book.id } }
+
+      expect(AccountBook.where(code: 'О12').count).to eq(1)
+      expect(book.reload.employees).to contain_exactly(employee)
+    end
+
+    it 'allows several employees to share the same catalog book' do
+      book = create(:account_book, code: 'О12')
+      other_employee = create(:employee)
+
+      employee.update!(account_book: book)
+      other_employee.update!(account_book: book)
+
+      expect(AccountBook.where(code: 'О12').count).to eq(1)
+      expect(employee.reload.identifier).to eq('О12')
+      expect(other_employee.reload.identifier).to eq('О12')
+    end
+
+    it 'changes the book when another one is selected' do
+      old_book = create(:account_book, code: 'О11')
+      new_book = create(:account_book, code: 'Б22')
+      employee.update!(account_book: old_book)
+
+      patch employee_path(employee), params: { employee: { account_book_id: new_book.id } }
 
       expect(response).to have_http_status(:redirect)
       employee.reload
-      expect(employee.account_book.code).to eq('Б22')
+      expect(employee.account_book).to eq(new_book)
       expect(employee.identifier).to eq('Б22')
     end
 
-    it 'keeps the existing book when no code is selected' do
-      create(:account_book, employee: employee, code: 'О11')
+    it 'clears the book when no book is selected' do
+      book = create(:account_book, code: 'О11')
+      employee.update!(account_book: book)
 
-      patch employee_path(employee), params: {
-        employee: { account_book_attributes: { code: '' } }
-      }
+      patch employee_path(employee), params: { employee: { account_book_id: '' } }
 
       expect(response).to have_http_status(:redirect)
       employee.reload
-      expect(employee.account_book.code).to eq('О11')
+      expect(employee.account_book).to be_nil
+      expect(employee.identifier).to be_nil
     end
   end
 end

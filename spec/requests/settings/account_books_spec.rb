@@ -75,6 +75,16 @@ RSpec.describe 'AccountBooks settings', type: :request do
 
         expect(response).to have_http_status(:unprocessable_entity)
       end
+
+      it 'does not create a duplicate code' do
+        create(:account_book, code: 'В31')
+
+        expect {
+          post settings_account_books_path, params: { account_book: { code: 'В31' } }
+        }.not_to change(AccountBook, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
     end
   end
 
@@ -110,13 +120,17 @@ RSpec.describe 'AccountBooks settings', type: :request do
   end
 
   describe 'DELETE /settings/account_books/:id' do
-    it 'deletes the account book' do
-      book = create(:account_book, employee: employee)
+    it 'deletes the account book and unassigns it from employees' do
+      book = create(:account_book, employee: employee, code: 'К12')
+      expect(employee.reload.identifier).to eq('К12')
+
       expect {
         delete settings_account_book_path(book)
       }.to change(AccountBook, :count).by(-1)
 
       expect(response).to redirect_to(settings_account_books_path)
+      expect(employee.reload.account_book).to be_nil
+      expect(employee.identifier).to be_nil
     end
   end
 end

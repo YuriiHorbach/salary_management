@@ -33,9 +33,8 @@ RSpec.describe Reports::SalarySummaryQuery do
         territory_sign: brigade2)
     end
 
-    let!(:book1) { create(:account_book, employee: emp1, code: 'Б11') }
-    let!(:book2) { create(:account_book, employee: emp2, code: 'Б11') }
-    let!(:book3) { create(:account_book, employee: emp3, code: 'Б12') }
+    let!(:book1) { create(:account_book, code: 'Б11') }
+    let!(:book2) { create(:account_book, code: 'Б12') }
 
     let!(:salary1) do
       create(:salary, employee: emp1, department: department,
@@ -75,6 +74,12 @@ RSpec.describe Reports::SalarySummaryQuery do
     let!(:sick_day2) do
       create(:sick_day, employee: emp3,
         pfu_amount_cents: 10_000, enterprise_amount_cents: 5_000, period: Date.current)
+    end
+
+    before do
+      emp1.update!(account_book: book1)
+      emp2.update!(account_book: book1)
+      emp3.update!(account_book: book2)
     end
 
     it 'returns aggregated data grouped by brigade and book' do

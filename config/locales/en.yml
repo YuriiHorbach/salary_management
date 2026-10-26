@@ -703,7 +703,7 @@ en:
           meaning: 'Department: name (case-insensitive) or numeric id.'
           when: Optional. Used to distinguish salaries by department in the same month.
         paid_on:
-          meaning_html: Payment date in <code>YYYY-MM-DD</code> format.
+          meaning_html: Salary for in <code>YYYY-MM-DD</code> format.
           when_html: Optional (only <code>salary</code>); defaults to the first day
             of <code>period</code>.
       sample_hint: The sample contains headers only — add data rows to it.

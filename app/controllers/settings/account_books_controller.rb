@@ -4,7 +4,7 @@ class Settings::AccountBooksController < Settings::BaseController
   before_action :set_account_book, only: %i[edit update destroy]
 
   def index
-    @account_books = AccountBook.includes(:employee).order(:code)
+    @account_books = AccountBook.order(:code)
   end
 
   def new

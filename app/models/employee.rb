@@ -22,9 +22,8 @@ class Employee < ApplicationRecord
   has_many :employee_period_incomes, dependent: :destroy
   has_many :sick_days, class_name: 'SickDay', dependent: :destroy
   has_many :vacations, dependent: :destroy # Added association for vacations
-  has_one :account_book, dependent: :destroy
+  belongs_to :account_book, optional: true
   belongs_to :territory_sign, optional: true
-  accepts_nested_attributes_for :account_book, reject_if: ->(attributes) { attributes['code'].blank? }
 
   validates :id_code, presence: true, uniqueness: { case_sensitive: false }
   validate :id_code_format
@@ -33,7 +32,7 @@ class Employee < ApplicationRecord
   validates :last_name, presence: true
 
   after_save :recalculate_taxes_if_needed
-  after_save :set_book_identifier
+  after_save :set_book_identifier, if: :saved_change_to_account_book_id?
 
   # PostgreSQL uses the C collation here, so ILIKE/LOWER do not fold Cyrillic.
   # Match case-insensitively in Ruby and keep returning a relation for chaining.
@@ -150,8 +149,7 @@ class Employee < ApplicationRecord
   private
 
   def set_book_identifier
-    computed = book_identifier
-    return if computed.nil?
+    computed = AccountBook.where(id: account_book_id).pick(:code)
     return if identifier == computed
 
     update_column(:identifier, computed)

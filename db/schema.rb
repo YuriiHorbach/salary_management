@@ -10,17 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_24_150000) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
 
   create_table "account_books", force: :cascade do |t|
-    t.bigint "employee_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "code"
-    t.index ["employee_id"], name: "index_account_books_on_employee_id"
+    t.index ["code"], name: "index_account_books_on_code", unique: true
   end
 
   create_table "application_settings", force: :cascade do |t|
@@ -89,6 +88,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_150000) do
     t.bigint "territory_sign_id"
     t.string "identifier"
     t.text "search_text"
+    t.bigint "account_book_id"
+    t.index ["account_book_id"], name: "index_employees_on_account_book_id"
     t.index ["id_code"], name: "index_employees_on_id_code", unique: true
     t.index ["identifier"], name: "index_employees_on_identifier"
     t.index ["search_text"], name: "index_employees_on_search_text_gin_trgm", opclass: :gin_trgm_ops, using: :gin
@@ -191,12 +192,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_24_150000) do
     t.index ["period"], name: "index_vacations_on_period"
   end
 
-  add_foreign_key "account_books", "employees"
   add_foreign_key "bookmarks", "folders"
   add_foreign_key "department_employees", "departments", on_delete: :cascade
   add_foreign_key "department_employees", "employees", on_delete: :cascade
   add_foreign_key "department_employees", "positions", on_delete: :cascade
   add_foreign_key "employee_period_incomes", "employees", on_delete: :cascade
+  add_foreign_key "employees", "account_books", on_delete: :nullify
   add_foreign_key "employees", "territory_signs"
   add_foreign_key "positions", "departments"
   add_foreign_key "salaries", "departments"

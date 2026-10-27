@@ -240,7 +240,7 @@ RSpec.describe 'DepartmentEmployees', type: :request do
       end
 
       it 'paginates the employee list when requested' do
-        create_list(:employee, 16)
+        create_list(:employee, DepartmentEmployeesController::EMPLOYEES_PER_PAGE)
 
         get new_department_employee_path(department_id: department.id, paginate: '1')
 

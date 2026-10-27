@@ -216,13 +216,50 @@ RSpec.describe 'DepartmentEmployees', type: :request do
         expect(second_request_queries).to eq(first_request_queries)
       end
 
-      it 'paginates the employee list on the add page' do
+      it 'shows the whole employee list by default' do
         create_list(:employee, 16)
 
         get new_department_employee_path(department_id: department.id)
 
+        expect(assigns(:pagy)).to be_nil
+        expect(assigns(:employees).size).to eq(18)
+      end
+
+      it 'paginates the employee list when requested' do
+        create_list(:employee, 16)
+
+        get new_department_employee_path(department_id: department.id, paginate: '1')
+
         expect(assigns(:pagy).last).to eq(2)
         expect(assigns(:employees).size).to eq(DepartmentEmployeesController::EMPLOYEES_PER_PAGE)
+      end
+
+      it 'renders a toggle that preserves the current search' do
+        get new_department_employee_path(department_id: department.id, q: { id_code_cont: '777' })
+
+        toggle = Nokogiri::HTML(response.body).css('a').find do |link|
+          link.text.strip == I18n.t('department_employees.new.paginate')
+        end
+
+        expect(toggle['href']).to include('paginate=1')
+        expect(toggle['href']).to include('id_code_cont')
+      end
+
+      it 'shows the full-list toggle when pagination is enabled' do
+        get new_department_employee_path(department_id: department.id, paginate: '1')
+
+        expect(response.body).to include(I18n.t('department_employees.new.show_all'))
+      end
+
+      it 'caps the full list and asks the user to narrow the search' do
+        stub_const('DepartmentEmployeesController::MAX_UNPAGINATED_EMPLOYEES', 2)
+        create_list(:employee, 2)
+
+        get new_department_employee_path(department_id: department.id)
+
+        expect(assigns(:employees).size).to eq(2)
+        expect(assigns(:employees_truncated)).to be(true)
+        expect(response.body).to include(I18n.t('department_employees.new.limit_notice', count: 2))
       end
 
       it 'removes employee from department' do

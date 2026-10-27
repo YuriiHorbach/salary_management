@@ -5,12 +5,17 @@ class DepartmentEmployeesController < ApplicationController
   SEARCH_KEYS = %i[id_code_cont last_name_cont first_name_cont patronic_name_cont s].freeze
   EMPLOYEES_PER_PAGE = 15
 
+  # Adding employees is a bulk workflow, so the page shows the whole matching
+  # list by default. Above this cap the user is asked to narrow the search.
+  MAX_UNPAGINATED_EMPLOYEES = 200
+
   before_action :authenticate_user!
   before_action :set_department, only: %i[new create]
 
   def new
     @q = Employee.ransack(employee_search_params)
-    @pagy, @employees = pagy(:offset, @q.result(distinct: true), limit: EMPLOYEES_PER_PAGE)
+    @pagination_enabled = params[:paginate] == '1'
+    load_employees(@q.result(distinct: true))
     @positions = @department.positions.order(:position_name)
   end
 
@@ -50,6 +55,23 @@ class DepartmentEmployeesController < ApplicationController
   end
 
   private
+
+  # Loads the add-page list either fully (default, capped) or paginated.
+  #
+  # @param scope [ActiveRecord::Relation<Employee>] filtered and sorted employees
+  # @return [void]
+  def load_employees(scope)
+    if @pagination_enabled
+      @pagy, @employees = pagy(:offset, scope, limit: EMPLOYEES_PER_PAGE)
+      @employees_truncated = false
+      return
+    end
+
+    records = scope.limit(MAX_UNPAGINATED_EMPLOYEES + 1).to_a
+    @employees_truncated = records.size > MAX_UNPAGINATED_EMPLOYEES
+    @employees = records.first(MAX_UNPAGINATED_EMPLOYEES)
+    @pagy = nil
+  end
 
   def employee_search_params
     return {} if params[:q].blank?

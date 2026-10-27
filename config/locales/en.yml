@@ -503,6 +503,10 @@ en:
       add_all: Add all
       add_employees: Add employees
       selected_count: "%{count} selected"
+      show_all: Show all
+      paginate: Show page by page
+      limit_notice: 'Showing the first %{count} employees. Narrow the search to find
+        the rest.'
   department_employee_positions:
     edit:
       title: Employee positions

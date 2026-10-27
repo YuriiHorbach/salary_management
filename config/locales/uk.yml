@@ -502,6 +502,10 @@ uk:
       add_all: Додати всіх
       add_employees: Додати працівників
       selected_count: 'Вибрано: %{count}'
+      show_all: Показати всіх
+      paginate: Показати посторінково
+      limit_notice: 'Показано перші %{count} працівників. Уточніть пошук, щоб знайти
+        потрібних.'
   department_employee_positions:
     edit:
       title: Посади працівника

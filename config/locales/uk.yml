@@ -160,6 +160,7 @@ uk:
         disability_group: Група інвалідності
         territory_sign: Бригада
         account_book: Книга
+        page_number: Номер на сторінці
       department:
         name: Назва
       salary:
@@ -190,6 +191,8 @@ uk:
           attributes:
             id_code:
               invalid_id_code: має містити 9–10 цифр або 2 літери та 6 цифр
+            page_number:
+              page_number_format: "має бути у форматі 1-Б111 (номер, дефіс, літера книги та номери)"
         account_book:
           attributes:
             code:
@@ -281,6 +284,8 @@ uk:
       select_brigade: Оберіть бригаду
       account_book_code: Код облікової книги
       no_book: "— без книги —"
+      page_number_placeholder: "Наприклад: 1-Б111 або 2-О21"
+      page_number_hint: "Формат: 1-Б111 або 2-О21"
       submit: Зберегти працівника
       cancel: Скасувати
     new:
@@ -290,6 +295,7 @@ uk:
       title: Редагувати працівника
     show:
       identifier: Ідентифікатор книги
+      page_number: Номер на сторінці
       id_code: ІПН
       last_name: Прізвище
       first_name: Ім'я
@@ -609,6 +615,7 @@ uk:
     detailed_columns:
       id_code: ІПН
       book_code: Код книги
+      page_number: сторНом
       brigade: Бригада
       department: Підрозділ
       full_name: ПІБ

@@ -139,7 +139,8 @@ class EmployeesController < ApplicationController
                                      :contract,
                                      :disability_group,
                                      :children_count,
-                                     :account_book_id)
+                                     :account_book_id,
+                                     :page_number)
   end
 
   def sanitized_salary_search_params

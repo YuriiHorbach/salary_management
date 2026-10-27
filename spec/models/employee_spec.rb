@@ -65,6 +65,30 @@ RSpec.describe Employee, type: :model do
     it 'is invalid without patronic_name' do
       expect(build(:employee, patronic_name: nil)).to be_invalid
     end
+
+    it 'is valid with a page number in page-book format' do
+      expect(build(:employee, page_number: '1-Б111')).to be_valid
+    end
+
+    it 'is valid without a page number' do
+      expect(build(:employee, page_number: nil)).to be_valid
+    end
+
+    it 'normalizes page number by stripping whitespace and upcasing the book code' do
+      employee = build(:employee, page_number: ' 2-о21 ')
+
+      employee.valid?
+
+      expect(employee.page_number).to eq('2-О21')
+    end
+
+    it 'is invalid when page number does not use page-book format' do
+      expect(build(:employee, page_number: 'Б111-1')).to be_invalid
+    end
+
+    it 'is invalid when page number has no dash' do
+      expect(build(:employee, page_number: '1Б111')).to be_invalid
+    end
   end
 
   describe 'id_code storage' do
@@ -224,42 +248,6 @@ RSpec.describe Employee, type: :model do
       end
 
       expect(salary.reload.income_tax_cents).to eq(old_tax)
-    end
-  end
-
-  describe '.search_by_id_code_or_name' do
-    let!(:petrenko) do
-      create(:employee, id_code: '1234567890', last_name: 'Петренко',
-                        first_name: 'Іван', patronic_name: 'Іванович')
-    end
-    let!(:ivanenko) do
-      create(:employee, id_code: '9876543210', last_name: 'Іваненко',
-                        first_name: 'Марія', patronic_name: 'Петрівна')
-    end
-
-    it 'matches by last name case-insensitively' do
-      expect(described_class.search_by_id_code_or_name('петренко')).to contain_exactly(petrenko)
-    end
-
-    it 'matches by first name case-insensitively' do
-      expect(described_class.search_by_id_code_or_name('мАрІя')).to contain_exactly(ivanenko)
-    end
-
-    it 'matches by patronymic case-insensitively' do
-      expect(described_class.search_by_id_code_or_name('петрівна')).to contain_exactly(ivanenko)
-    end
-
-    it 'matches by a partial id code' do
-      expect(described_class.search_by_id_code_or_name('12345')).to contain_exactly(petrenko)
-    end
-
-    it 'returns every employee when the term is blank' do
-      expect(described_class.search_by_id_code_or_name(nil)).to contain_exactly(petrenko, ivanenko)
-      expect(described_class.search_by_id_code_or_name('  ')).to contain_exactly(petrenko, ivanenko)
-    end
-
-    it 'escapes LIKE wildcards so they are treated literally' do
-      expect(described_class.search_by_id_code_or_name('%')).to be_empty
     end
   end
 

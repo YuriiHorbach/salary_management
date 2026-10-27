@@ -173,6 +173,16 @@ RSpec.describe 'Employees update', type: :request do
     end
   end
 
+  describe 'GET /employees/:id page number' do
+    it 'renders the employee page number on the profile' do
+      employee.update!(page_number: '1-Б111')
+
+      get employee_path(employee)
+
+      expect(response.body).to include('1-Б111')
+    end
+  end
+
   describe 'GET /employees/:id salary payment date' do
     it 'renders the payment date as month and year without the day' do
       salary.update!(period: Date.new(2025, 3, 1), paid_on: Date.new(2025, 3, 15))
@@ -270,6 +280,23 @@ RSpec.describe 'Employees update', type: :request do
         }
       end.not_to have_enqueued_job(TaxCalculationJob)
     end
+
+    it 'updates the employee page number' do
+      patch employee_path(employee), params: { employee: { page_number: '1-Б111' } }
+
+      expect(response).to have_http_status(:redirect)
+      expect(employee.reload.page_number).to eq('1-Б111')
+    end
+
+    it 'rejects a page number in the wrong format' do
+      patch employee_path(employee), params: { employee: { page_number: 'Б111-1' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(employee.reload.page_number).to be_nil
+      expect(response.body).to include(
+        I18n.t('activerecord.errors.models.employee.attributes.page_number.page_number_format')
+      )
+    end
   end
 
   describe 'POST /employees' do
@@ -321,6 +348,17 @@ RSpec.describe 'Employees update', type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('О11')
+    end
+
+    it 'shows the page number field with the current value' do
+      employee.update!(page_number: '2-О11')
+
+      get edit_employee_path(employee)
+
+      field = Nokogiri::HTML(response.body).at_css('input[name="employee[page_number]"]')
+
+      expect(field).to be_present
+      expect(field['value']).to eq('2-О11')
     end
   end
 

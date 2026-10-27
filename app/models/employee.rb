@@ -11,7 +11,11 @@ class Employee < ApplicationRecord
     /\A[А-ЯҐІЇЄA-Z]{2}\d{6}\z/
   ].freeze
 
+  # Page number in +<page>-<book code>+ format, for example +1-Б111+.
+  PAGE_NUMBER_PATTERN = /\A\d+-[А-ЯЄІЇҐA-Z]\d+\z/
+
   before_validation :normalize_id_code
+  before_validation :normalize_page_number
   before_validation :set_birthdate_from_id_code, if: :id_code_changed?
   before_save :refresh_search_text, if: :search_fields_changed?
 
@@ -30,6 +34,8 @@ class Employee < ApplicationRecord
   validates :first_name, presence: true
   validates :patronic_name, presence: true
   validates :last_name, presence: true
+  validates :page_number, allow_blank: true,
+                          format: { with: PAGE_NUMBER_PATTERN, message: :page_number_format }
 
   after_save :recalculate_taxes_if_needed
   after_save :set_book_identifier, if: :saved_change_to_account_book_id?
@@ -74,8 +80,8 @@ class Employee < ApplicationRecord
 
   def self.ransackable_attributes(_auth_object = nil)
     # Ensure amount_cents is listed here to allow searching through associations
-    %w[created_at first_name id id_code id_value last_name patronic_name updated_at children_count disability_group
-       chaes contract territory_info amount_cents identifier]
+    %w[created_at first_name id id_code id_value last_name patronic_name page_number updated_at children_count
+       disability_group chaes contract territory_info amount_cents identifier]
   end
 
   def self.ransackable_associations(_auth_object = nil)
@@ -177,6 +183,10 @@ class Employee < ApplicationRecord
 
   def normalize_id_code
     self.id_code = id_code.to_s.strip.upcase.presence
+  end
+
+  def normalize_page_number
+    self.page_number = page_number.to_s.strip.upcase.presence
   end
 
   def id_code_format

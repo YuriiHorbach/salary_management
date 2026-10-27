@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Reports::EmployeeDetailedQuery do
   let(:expected_column_keys) do
     %i[
-      id_code book_code brigade department full_name
+      id_code book_code page_number brigade department full_name
       base_salary salary_income_tax salary_military_tax salary_net
       vacation_amount vacation_income_tax vacation_military_tax
       sick_total sick_pdfo sick_military
@@ -15,7 +15,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
 
   let(:expected_column_labels) do
     [
-      'ІПН', 'Код книги', 'Бригада', 'Підрозділ', 'ПІБ',
+      'ІПН', 'Код книги', 'Номер на сторінці', 'Бригада', 'Підрозділ', 'ПІБ',
       'Базова зп', 'зп податок', 'зп вз', 'зп чиста',
       'відпускні', 'відп податок', 'відп вз',
       'лікарняні', 'лік податок', 'лік вз',
@@ -34,6 +34,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
         id_code: '1234567890',
         first_name: 'Іван',
         last_name: 'Петренко',
+        page_number: '1-Б11',
         territory_sign: brigade1)
     end
 
@@ -42,6 +43,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
         id_code: '2233445566',
         first_name: 'Марія',
         last_name: 'Іваненко',
+        page_number: '2-Б12',
         territory_sign: brigade2)
     end
 
@@ -84,7 +86,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(emp_row[:full_name]).to eq('Петренко Іван Testovich')
       expect(emp_row[:brigade]).to eq('Бригада 1')
       expect(emp_row[:department]).to eq('Відділ A')
-      expect(emp_row[:book_code]).to eq('Б11')
+      expect([emp_row[:book_code], emp_row[:page_number]]).to eq(%w[Б11 1-Б11])
       expect(emp_row[:base_salary]).to eq(1000.00)
       expect(emp_row[:vacation_amount]).to eq(300.00)
       expect(emp_row[:sick_total]).to eq(300.00) # 20000 + 10000 cents = 300 UAH
@@ -233,6 +235,17 @@ RSpec.describe Reports::EmployeeDetailedQuery do
         expect(result[:employees].map { |e| e[:full_name] }).to eq(['apple z Testovich', 'Banana y Testovich'])
       end
 
+      it 'sorts by page number ascending and descending' do
+        emp1.update!(page_number: '2-Б111')
+        emp2.update!(page_number: '1-О11')
+
+        ascending = described_class.new(q: { s: 'page_number asc' }).call
+        descending = described_class.new(q: { s: 'page_number desc' }).call
+
+        expect(ascending[:employees].map { |e| e[:page_number] }).to eq(%w[1-О11 2-Б111])
+        expect(descending[:employees].map { |e| e[:page_number] }).to eq(%w[2-Б111 1-О11])
+      end
+
       it 'accepts string keys from request params' do
         result = described_class.new('q' => { 's' => 'base_salary desc' }).call
 
@@ -298,8 +311,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(row_keys).to include(:vacation_net)
     end
 
-    it 'lists the five text columns in TEXT_COLUMNS' do
-      expect(described_class::TEXT_COLUMNS).to eq(%i[id_code book_code brigade department full_name])
+    it 'lists the six text columns in TEXT_COLUMNS' do
+      expect(described_class::TEXT_COLUMNS).to eq(%i[id_code book_code page_number brigade department full_name])
     end
 
     it 'has a totals key for every numeric column so the totals row never drops one' do

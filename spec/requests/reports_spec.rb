@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'csv'
 
 FULLY_POPULATED_ROW = [
-  '1234567890', 'Б99', 'Бригада X', 'Відділ X', 'Петренко Іван Testovich',
+  '1234567890', 'Б99', '1-Б99', 'Бригада X', 'Відділ X', 'Петренко Іван Testovich',
   '1000,00', '0,00', '50,00', '950,00',
   '300,00', '54,00', '15,00',
   '300,00', '54,00', '15,00',
@@ -16,7 +16,7 @@ RSpec.shared_context 'with a fully populated employee' do
   let(:brigade) { create(:territory_sign, name: 'Бригада X') }
   let(:employee) do
     create(:employee, id_code: '1234567890', first_name: 'Іван', last_name: 'Петренко',
-                      territory_sign: brigade, children_count: 0)
+                      page_number: '1-Б99', territory_sign: brigade, children_count: 0)
   end
   let(:rows) { Nokogiri::HTML(response.body).css('table tbody tr') }
   let!(:salary) do
@@ -329,6 +329,15 @@ RSpec.describe 'Reports', type: :request do
       expect(header_cells).to eq(first_data_cells)
     end
 
+    it 'renders the page number column immediately after the book code' do
+      get detailed_reports_path
+
+      headers = Nokogiri::HTML(response.body).css('table thead tr').first.css('th').map { |th| th.text.strip }
+
+      expect(headers[1]).to eq(I18n.t('reports.detailed_columns.book_code'))
+      expect(headers[2]).to eq(I18n.t('reports.detailed_columns.page_number'))
+    end
+
     it 'labels the gross salary+vacation and the last net pay columns' do
       get detailed_reports_path
 
@@ -360,7 +369,7 @@ RSpec.describe 'Reports', type: :request do
       cells = doc.css('table tbody tr').first.css('td')
 
       expect(cells.size).to eq(1)
-      expect(cells.first['colspan']).to eq('20')
+      expect(cells.first['colspan']).to eq('21')
     end
 
     describe 'sorting' do
@@ -416,6 +425,18 @@ RSpec.describe 'Reports', type: :request do
         expect(report_id_codes.last).to eq('9999999999')
       end
 
+      it 'sorts rows by page number' do
+        brigade = create(:territory_sign, name: 'Бригада Номер')
+        create(:employee, id_code: '1111111111', last_name: 'Alpha',
+                          page_number: '2-Б111', territory_sign: brigade)
+        create(:employee, id_code: '2222222222', last_name: 'Beta',
+                          page_number: '1-О11', territory_sign: brigade)
+
+        get detailed_reports_path(brigade: brigade.id, q: { s: 'page_number asc' })
+
+        expect(report_id_codes).to eq(%w[2222222222 1111111111])
+      end
+
       it 'keeps the active filters in the sort links' do
         brigade = create(:territory_sign, name: 'Бригада Сортування')
 
@@ -462,19 +483,19 @@ RSpec.describe 'Reports', type: :request do
       it 'aligns numeric cells right and emphasises full_name and net_pay' do
         cells = rows.first.css('td')
 
-        expect(cells[4]['class']).to include('font-medium')
-        expect(cells[4]['class']).not_to include('text-right')
-        expect(cells[5..].pluck('class')).to all(include('text-right'))
-        expect(cells[19]['class']).to include('text-right', 'font-semibold')
+        expect(cells[5]['class']).to include('font-medium')
+        expect(cells[5]['class']).not_to include('text-right')
+        expect(cells[6..].pluck('class')).to all(include('text-right'))
+        expect(cells[20]['class']).to include('text-right', 'font-semibold')
       end
 
       it 'renders the totals row with a spanning label and the numeric totals' do
         cells = rows.last.css('td')
 
         expect(cells.size).to eq(16)
-        expect(cells.first['colspan']).to eq('5')
+        expect(cells.first['colspan']).to eq('6')
         expect(cells.first.text.strip).to eq(I18n.t('reports.detailed.total'))
-        expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[5..])
+        expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[6..])
       end
     end
 

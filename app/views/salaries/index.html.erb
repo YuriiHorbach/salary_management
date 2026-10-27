@@ -1,5 +1,6 @@
 <% employee_name = "#{@employee.last_name} #{@employee.first_name} #{@employee.patronic_name}" %>
-<h1 class="text-2xl font-bold mb-4"><%= t('salaries.index.title', name: employee_name) %></h1>
+
+<h1 class="text-2xl font-bold mb-4"><%= link_to t('salaries.index.title', name: employee_name), employee_path(@employee) %></h1>
 
 <div class="m-5 mb-6">
   <%= form_with url: employee_salaries_path(@employee), method: :get, class: "flex flex-wrap items-end gap-3" do |form| %>

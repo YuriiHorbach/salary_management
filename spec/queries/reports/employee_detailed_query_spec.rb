@@ -154,6 +154,29 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:employees].first[:full_name]).to eq('Іваненко Марія Testovich')
     end
 
+    it 'filters by a multi-word full name' do
+      result = described_class.new(employee_search: 'Петренко Іван').call
+
+      expect(result[:employees].map { |employee| employee[:id_code] })
+        .to contain_exactly('1234567890')
+    end
+
+    it 'filters by a multi-word full name case-insensitively' do
+      result = described_class.new(employee_search: 'петренко ІВАН').call
+
+      expect(result[:employees].map { |employee| employee[:id_code] })
+        .to contain_exactly('1234567890')
+    end
+
+    it 'treats LIKE wildcards in the employee search literally' do
+      emp1.update!(last_name: '100%')
+
+      result = described_class.new(employee_search: '%').call
+
+      expect(result[:employees].map { |employee| employee[:id_code] })
+        .to contain_exactly('1234567890')
+    end
+
     it 'filters by date range' do
       old_salary = create(:salary, employee: emp1, department: department,
         amount_cents: 50_000, income_tax_cents: 9_000, military_tax_cents: 2_500, net_amount_cents: 38_500,

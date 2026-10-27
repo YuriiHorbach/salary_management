@@ -3,6 +3,7 @@
 # app/controllers/department_employees_controller.rb
 class DepartmentEmployeesController < ApplicationController
   SEARCH_KEYS = %i[id_code_cont last_name_cont first_name_cont patronic_name_cont s].freeze
+  DEFAULT_SORT = 'last_name asc'
   EMPLOYEES_PER_PAGE = 15
 
   # Adding employees is a bulk workflow, so the page shows the whole matching
@@ -74,11 +75,12 @@ class DepartmentEmployeesController < ApplicationController
   end
 
   def employee_search_params
-    return {} if params[:q].blank?
+    search = params[:q].present? ? params[:q].permit(*SEARCH_KEYS).to_h : {}
+    search['s'] = DEFAULT_SORT if search['s'].blank?
 
-    params[:q].permit(*SEARCH_KEYS).to_h.tap do |search|
-      search['id_code_cont'] = search['id_code_cont'].to_s.strip.upcase if search['id_code_cont'].present?
-    end
+    search['id_code_cont'] = search['id_code_cont'].to_s.strip.upcase if search['id_code_cont'].present?
+
+    search
   end
 
   def selected_employee_ids

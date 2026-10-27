@@ -131,6 +131,20 @@ RSpec.describe 'DepartmentEmployees', type: :request do
         expect(employee_ids).to include(passport_employee.id.to_s)
       end
 
+      it 'sorts employees by last name ascending by default' do
+        create(:employee, last_name: 'Zzzz')
+        create(:employee, last_name: 'Aaaa')
+        create(:employee, last_name: 'Mmmm')
+
+        get new_department_employee_path(department_id: department.id)
+
+        last_names = Nokogiri::HTML(response.body)
+                             .css('tbody tr td:nth-child(2)')
+                             .map { |cell| cell.text.strip }
+
+        expect(last_names).to eq(Employee.order(:last_name).pluck(:last_name))
+      end
+
       it 'keeps sorting when filtering by a partial id code' do
         create(:employee, id_code: '5555555501')
         create(:employee, id_code: '5555555502')

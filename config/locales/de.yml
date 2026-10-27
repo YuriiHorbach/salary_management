@@ -503,6 +503,10 @@ de:
       add_all: Alle hinzufügen
       add_employees: Mitarbeiter hinzufügen
       selected_count: "%{count} ausgewählt"
+      show_all: Alle anzeigen
+      paginate: Seitenweise anzeigen
+      limit_notice: 'Die ersten %{count} Mitarbeiter werden angezeigt. Grenzen Sie die
+        Suche ein, um die übrigen zu finden.'
   department_employee_positions:
     edit:
       title: Positionen des Mitarbeiters

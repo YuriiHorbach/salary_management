@@ -30,6 +30,12 @@
   <% end %>
 </div>
 
+<%= department_employees_limit_notice(@employees_truncated) %>
+
+<div class="m-5 flex justify-end">
+  <%= department_employees_pagination_toggle(@pagination_enabled, @department) %>
+</div>
+
 <%= form_with(url: department_employees_path, method: :post, local: true,
               data: { controller: "bulk-select" }) do |form| %>
   <%= hidden_field_tag :department_id, @department.id %>
@@ -89,10 +95,7 @@
     </tbody>
   </table>
 
-  <%= render 'shared/pagination',
-             pagy: @pagy,
-             pagination_id: 'department_employees_pagination',
-             margin_class: 'mt-4' %>
+  <%= department_employees_pagination(@pagy) %>
 
   <div class="mt-2 flex items-center gap-3">
     <%= form.submit t('department_employees.new.add_employees'),

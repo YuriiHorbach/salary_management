@@ -4,11 +4,11 @@
 class DepartmentEmployeesController < ApplicationController
   SEARCH_KEYS = %i[id_code_cont last_name_cont first_name_cont patronic_name_cont s].freeze
   DEFAULT_SORT = 'last_name asc'
-  EMPLOYEES_PER_PAGE = 15
+  EMPLOYEES_PER_PAGE = 50
 
   # Adding employees is a bulk workflow, so the page shows the whole matching
   # list by default. Above this cap the user is asked to narrow the search.
-  MAX_UNPAGINATED_EMPLOYEES = 200
+  MAX_UNPAGINATED_EMPLOYEES = 700
 
   before_action :authenticate_user!
   before_action :set_department, only: %i[new create]

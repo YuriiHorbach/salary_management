@@ -228,6 +228,17 @@ RSpec.describe 'Reports', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    it 'filters by a multi-word full name' do
+      get detailed_reports_path(employee_search: "#{employee.last_name} #{employee.first_name}")
+
+      ids = Nokogiri::HTML(response.body)
+                    .css('table tbody tr')
+                    .select { |row| row.css('td').size == Reports::EmployeeDetailedQuery::COLUMN_LABELS.size }
+                    .map { |row| row.css('td').first.text.strip }
+
+      expect(ids).to contain_exactly(employee.id_code)
+    end
+
     describe 'position filter' do
       let(:filter_department) { create(:department, name: 'Відділ Посад') }
       let(:engineer_position) { create(:position, department: filter_department, position_name: 'Інженер') }

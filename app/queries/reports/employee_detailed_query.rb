@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module Reports
+  # Builds the detailed payroll report rows and totals for the active filters.
+  #
+  # Employee search uses the precomputed +search_text+ column so partial,
+  # multi-word and Cyrillic case-insensitive lookups work under any collation.
   class EmployeeDetailedQuery
     COLUMN_LABELS = {
       id_code: 'ІПН',
@@ -171,11 +175,9 @@ module Reports
       scope = filter_by_position(scope)
 
       if @params[:employee_search].present?
-        search = "%#{@params[:employee_search]}%"
-        scope = scope.where(
-          'CAST(id_code AS text) ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ? OR patronic_name ILIKE ?',
-          search, search, search, search
-        )
+        # search_text is precomputed and downcased in Ruby, so it also works
+        # under PostgreSQL's C collation where ILIKE does not fold Cyrillic.
+        scope = scope.search_by_text(@params[:employee_search])
       end
 
       scope

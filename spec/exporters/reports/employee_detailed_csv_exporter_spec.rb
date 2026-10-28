@@ -9,7 +9,8 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
 
   let(:employee) do
     {
-      id_code: '1234567890', book_code: 'Б99', brigade: 'Бригада X', department: 'Відділ X',
+      id_code: '1234567890', book_code: 'Б99', page_number: '1-Б99',
+      brigade: 'Бригада X', department: 'Відділ X',
       full_name: 'Іван "Тест"; П.', base_salary: 1000.0, salary_income_tax: 180.0,
       salary_military_tax: 50.0, salary_net: 770.0, vacation_amount: 300.0, vacation_income_tax: 54.0,
       vacation_military_tax: 15.0, vacation_net: 231.0, sick_total: 300.0, sick_pdfo: 54.0,
@@ -52,17 +53,18 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       row = parse(described_class.new(result).call)[1]
 
       expect(row[0]).to eq('1234567890')
-      expect(row[4]).to eq('Іван "Тест"; П.')
-      expect(row[5]).to eq('1000,00')
-      expect(row[19]).to eq('1232,00')
+      expect(row[2]).to eq('1-Б99')
+      expect(row[5]).to eq('Іван "Тест"; П.')
+      expect(row[6]).to eq('1000,00')
+      expect(row[20]).to eq('1232,00')
     end
 
     it 'renders the totals row as a label, empty text cells and money totals' do
       row = parse(described_class.new(result).call).last
 
       expect(row.first).to eq(I18n.t('reports.detailed.total'))
-      expect(row[1..4]).to eq(['', '', '', ''])
-      expect(row[5..]).to eq(
+      expect(row[1..5]).to eq(['', '', '', '', ''])
+      expect(row[6..]).to eq(
         ['2500,00', '450,00', '125,00', '1925,00', '750,00', '135,00', '37,50',
          '300,00', '54,00', '15,00', '3250,00', '3550,00', '639,00', '177,50', '2905,50']
       )
@@ -71,7 +73,7 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
     it 'prefixes formula-like text with an apostrophe' do
       with_formula = { employees: [employee.merge(full_name: '=cmd')], totals: totals }
 
-      expect(parse(described_class.new(with_formula).call)[1][4]).to eq("'=cmd")
+      expect(parse(described_class.new(with_formula).call)[1][5]).to eq("'=cmd")
     end
 
     it 'keeps the em dash placeholder unchanged' do

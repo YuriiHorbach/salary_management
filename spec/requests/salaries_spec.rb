@@ -421,8 +421,11 @@ RSpec.describe 'Salaries', type: :request do
       get urls.employee_salaries_path(employee)
 
       page = Nokogiri::HTML(response.body)
+      back_link = page.css('a').find do |link|
+        link['href'] == urls.employee_path(employee) && link.text.strip == 'Back to employee'
+      end
 
-      expect(page.at_css("a[href='#{urls.employee_path(employee)}']").text.strip).to eq('Back to employee')
+      expect(back_link).to be_present
     end
   end
 

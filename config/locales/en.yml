@@ -160,6 +160,7 @@ en:
         disability_group: Disability group
         territory_sign: Brigade
         account_book: Book
+        page_number: Page number
       department:
         name: Name
       salary:
@@ -190,6 +191,8 @@ en:
           attributes:
             id_code:
               invalid_id_code: must contain 9–10 digits or 2 letters and 6 digits
+            page_number:
+              page_number_format: "must be in 1-Б111 format (number, dash, book letter and digits)"
         account_book:
           attributes:
             code:
@@ -282,6 +285,8 @@ en:
       select_brigade: Select a brigade
       account_book_code: Account book code
       no_book: "— no book —"
+      page_number_placeholder: "For example: 1-Б111 or 2-О21"
+      page_number_hint: "Format: 1-Б111 or 2-О21"
       submit: Save employee
       cancel: Cancel
     new:
@@ -291,6 +296,7 @@ en:
       title: Edit employee
     show:
       identifier: Book identifier
+      page_number: Page number
       id_code: ID code
       last_name: Last name
       first_name: First name
@@ -611,6 +617,7 @@ en:
     detailed_columns:
       id_code: ID code
       book_code: Book code
+      page_number: Page number
       brigade: Brigade
       department: Department
       full_name: Full name

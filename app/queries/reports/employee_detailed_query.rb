@@ -9,6 +9,7 @@ module Reports
     COLUMN_LABELS = {
       id_code: 'ІПН',
       book_code: 'Код книги',
+      page_number: 'Номер на сторінці',
       brigade: 'Бригада',
       department: 'Підрозділ',
       full_name: 'ПІБ',
@@ -29,7 +30,7 @@ module Reports
       net_pay: 'Чиста виплата'
     }.freeze
 
-    TEXT_COLUMNS = %i[id_code book_code brigade department full_name].freeze
+    TEXT_COLUMNS = %i[id_code book_code page_number brigade department full_name].freeze
 
     def initialize(params = {})
       @params = params || {}
@@ -95,6 +96,7 @@ module Reports
         employee_id: employee.id,
         id_code: employee.id_code.to_s,
         book_code: employee.account_book&.code || '—',
+        page_number: employee.page_number.to_s,
         brigade: employee.territory_sign&.name || '—',
         department: employee.department_employees.first&.department&.name || '—',
         full_name: employee.full_name

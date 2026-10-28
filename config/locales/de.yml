@@ -160,6 +160,7 @@ de:
         disability_group: Behindertengruppe
         territory_sign: Brigade
         account_book: Buch
+        page_number: Seitenzahl
       department:
         name: Name
       salary:
@@ -190,6 +191,8 @@ de:
           attributes:
             id_code:
               invalid_id_code: muss 9–10 Ziffern oder 2 Buchstaben und 6 Ziffern enthalten
+            page_number:
+              page_number_format: "muss im Format 1-Б111 vorliegen (Nummer, Bindestrich, Buchstabe und Ziffern)"
         account_book:
           attributes:
             code:
@@ -282,6 +285,8 @@ de:
       select_brigade: Brigade auswählen
       account_book_code: Kontobuchcode
       no_book: "— kein Buch —"
+      page_number_placeholder: "Zum Beispiel: 1-Б111 oder 2-О21"
+      page_number_hint: "Format: 1-Б111 oder 2-О21"
       submit: Mitarbeiter speichern
       cancel: Abbrechen
     new:
@@ -291,6 +296,7 @@ de:
       title: Mitarbeiter bearbeiten
     show:
       identifier: Buchkennung
+      page_number: Seitenzahl
       id_code: Steuer-ID
       last_name: Nachname
       first_name: Vorname
@@ -611,6 +617,7 @@ de:
     detailed_columns:
       id_code: Steuer-ID
       book_code: Buchcode
+      page_number: Seitenzahl
       brigade: Brigade
       department: Abteilung
       full_name: Vollständiger Name

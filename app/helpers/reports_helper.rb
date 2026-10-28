@@ -2,6 +2,7 @@
 
 module ReportsHelper
   START_YEAR = 2000
+  PAGE_NUMBER_OPTIONS = (1..100)
 
   DETAILED_FILTER_PARAMS = %i[
     date_from date_to department brigade account_book employee_search position
@@ -56,6 +57,35 @@ module ReportsHelper
     link_to row[:id_code], employee_salaries_path(row[:employee_id]),
             class: 'text-blue-600 hover:text-blue-800 underline',
             data: { turbo_frame: '_top' }
+  end
+
+  # Builds the numeric options for the inline page-number selector, including a
+  # current value that may be outside the default range after a manual import.
+  #
+  # @param row [Hash] one employee row produced by the detailed query
+  # @return [Array<Integer>] available page numbers in ascending order
+  def detailed_report_page_number_options(row)
+    numbers = PAGE_NUMBER_OPTIONS.to_a
+    current = detailed_report_page_number_value(row)
+    numbers |= [current] if current && numbers.exclude?(current)
+    numbers.sort
+  end
+
+  # Returns the numeric part of a combined page number such as +2-О21+.
+  #
+  # @param row [Hash] one employee row produced by the detailed query
+  # @return [Integer, nil] selected page number when the stored value is valid
+  def detailed_report_page_number_value(row)
+    number = row[:page_number].to_s.split('-', 2).first.to_s
+    number.to_i if number.match?(/\A\d+\z/)
+  end
+
+  # Stable DOM id used by the inline form and its Turbo Stream replacement.
+  #
+  # @param row [Hash] one employee row produced by the detailed query
+  # @return [String] Turbo Frame id for the page-number cell
+  def detailed_report_page_number_frame_id(row)
+    "employee_page_number_#{row[:employee_id]}"
   end
 
   private

@@ -6,6 +6,9 @@
     <div class="w-32 font-semibold text-gray-500"><%= t('.identifier') %></div>
     <div class="text-gray-900"><%= @employee.identifier || '—' %></div>
 
+    <div class="w-32 font-semibold text-gray-500"><%= t('.page_number') %></div>
+    <div class="text-gray-900"><%= @employee.page_number.presence || '—' %></div>
+
     <div class="w-32 font-semibold text-gray-500"><%= t('.last_name') %></div>
     <div class="text-gray-900"><%= @employee.last_name %></div>
 

@@ -87,6 +87,8 @@ module Reports
     def grouped_employees
       Employee.includes(:account_book, :territory_sign)
               .group_by { |employee| [employee.territory_sign&.name.to_s, employee.account_book&.code.to_s] }
+              .sort_by { |(brigade, book_code), _employees| [brigade, book_code] }
+              .to_h
     end
 
     def append_group(brigades, brigade_name, book_code, employees, incomes_by_employee)

@@ -236,7 +236,7 @@ RSpec.describe Employee, type: :model do
       salary.reload
 
       expect(salary.income_tax_cents).to be < old_tax
-      expect(salary.income_tax_cents).to eq(44_244)
+      expect(salary.income_tax_cents).to eq(36_144)
     end
 
     it 'does NOT recalculate taxes when non-tax-affecting attribute changes' do

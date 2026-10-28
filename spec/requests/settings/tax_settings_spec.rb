@@ -20,8 +20,8 @@ RSpec.describe 'TaxSettings settings', type: :request do
 
       expect(response.body).to include('0.18')
       expect(response.body).to include('0.05')
-      expect(response.body).to include('4240')
-      expect(response.body).to include('1514')
+      expect(response.body).to include('4660')
+      expect(response.body).to include('1664')
     end
 
     it 'displays the existing settings' do

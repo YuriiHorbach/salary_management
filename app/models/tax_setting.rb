@@ -10,8 +10,8 @@ class TaxSetting < ApplicationRecord
   DEFAULTS = {
     income_rate: BigDecimal('0.18'), # 18%
     military_rate: BigDecimal('0.05'), # 5%
-    gran_dohid_uah: BigDecimal(4240), # граничний дохід для ПСП у грн
-    psp_uah: BigDecimal(1514) # податкова соціальна пільга (звичайна)
+    gran_dohid_uah: BigDecimal(4660), # граничний дохід для ПСП у грн
+    psp_uah: BigDecimal(1664) # податкова соціальна пільга (звичайна)
   }.freeze
 
   validates :income_rate, :military_rate, :gran_dohid_uah, :psp_uah,

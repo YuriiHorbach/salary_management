@@ -10,9 +10,9 @@ RSpec.describe TaxCalculator, type: :service do
       it 'calculates income and military taxes using PSP' do
         res = described_class.call(amount_cents: amount_cents)
 
-        expect(res[:income_tax_cents]).to eq 8_748
+        expect(res[:income_tax_cents]).to eq 6_048
         expect(res[:military_tax_cents]).to eq 10_000
-        expect(res[:net_amount_cents]).to eq(amount_cents - 8_748 - 10_000)
+        expect(res[:net_amount_cents]).to eq(amount_cents - 6_048 - 10_000)
       end
     end
 
@@ -40,6 +40,56 @@ RSpec.describe TaxCalculator, type: :service do
       end
     end
 
+    context 'employee with Chornobyl status' do
+      it 'applies the 1.5x PSP' do
+        res = described_class.call(amount_cents: 300_000, chaes: true)
+
+        expect(res[:income_tax_cents]).to eq 9_072
+        expect(res[:military_tax_cents]).to eq 15_000
+      end
+    end
+
+    context 'employee with UBD status' do
+      it 'applies the 2x PSP' do
+        res = described_class.call(amount_cents: 400_000, ubd: true)
+
+        expect(res[:income_tax_cents]).to eq 12_096
+        expect(res[:military_tax_cents]).to eq 20_000
+      end
+    end
+
+    context 'single parent' do
+      it 'applies the 1.5x PSP for each child' do
+        res = described_class.call(amount_cents: 500_000, single_parent: true, children_count: 2)
+
+        expect(res[:income_tax_cents]).to eq 144
+      end
+
+      it 'does not apply the single-parent benefit without children' do
+        res = described_class.call(amount_cents: 300_000, single_parent: true)
+
+        expect(res[:income_tax_cents]).to eq 24_048
+      end
+    end
+
+    context 'employee with a disabled child' do
+      it 'applies the 1.5x PSP for the disabled child' do
+        res = described_class.call(amount_cents: 400_000, children_disabled_count: 1)
+
+        expect(res[:income_tax_cents]).to eq 27_072
+      end
+    end
+
+    context 'with multiple eligible benefits' do
+      it 'uses the largest PSP and its matching threshold instead of stacking' do
+        res = described_class.call(amount_cents: 600_000, ubd: true, children_count: 2)
+
+        # Both UBD and two children give a 3328 UAH PSP; the child threshold
+        # (9320 UAH) wins over the base UBD threshold (4660 UAH).
+        expect(res[:income_tax_cents]).to eq 48_096
+      end
+    end
+
     context 'employee has contract' do
       it 'calculates 18% from 1000 UAH' do
         res = described_class.call(amount_cents: 100_000, contract: true)
@@ -58,7 +108,7 @@ RSpec.describe TaxCalculator, type: :service do
 
       it 'applies PSP when contract is explicitly false' do
         res = described_class.call(amount_cents: 700_000, children_count: 3, contract: false)
-        expect(res[:income_tax_cents]).to eq 44_244
+        expect(res[:income_tax_cents]).to eq 36_144
       end
     end
 

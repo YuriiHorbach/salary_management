@@ -99,6 +99,19 @@ RSpec.describe Reports::SalarySummaryQuery do
       )
     end
 
+    it 'sorts brigades and books in ascending order' do
+      brigade1.update!(name: 'Бригада Я')
+      brigade2.update!(name: 'Бригада А')
+      book1.update!(code: 'Я11')
+      book2.update!(code: 'А10')
+      emp2.update!(account_book: book2)
+
+      result = described_class.new.call
+
+      expect(result[:brigades].keys).to eq(['Бригада А', 'Бригада Я'])
+      expect(result[:brigades]['Бригада Я'][:books].keys).to eq(%w[А10 Я11])
+    end
+
     it 'includes brigade totals' do
       result = described_class.new.call
 

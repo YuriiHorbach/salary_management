@@ -477,7 +477,69 @@ RSpec.describe 'Reports', type: :request do
       include_context 'with a fully populated employee'
 
       it 'renders the employee cells in the expected column order' do
-        expect(rows.first.css('td').map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW)
+        cells = rows.first.css('td').map do |cell|
+          cell.at_css('select') ? cell.at_css('span').text.strip : cell.text.strip
+        end
+
+        expect(cells).to eq(FULLY_POPULATED_ROW)
+      end
+
+      it 'renders an inline page number selector using the employee book code' do
+        select = Nokogiri::HTML(response.body)
+                         .at_css("turbo-frame#employee_page_number_#{employee.id} select")
+
+        expect(select).to be_present
+        expect(select['name']).to eq('employee_page_number[number]')
+        expect(select['onchange']).to include('requestSubmit')
+        expect(select.at_css('option[selected]')['value']).to eq('1')
+        expect(select.css('option').map { |option| option['value'] }).to include('1', '2', '100')
+        expect(select.parent.text).to include('1-Б99')
+      end
+
+      it 'renders a blank selector when the employee has no page number yet' do
+        employee.update!(page_number: nil)
+
+        get detailed_reports_path
+
+        select = Nokogiri::HTML(response.body)
+                         .at_css("turbo-frame#employee_page_number_#{employee.id} select")
+
+        expect(select).to be_present
+        expect(select.at_css('option[selected]')).to be_nil
+        expect(select.parent.text).to include('—')
+      end
+
+      it 'updates the page number by combining the selected number with the book code' do
+        patch reports_page_number_path,
+              params: { employee_page_number: { employee_id: employee.id, number: '2' } },
+              headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+        expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+        expect(response.body).to include("employee_page_number_#{employee.id}")
+        expect(response.body).to include('2-Б99')
+        expect(employee.reload.page_number).to eq('2-Б99')
+      end
+
+      it 'rejects an invalid page number without changing the employee' do
+        patch reports_page_number_path,
+              params: { employee_page_number: { employee_id: employee.id, number: '0' } },
+              headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(employee.reload.page_number).to eq('1-Б99')
+      end
+
+      it 'does not render a selector when the employee has no book code' do
+        employee.update!(account_book: nil)
+
+        get detailed_reports_path
+
+        frame = Nokogiri::HTML(response.body)
+                        .at_css("turbo-frame#employee_page_number_#{employee.id}")
+
+        expect(frame).to be_present
+        expect(frame.at_css('select')).to be_nil
+        expect(frame.text.strip).to eq('—')
       end
 
       it 'aligns numeric cells right and emphasises full_name and net_pay' do

@@ -1,0 +1,21 @@
+<%= turbo_frame_tag detailed_report_page_number_frame_id(row) do %>
+  <% if row[:book_code].present? && row[:book_code] != '—' %>
+    <%= form_with url: reports_page_number_path,
+                  method: :patch,
+                  scope: :employee_page_number,
+                  class: 'flex items-center gap-1' do |form| %>
+      <%= form.hidden_field :employee_id, value: row[:employee_id] %>
+      <%= form.hidden_field :return_to, value: request.fullpath %>
+      <%= form.select :number,
+                      options_for_select(detailed_report_page_number_options(row),
+                                         detailed_report_page_number_value(row)),
+                      { include_blank: '—' },
+                      class: 'border border-gray-300 rounded px-1 py-0.5 text-xs',
+                      aria: { label: t('reports.detailed_columns.page_number') },
+                      onchange: 'this.form.requestSubmit()' %>
+      <span class="text-[11px] text-gray-500 whitespace-nowrap"><%= row[:page_number].presence || '—' %></span>
+    <% end %>
+  <% else %>
+    <span class="text-gray-400">—</span>
+  <% end %>
+<% end %>

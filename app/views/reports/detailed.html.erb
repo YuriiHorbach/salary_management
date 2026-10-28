@@ -90,7 +90,13 @@
           <% @employees.each do |emp| %>
             <tr class="bg-white">
               <% Reports::EmployeeDetailedQuery::COLUMN_LABELS.each_key do |key| %>
-                <td class="<%= detailed_report_cell_class(key) %>"><%= detailed_report_cell_value(key, emp) %></td>
+                <td class="<%= detailed_report_cell_class(key) %>">
+                  <% if key == :page_number %>
+                    <%= render 'reports/page_numbers/cell', row: emp %>
+                  <% else %>
+                    <%= detailed_report_cell_value(key, emp) %>
+                  <% end %>
+                </td>
               <% end %>
             </tr>
           <% end %>

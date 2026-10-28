@@ -38,6 +38,8 @@ Rails.application.routes.draw do
     get :detailed, on: :collection
   end
 
+  patch '/reports/page_number', to: 'reports/page_numbers#update', as: :reports_page_number
+
   get '/home_pages/', to: 'home_pages#index'
   patch '/home_pages/current_working_month',
         to: 'home_pages#update_current_working_month',

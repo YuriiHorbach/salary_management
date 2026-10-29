@@ -606,6 +606,8 @@ en:
       sick_pdfo: Income tax on sick leave
       sick_military: Military levy on sick leave
       gross_vacation: Gross salary + vacation
+      gross_vacation_income_tax: Income tax on salary + vacation
+      gross_vacation_military_tax: Military levy on salary + vacation
       total_income: Total income (salary+vacation+sick)
       total_tax: Total tax (salary+vacation+sick)
       total_military: Total military levy (salary+vacation+sick)
@@ -614,6 +616,7 @@ en:
       total_salary: Total salaries
       salary_gross_vacation: Salary + vacation (gross)
       salary_vacation_income_tax: Income tax on salary + vacation
+      salary_vacation_military_tax: Military levy on salary + vacation
     detailed_columns:
       id_code: ID code
       book_code: Book code
@@ -632,6 +635,8 @@ en:
       sick_pdfo: Sick leave tax
       sick_military: Sick leave military levy
       gross_vacation: Gross salary + vacation
+      gross_vacation_income_tax: Income tax on salary + vacation
+      gross_vacation_military_tax: Military levy on salary + vacation
       total_income: Total income
       total_tax: Total tax
       total_military: Total military levy
@@ -653,6 +658,7 @@ en:
       total_military: Total military levy (salary+vacation+sick)
       salary_gross_vacation: Salary + vacation (gross)
       salary_vacation_income_tax: Income tax on salary + vacation
+      salary_vacation_military_tax: Military levy on salary + vacation
   historical_imports:
     new:
       title: Historical import

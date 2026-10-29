@@ -14,8 +14,9 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       full_name: 'Іван "Тест"; П.', base_salary: 1000.0, salary_income_tax: 180.0,
       salary_military_tax: 50.0, salary_net: 770.0, vacation_amount: 300.0, vacation_income_tax: 54.0,
       vacation_military_tax: 15.0, vacation_net: 231.0, sick_total: 300.0, sick_pdfo: 54.0,
-      sick_military: 15.0, gross_vacation: 1300.0, total_income: 1600.0, total_tax: 288.0,
-      total_military: 80.0, net_pay: 1232.0
+      sick_military: 15.0, gross_vacation: 1300.0, gross_vacation_income_tax: 0.0,
+      gross_vacation_military_tax: 65.0, total_income: 1600.0, total_tax: 54.0,
+      total_military: 80.0, net_pay: 1466.0
     }
   end
 
@@ -24,7 +25,8 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       base_salary: 2500.0, salary_income_tax: 450.0, salary_military_tax: 125.0, salary_net: 1925.0,
       vacation_amount: 750.0, vacation_income_tax: 135.0, vacation_military_tax: 37.5, vacation_net: 577.5,
       sick_total: 300.0, sick_pdfo: 54.0, sick_military: 15.0, gross_vacation: 3250.0,
-      total_income: 3550.0, total_tax: 639.0, total_military: 177.5, net_pay: 2905.5
+      gross_vacation_income_tax: 0.0, gross_vacation_military_tax: 162.5,
+      total_income: 3550.0, total_tax: 54.0, total_military: 177.5, net_pay: 3665.5
     }
   end
 
@@ -56,7 +58,7 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       expect(row[2]).to eq('1-Б99')
       expect(row[5]).to eq('Іван "Тест"; П.')
       expect(row[6]).to eq('1000,00')
-      expect(row[20]).to eq('1232,00')
+      expect(row[22]).to eq('1466,00')
     end
 
     it 'renders the totals row as a label, empty text cells and money totals' do
@@ -66,7 +68,8 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       expect(row[1..5]).to eq(['', '', '', '', ''])
       expect(row[6..]).to eq(
         ['2500,00', '450,00', '125,00', '1925,00', '750,00', '135,00', '37,50',
-         '300,00', '54,00', '15,00', '3250,00', '3550,00', '639,00', '177,50', '2905,50']
+         '300,00', '54,00', '15,00', '3250,00', '0,00', '162,50', '3550,00',
+         '54,00', '177,50', '3665,50']
       )
     end
 

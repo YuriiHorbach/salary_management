@@ -606,6 +606,8 @@ de:
       sick_pdfo: Einkommensteuer auf Krankengeld
       sick_military: Militärabgabe auf Krankengeld
       gross_vacation: Brutto Gehalt + Urlaub
+      gross_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+      gross_vacation_military_tax: Militärabgabe auf Gehalt + Urlaub
       total_income: Gesamteinkommen (Gehalt+Urlaub+Krankengeld)
       total_tax: Gesamtsteuer (Gehalt+Urlaub+Krankengeld)
       total_military: Gesamte Militärabgabe (Gehalt+Urlaub+Krankengeld)
@@ -614,6 +616,7 @@ de:
       total_salary: Gesamtgehälter
       salary_gross_vacation: Gehalt + Urlaub (brutto)
       salary_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+      salary_vacation_military_tax: Militärabgabe auf Gehalt + Urlaub
     detailed_columns:
       id_code: Steuer-ID
       book_code: Buchcode
@@ -632,6 +635,8 @@ de:
       sick_pdfo: Steuer auf Krankengeld
       sick_military: Militärabgabe auf Krankengeld
       gross_vacation: Brutto Gehalt + Urlaub
+      gross_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+      gross_vacation_military_tax: Militärabgabe auf Gehalt + Urlaub
       total_income: Gesamteinkommen
       total_tax: Gesamtsteuer
       total_military: Gesamte Militärabgabe
@@ -653,6 +658,7 @@ de:
       total_military: Gesamte Militärabgabe (Gehalt+Urlaub+Krankengeld)
       salary_gross_vacation: Gehalt + Urlaub (brutto)
       salary_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
+      salary_vacation_military_tax: Militärabgabe auf Gehalt + Urlaub
   historical_imports:
     new:
       title: Historischer Import

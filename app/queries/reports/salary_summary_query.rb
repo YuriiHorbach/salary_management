@@ -21,11 +21,12 @@ module Reports
       sick_pdfo
       sick_military
       total_salary
+      salary_gross_vacation
+      salary_vacation_income_tax
+      salary_vacation_military_tax
       total_income
       total_tax
       total_military
-      salary_gross_vacation
-      salary_vacation_income_tax
     ].freeze
 
     COLUMN_LABELS = {
@@ -40,11 +41,12 @@ module Reports
       sick_pdfo: 'ПДФО з лікарняних',
       sick_military: 'ВЗ з лікарняних',
       total_salary: 'Всього зарплат',
+      salary_gross_vacation: 'Зарплата + відпускні (брутто)',
+      salary_vacation_income_tax: 'ПДФО із зп + відпускних',
+      salary_vacation_military_tax: 'ВЗ із зп + відпускних',
       total_income: 'Загальний дохід (зп+вп+лік)',
       total_tax: 'Загальний податок (зп+вп+лік)',
-      total_military: 'Загальний ВЗ (зп+вп+лік)',
-      salary_gross_vacation: 'Зарплата + відпускні (брутто)',
-      salary_vacation_income_tax: 'ПДФО із зп + відпускних'
+      total_military: 'Загальний ВЗ (зп+вп+лік)'
     }.freeze
 
     attr_reader :period
@@ -106,7 +108,7 @@ module Reports
 
     def row_for(employee, incomes_by_employee)
       rows = (incomes_by_employee[employee.id] || []).index_by(&:income_type)
-      compute_row(rows)
+      compute_row(rows, employee)
     end
 
     def accumulate!(brigade_data, book_code, row)
@@ -114,16 +116,20 @@ module Reports
       brigade_data[:total] = add_hashes(brigade_data[:total], row)
     end
 
-    def compute_row(rows)
+    def compute_row(rows, employee)
       salary = income_values(rows['salary'])
       vacation = income_values(rows['vacation'])
       sick = income_values(rows['sick_day'])
 
-      base_columns(salary, vacation, sick).merge(total_columns(salary, vacation, sick))
+      base_columns(salary, vacation, sick).merge(total_columns(salary, vacation, sick, employee))
     end
 
     def income_values(income)
       {
+        gross_cents: income&.gross_cents.to_i,
+        income_tax_cents: income&.income_tax_cents.to_i,
+        military_tax_cents: income&.military_tax_cents.to_i,
+        net_cents: income&.net_amount_cents.to_i,
         gross: uah(income&.gross_cents),
         income_tax: uah(income&.income_tax_cents),
         military_tax: uah(income&.military_tax_cents),
@@ -146,22 +152,34 @@ module Reports
       }
     end
 
-    def total_columns(salary, vacation, sick)
-      salary_gross_vacation = salary[:gross] + vacation[:gross]
-      salary_vacation_income_tax = salary[:income_tax] + vacation[:income_tax]
+    # Salary and vacation are taxed together, so the PSP and its threshold apply
+    # to their combined gross instead of each income type separately. Sick leave
+    # keeps its own flat-rate taxes and is only added afterwards.
+    def total_columns(salary, vacation, sick, employee)
+      combined_gross_cents = salary[:gross_cents] + vacation[:gross_cents]
+      combined_tax = Reports::SalaryVacationTaxCalculator.call(
+        employee: employee,
+        gross_cents: combined_gross_cents,
+        settings: tax_settings
+      )
 
       {
         total_salary: salary[:gross],
-        total_income: salary_gross_vacation + sick[:gross],
-        total_tax: salary_vacation_income_tax + sick[:income_tax],
-        total_military: salary[:military_tax] + vacation[:military_tax] + sick[:military_tax],
-        salary_gross_vacation: salary_gross_vacation,
-        salary_vacation_income_tax: salary_vacation_income_tax
+        total_income: uah(combined_gross_cents + sick[:gross_cents]),
+        total_tax: uah(combined_tax[:income_tax_cents] + sick[:income_tax_cents]),
+        total_military: uah(combined_tax[:military_tax_cents] + sick[:military_tax_cents]),
+        salary_gross_vacation: uah(combined_gross_cents),
+        salary_vacation_income_tax: uah(combined_tax[:income_tax_cents]),
+        salary_vacation_military_tax: uah(combined_tax[:military_tax_cents])
       }
     end
 
     def uah(cents)
       cents.to_i / 100.0
+    end
+
+    def tax_settings
+      @tax_settings ||= TaxSetting.current
     end
 
     def zero_hash

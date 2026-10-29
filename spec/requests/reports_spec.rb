@@ -8,7 +8,7 @@ FULLY_POPULATED_ROW = [
   '1000,00', '0,00', '50,00', '950,00',
   '300,00', '54,00', '15,00',
   '300,00', '54,00', '15,00',
-  '1300,00', '1600,00', '108,00', '80,00', '1412,00'
+  '1300,00', '0,00', '65,00', '1600,00', '54,00', '80,00', '1466,00'
 ].freeze
 
 RSpec.shared_context 'with a fully populated employee' do
@@ -125,6 +125,16 @@ RSpec.describe 'Reports', type: :request do
 
       expect(header_cells).to eq(Reports::SalarySummaryQuery::COLUMN_KEYS.size + 2)
       expect(first_data_cells).to eq(header_cells)
+    end
+
+    it 'renders the general totals as the last three columns' do
+      get summary_reports_path
+
+      headers = Nokogiri::HTML(response.body).css('table thead tr').first.css('th').map { |th| th.text.strip }
+
+      expect(headers.last(3)).to eq(
+        %w[total_income total_tax total_military].map { |key| I18n.t("reports.summary_columns.#{key}") }
+      )
     end
 
     describe 'CSV export button' do
@@ -369,7 +379,7 @@ RSpec.describe 'Reports', type: :request do
       cells = doc.css('table tbody tr').first.css('td')
 
       expect(cells.size).to eq(1)
-      expect(cells.first['colspan']).to eq('21')
+      expect(cells.first['colspan']).to eq('23')
     end
 
     describe 'sorting' do
@@ -548,13 +558,13 @@ RSpec.describe 'Reports', type: :request do
         expect(cells[5]['class']).to include('font-medium')
         expect(cells[5]['class']).not_to include('text-right')
         expect(cells[6..].pluck('class')).to all(include('text-right'))
-        expect(cells[20]['class']).to include('text-right', 'font-semibold')
+        expect(cells[22]['class']).to include('text-right', 'font-semibold')
       end
 
       it 'renders the totals row with a spanning label and the numeric totals' do
         cells = rows.last.css('td')
 
-        expect(cells.size).to eq(16)
+        expect(cells.size).to eq(18)
         expect(cells.first['colspan']).to eq('6')
         expect(cells.first.text.strip).to eq(I18n.t('reports.detailed.total'))
         expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[6..])

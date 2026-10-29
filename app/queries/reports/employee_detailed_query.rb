@@ -24,6 +24,8 @@ module Reports
       sick_pdfo: 'лік податок',
       sick_military: 'лік вз',
       gross_vacation: 'Брутто зп+відп',
+      gross_vacation_income_tax: 'ПДФО із зп+відп',
+      gross_vacation_military_tax: 'ВЗ із зп+відп',
       total_income: 'Загальний дохід',
       total_tax: 'Загальний податок',
       total_military: 'Загальний вз',
@@ -88,7 +90,7 @@ module Reports
       vacation = incomes.fetch('vacation', zero_income)
       sick = incomes.fetch('sick_day', zero_income)
 
-      identity_columns(employee).merge(income_columns(salary, vacation, sick))
+      identity_columns(employee).merge(income_columns(salary, vacation, sick, employee))
     end
 
     def identity_columns(employee)
@@ -103,11 +105,11 @@ module Reports
       }
     end
 
-    def income_columns(salary, vacation, sick)
+    def income_columns(salary, vacation, sick, employee)
       salary_columns(salary)
         .merge(vacation_columns(vacation))
         .merge(sick_columns(sick))
-        .merge(total_columns(salary, vacation, sick))
+        .merge(total_columns(salary, vacation, sick, employee))
     end
 
     def salary_columns(salary)
@@ -136,15 +138,34 @@ module Reports
       }
     end
 
-    def total_columns(salary, vacation, sick)
-      gross_vacation = salary[:amount] + vacation[:amount]
+    # Salary and vacation are taxed together, so the PSP and its threshold apply
+    # to their combined gross instead of each income type separately. Sick leave
+    # keeps its own flat-rate taxes and is only added afterwards.
+    def total_columns(salary, vacation, sick, employee)
+      gross_cents = salary[:gross_cents] + vacation[:gross_cents]
+      tax = Reports::SalaryVacationTaxCalculator.call(
+        employee: employee,
+        gross_cents: gross_cents,
+        settings: tax_settings
+      )
 
+      combined_columns(gross_cents, tax).merge(overall_columns(gross_cents, tax, sick))
+    end
+
+    def combined_columns(gross_cents, tax)
       {
-        gross_vacation: gross_vacation,
-        total_income: gross_vacation + sick[:amount],
-        total_tax: salary[:income_tax] + vacation[:income_tax] + sick[:income_tax],
-        total_military: salary[:military_tax] + vacation[:military_tax] + sick[:military_tax],
-        net_pay: salary[:net] + vacation[:net] + sick[:net]
+        gross_vacation: uah(gross_cents),
+        gross_vacation_income_tax: uah(tax[:income_tax_cents]),
+        gross_vacation_military_tax: uah(tax[:military_tax_cents])
+      }
+    end
+
+    def overall_columns(gross_cents, tax, sick)
+      {
+        total_income: uah(gross_cents + sick[:gross_cents]),
+        total_tax: uah(tax[:income_tax_cents] + sick[:income_tax_cents]),
+        total_military: uah(tax[:military_tax_cents] + sick[:military_tax_cents]),
+        net_pay: uah(tax[:net_amount_cents] + sick[:net_cents])
       }
     end
 
@@ -204,11 +225,23 @@ module Reports
 
     def income_hash(row)
       {
-        amount: row.gross_cents / 100.0,
-        income_tax: row.income_tax_cents / 100.0,
-        military_tax: row.military_tax_cents / 100.0,
-        net: row.net_amount_cents / 100.0
+        gross_cents: row.gross_cents.to_i,
+        income_tax_cents: row.income_tax_cents.to_i,
+        military_tax_cents: row.military_tax_cents.to_i,
+        net_cents: row.net_amount_cents.to_i,
+        amount: uah(row.gross_cents),
+        income_tax: uah(row.income_tax_cents),
+        military_tax: uah(row.military_tax_cents),
+        net: uah(row.net_amount_cents)
       }
+    end
+
+    def uah(cents)
+      cents.to_i / 100.0
+    end
+
+    def tax_settings
+      @tax_settings ||= TaxSetting.current
     end
 
     def period_range
@@ -222,11 +255,21 @@ module Reports
       base_salary salary_income_tax salary_military_tax salary_net
       vacation_amount vacation_income_tax vacation_military_tax vacation_net
       sick_total sick_pdfo sick_military
-      gross_vacation total_income total_tax total_military net_pay
+      gross_vacation gross_vacation_income_tax gross_vacation_military_tax
+      total_income total_tax total_military net_pay
     ].freeze
 
     def zero_income
-      { amount: 0.0, income_tax: 0.0, military_tax: 0.0, net: 0.0 }
+      {
+        gross_cents: 0,
+        income_tax_cents: 0,
+        military_tax_cents: 0,
+        net_cents: 0,
+        amount: 0.0,
+        income_tax: 0.0,
+        military_tax: 0.0,
+        net: 0.0
+      }
     end
 
     def zero_row

@@ -138,6 +138,7 @@ RSpec.describe Reports::SalarySummaryQuery do
         :salary_amount,
         :salary_gross_vacation,
         :salary_vacation_income_tax,
+        :salary_vacation_military_tax,
         :total_salary,
         :total_income,
         :total_tax,
@@ -148,6 +149,10 @@ RSpec.describe Reports::SalarySummaryQuery do
       expect(described_class::COLUMN_LABELS[:total_military]).to eq('Загальний ВЗ (зп+вп+лік)')
     end
 
+    it 'places the general totals as the last three columns' do
+      expect(described_class::COLUMN_KEYS.last(3)).to eq(%i[total_income total_tax total_military])
+    end
+
     it 'scopes every aggregate to the requested period' do
       result = described_class.new(period: 1.month.ago.strftime('%Y-%m')).call
 
@@ -155,16 +160,39 @@ RSpec.describe Reports::SalarySummaryQuery do
       expect(result[:grand_total][:total_income]).to eq(0.0)
     end
 
-    it 'uses the aggregated period incomes instead of per-record taxes' do
+    it 'calculates income tax on the combined salary and vacation gross per employee' do
       result = described_class.new.call
       book_row = result[:brigades]['Бригада 1'][:books]['Б11']
 
-      expected_tax = EmployeePeriodIncome
-                     .for_period(Date.current.beginning_of_month)
-                     .where(employee_id: [emp1.id, emp2.id])
-                     .sum(:income_tax_cents) / 100.0
+      emp1_combined = combined_tax(130_000)
+      emp2_combined = combined_tax(190_000)
+      sick = TaxCalculator.call(amount_cents: 30_000, simple: true)
 
-      expect(book_row[:total_tax]).to be_within(0.01).of(expected_tax)
+      expected_combined_tax = (emp1_combined[:income_tax_cents] + emp2_combined[:income_tax_cents]) / 100.0
+      expected_total_tax = expected_combined_tax + (sick[:income_tax_cents] / 100.0)
+
+      expect(book_row[:salary_vacation_income_tax]).to be_within(0.01).of(expected_combined_tax)
+      expect(book_row[:total_tax]).to be_within(0.01).of(expected_total_tax)
+    end
+
+    it 'calculates the military levy on the combined salary and vacation gross' do
+      result = described_class.new.call
+      book_row = result[:brigades]['Бригада 1'][:books]['Б11']
+
+      emp1_combined = combined_tax(130_000)
+      emp2_combined = combined_tax(190_000)
+      sick = TaxCalculator.call(amount_cents: 30_000, simple: true)
+
+      expected_combined = (emp1_combined[:military_tax_cents] + emp2_combined[:military_tax_cents]) / 100.0
+      expected_total = expected_combined + (sick[:military_tax_cents] / 100.0)
+
+      expect(book_row[:salary_vacation_military_tax]).to be_within(0.01).of(expected_combined)
+      expect(book_row[:total_military]).to be_within(0.01).of(expected_total)
+    end
+
+    def combined_tax(gross_cents)
+      TaxCalculator.call(amount_cents: gross_cents, children_count: 0, disability_group: 0,
+                         chaes: false, contract: false)
     end
   end
 end

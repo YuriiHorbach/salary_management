@@ -604,6 +604,8 @@ uk:
       sick_pdfo: ПДФО з лікарняних
       sick_military: ВЗ з лікарняних
       gross_vacation: Брутто зп+відп
+      gross_vacation_income_tax: ПДФО із зп+відп
+      gross_vacation_military_tax: ВЗ із зп+відп
       total_income: Загальний дохід (зп+вп+лік)
       total_tax: Загальний податок (зп+вп+лік)
       total_military: Загальний ВЗ (зп+вп+лік)
@@ -612,6 +614,7 @@ uk:
       total_salary: Всього зарплат
       salary_gross_vacation: Зарплата + відпускні (брутто)
       salary_vacation_income_tax: ПДФО із зп + відпускних
+      salary_vacation_military_tax: ВЗ із зп + відпускних
     detailed_columns:
       id_code: ІПН
       book_code: Код книги
@@ -630,6 +633,8 @@ uk:
       sick_pdfo: лік податок
       sick_military: лік вз
       gross_vacation: Брутто зп+відп
+      gross_vacation_income_tax: ПДФО із зп+відп
+      gross_vacation_military_tax: ВЗ із зп+відп
       total_income: Загальний дохід
       total_tax: Загальний податок
       total_military: Загальний вз
@@ -651,6 +656,7 @@ uk:
       total_military: Загальний ВЗ (зп+вп+лік)
       salary_gross_vacation: Зарплата + відпускні (брутто)
       salary_vacation_income_tax: ПДФО із зп + відпускних
+      salary_vacation_military_tax: ВЗ із зп + відпускних
   historical_imports:
     new:
       title: Імпорт старих даних

@@ -9,7 +9,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       base_salary salary_income_tax salary_military_tax salary_net
       vacation_amount vacation_income_tax vacation_military_tax
       sick_total sick_pdfo sick_military
-      gross_vacation total_income total_tax total_military net_pay
+      gross_vacation gross_vacation_income_tax gross_vacation_military_tax
+      total_income total_tax total_military net_pay
     ]
   end
 
@@ -19,7 +20,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       'Базова зп', 'зп податок', 'зп вз', 'зп чиста',
       'відпускні', 'відп податок', 'відп вз',
       'лікарняні', 'лік податок', 'лік вз',
-      'Брутто зп+відп', 'Загальний дохід', 'Загальний податок', 'Загальний вз', 'Чиста виплата'
+      'Брутто зп+відп', 'ПДФО із зп+відп', 'ВЗ із зп+відп',
+      'Загальний дохід', 'Загальний податок', 'Загальний вз', 'Чиста виплата'
     ]
   end
 
@@ -90,6 +92,32 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(emp_row[:base_salary]).to eq(1000.00)
       expect(emp_row[:vacation_amount]).to eq(300.00)
       expect(emp_row[:sick_total]).to eq(300.00) # 20000 + 10000 cents = 300 UAH
+    end
+
+    it 'calculates taxes on the combined salary and vacation gross and adds sick leave afterwards' do
+      emp_row = described_class.new.call[:employees].find { |e| e[:id_code] == '1234567890' }
+      combined = TaxCalculator.call(amount_cents: 130_000, children_count: 0, disability_group: 0,
+                                    chaes: false, contract: false)
+      sick = TaxCalculator.call(amount_cents: 30_000, simple: true)
+
+      expect(emp_row).to include(
+        gross_vacation: 1300.00,
+        gross_vacation_income_tax: combined[:income_tax_cents] / 100.0,
+        gross_vacation_military_tax: combined[:military_tax_cents] / 100.0,
+        total_income: 1600.00,
+        total_tax: (combined[:income_tax_cents] + sick[:income_tax_cents]) / 100.0,
+        total_military: (combined[:military_tax_cents] + sick[:military_tax_cents]) / 100.0,
+        net_pay: (combined[:net_amount_cents] + sick[:net_amount_cents]) / 100.0
+      )
+    end
+
+    it 'does not sum the separately stored salary, vacation and sick-day taxes' do
+      result = described_class.new.call
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+
+      separate_taxes = emp_row[:salary_income_tax] + emp_row[:vacation_income_tax] + emp_row[:sick_pdfo]
+
+      expect(emp_row[:total_tax]).not_to eq(separate_taxes)
     end
 
     it 'includes the employee id on every row so it can link to employee pages' do

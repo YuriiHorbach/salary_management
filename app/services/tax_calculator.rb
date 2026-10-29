@@ -9,13 +9,14 @@ class TaxCalculator
   end
 
   # Rates and thresholds default to the persisted TaxSetting singleton. Callers
-  # may still override any of them explicitly (useful for historical results).
+  # may still override any of them explicitly (useful for historical results) or
+  # pass a preloaded +settings+ record to avoid reloading it for every employee.
   # rubocop:disable Metrics/ParameterLists -- keyword overrides form the public API
   def initialize(amount_cents:, children_count: 0, chaes: false, disability_group: 0, contract: false,
                  psp_uah: nil, psp_invalidity_uah: nil, gran_dohid_uah: nil,
                  income_rate: nil, military_rate: nil, simple: false,
-                 ubd: false, single_parent: false, children_disabled_count: 0)
-    settings = TaxSetting.current
+                 ubd: false, single_parent: false, children_disabled_count: 0, settings: nil)
+    settings ||= TaxSetting.current
 
     @amount_cents = amount_cents.to_i
     assign_flags(children_count:, chaes:, disability_group:, contract:, simple:,

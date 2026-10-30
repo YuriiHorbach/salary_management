@@ -1,15 +1,15 @@
 <div class="container mx-auto px-4 py-6">
-  <h1 class="text-2xl font-bold mb-6">
-    <%= t('vacations.index.title', name: "#{@employee.last_name} #{@employee.first_name}") %>
-  </h1>
-
-  <div class="mb-8">
+  <% actions = capture do %>
     <%= link_to t('vacations.index.add'), new_employee_vacation_path(@employee),
-        class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm inline-block" %>
+                class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm inline-block" %>
 
     <%= link_to t('vacations.index.back'), employee_path(@employee),
-        class: "ml-4 text-gray-600 hover:text-gray-900 underline" %>
-  </div>
+                class: "text-gray-600 hover:text-gray-900 underline" %>
+  <% end %>
+
+  <%= render 'shared/page_header',
+             title: t('vacations.index.title', name: "#{@employee.last_name} #{@employee.first_name}"),
+             actions: actions %>
 
   <div class="mb-8 p-4 border rounded-lg shadow-sm bg-gray-50">
     <h2 class="text-lg font-semibold mb-4"><%= t('vacations.index.filters') %></h2>

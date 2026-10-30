@@ -69,6 +69,7 @@ en:
     books: Books
     logout: Logout
     login: Login
+    toggle_menu: Toggle navigation menu
   locales:
     en: English
     uk: Українська

@@ -1,0 +1,13 @@
+<%# Shared responsive page header: title on the left, action links on the
+    right, both wrapping into a single column on narrow screens.
+    locals: title (String), actions (String, optional HTML with action links) %>
+<%# locals: (title:, actions: nil) %>
+<header data-page-header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <h1 class="text-2xl font-bold leading-tight"><%= title %></h1>
+
+  <% if actions.present? %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= actions %>
+    </div>
+  <% end %>
+</header>

@@ -1,5 +1,5 @@
-<nav class="bg-blue-500 p-4 text-white">
-  <div class="container mx-auto flex flex-wrap items-center justify-between gap-3">
+<nav class="bg-blue-500 px-4 py-4 text-white sm:px-6 lg:px-8" data-controller="menu">
+  <div class="mx-auto flex w-full max-w-screen-2xl flex-wrap items-center justify-between gap-3">
     <div class="text-lg font-bold">
       <%= link_to t('navigation.app_name'), root_path, class: 'hover:text-blue-200' %>
     </div>
@@ -15,13 +15,24 @@
         <% end %>
       </div>
 
-      <button id="menu-toggle" class="rounded border px-3 py-2 hover:bg-blue-600 lg:hidden">
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <button id="menu-toggle"
+              type="button"
+              class="rounded border px-3 py-2 hover:bg-blue-600 lg:hidden"
+              aria-controls="menu"
+              aria-expanded="false"
+              data-menu-target="toggle"
+              data-action="menu#toggle">
+        <span class="sr-only"><%= t('navigation.toggle_menu') %></span>
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
         </svg>
       </button>
 
-      <div id="menu" class="hidden items-center gap-4 lg:flex">
+      <%# Collapsed below `lg`; the menu controller toggles `hidden`/`flex`
+          on mobile, `lg:flex` keeps it inline on desktop. %>
+      <div id="menu"
+           class="hidden w-full flex-col gap-1 lg:w-auto lg:flex lg:flex-row lg:items-center lg:gap-4"
+           data-menu-target="menu">
         <%= link_to t('navigation.departments'), departments_path, class: 'hover:text-blue-200' %>
         <%= link_to t('navigation.employees'), employees_path, class: 'hover:text-blue-200' %>
 

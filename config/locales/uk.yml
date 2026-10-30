@@ -69,6 +69,7 @@ uk:
     books: Книги
     logout: Вийти
     login: Увійти
+    toggle_menu: Перемкнути меню навігації
   locales:
     en: English
     uk: Українська

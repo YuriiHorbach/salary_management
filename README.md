@@ -45,11 +45,7 @@ docker compose up --build
 - Application: <http://localhost:3000>
 - PostgreSQL: `127.0.0.1:5433` (bound to localhost only)
 
-The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db`, and PostgreSQL listens on `5432` inside the container, so ensure `DB_PORT=5432` is set in `.env`:
-
-```dotenv
-DB_PORT=5432
-```
+The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db` **and** `DB_PORT=5432` in `docker-compose.yml` (PostgreSQL listens on `5432` inside the compose network; `5433` is only the host mapping `127.0.0.1:5433:5432`), so no `.env` change is needed for Docker — the compose environment takes precedence over `.env` values. The `db` service also has a `pg_isready` healthcheck and `web` waits for `condition: service_healthy`, which prevents `db:prepare` from racing a still-starting PostgreSQL.
 
 ```bash
 docker compose down            # stop, keep data

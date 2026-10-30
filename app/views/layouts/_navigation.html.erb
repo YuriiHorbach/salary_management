@@ -4,7 +4,10 @@
       <%= link_to t('navigation.app_name'), root_path, class: 'hover:text-blue-200' %>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
+    <%# Full-width below `lg` so the expanded mobile menu spans the whole
+        navbar (the burger only exists under `lg`); shrink-to-fit from `lg`
+        so the links sit inline next to the locale switcher. %>
+    <div class="flex w-full flex-wrap items-center justify-between gap-3 lg:w-auto lg:justify-start">
       <div class="flex items-center gap-1 rounded-md bg-blue-600/50 p-1" aria-label="<%= t('locales.switch') %>">
         <% supported_locales.each do |locale| %>
           <%= link_to t("locales.short.#{locale}"),
@@ -43,7 +46,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </summary>
-          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 max-w-[calc(100vw-2rem)] whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <%= link_to t('navigation.sick_days'), new_sick_day_entry_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.vacations'), new_vacation_entry_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.historical_import'), new_historical_import_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
@@ -57,7 +60,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </summary>
-          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 max-w-[calc(100vw-2rem)] whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <%= link_to t('navigation.summary_report'), summary_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.detailed_report'), detailed_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
           </div>
@@ -70,7 +73,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </summary>
-          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+          <div class="absolute left-0 top-full z-50 mt-1 min-w-56 max-w-[calc(100vw-2rem)] whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <%= link_to t('navigation.system_settings'), settings_root_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.brigades'), settings_territory_signs_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.books'), settings_account_books_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>

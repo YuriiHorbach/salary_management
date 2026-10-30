@@ -37,13 +37,13 @@
         <%= f.select :disability_group_eq, [[t('.search.all'), ""], ["0", 0], ["1", 1], ["2", 2], ["3", 3], ["4", 4]], {}, { class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer" } %>
       </div>
 
-      <div class="flex items-center space-x-2 h-10">
-        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg">
           <%= f.check_box :chaes_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
           <%= f.label :chaes_true, t('.search.chaes'), class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
 
-        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg h-full">
+        <div class="flex items-center bg-white border border-gray-300 px-2 py-1.5 rounded-lg">
           <%= f.check_box :contract_true, class: "w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" %>
           <%= f.label :contract_true, t('.search.contract'), class: "ml-2 text-xs font-bold text-gray-600 cursor-pointer" %>
         </div>
@@ -67,17 +67,15 @@
 
 <div class="m-5 overflow-x-auto">
   <%= turbo_frame_tag "employees_list" do %>
-    <% grid_layout = "grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;" %>
-
-    <div class="grid bg-gray-100 border border-gray-200 font-bold text-xs uppercase text-gray-700 items-center" style="<%= grid_layout %>">
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :id_code, t('.headers.id')) %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :last_name, t('.headers.full_name')) %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :children_count, t('.headers.children')) %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, t('.headers.group')) %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= t('.headers.chaes') %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= t('.headers.contract') %></div>
-      <div class="px-2 py-3 border-r border-gray-200 text-center"><%= sort_link(@q, :territory_info, t('.headers.territory')) %></div>
-      <div class="px-2 py-3 text-center"><%= t('.headers.actions') %></div>
+    <div class="grid grid-cols-2 gap-y-1 sm:grid-cols-4 md:grid-cols-8 bg-gray-100 border border-gray-200 font-bold text-xs uppercase text-gray-700 items-center">
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= sort_link(@q, :id_code, t('.headers.id')) %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= sort_link(@q, :last_name, t('.headers.full_name')) %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= sort_link(@q, :children_count, t('.headers.children')) %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= sort_link(@q, :disability_group, t('.headers.group')) %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= t('.headers.chaes') %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= t('.headers.contract') %></div>
+      <div class="px-2 py-3 md:border-r border-gray-200 text-center"><%= sort_link(@q, :territory_info, t('.headers.territory')) %></div>
+      <div class="px-2 py-3 text-center col-span-2 sm:col-span-1"><%= t('.headers.actions') %></div>
     </div>
 
     <div class="divide-y divide-gray-200 border-x border-b border-gray-200">

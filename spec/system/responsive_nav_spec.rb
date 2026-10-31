@@ -24,6 +24,13 @@ RSpec.describe 'Responsive navigation layout', :js, type: :system do
     evaluate_script("document.getElementById('menu').getBoundingClientRect().width")
   end
 
+  # Layout viewport in CSS pixels — excludes the classic 15px scrollbar that
+  # headless Chrome reserves on Linux CI (macOS overlay scrollbars take 0px),
+  # so hardcoded 390 would silently differ between environments.
+  def viewport_width
+    evaluate_script('document.documentElement.clientWidth')
+  end
+
   def dropdown_labels
     [I18n.t('navigation.more'), I18n.t('navigation.reports'), I18n.t('navigation.settings')]
   end
@@ -47,7 +54,7 @@ RSpec.describe 'Responsive navigation layout', :js, type: :system do
       sign_in_user
       find('#menu-toggle').click
 
-      expect(menu_width).to be >= 0.9 * 390
+      expect(menu_width).to be >= 0.9 * viewport_width
     end
 
     it 'keeps every dropdown panel inside the viewport' do
@@ -57,7 +64,7 @@ RSpec.describe 'Responsive navigation layout', :js, type: :system do
       dropdown_labels.each do |label|
         box = open_dropdown_box(label)
         expect(box['left']).to be >= -1
-        expect(box['right']).to be <= 391
+        expect(box['right']).to be <= viewport_width + 1
       end
     end
 

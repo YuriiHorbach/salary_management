@@ -1,9 +1,9 @@
 <%= turbo_frame_tag dom_id(department) do %>
-  <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+  <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
     <%= link_to department.name, department_path(department), data: { turbo: false }, class: "hover:underline text-gray-600 font-semibold" %>
-    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+    <p class="mt-2 text-sm text-gray-600">
       <%= t('departments.card.employees') %>:
-      <span id="department_<%= department.id %>_employee_count" class="font-semibold text-gray-900 dark:text-white">
+      <span id="department_<%= department.id %>_employee_count" class="font-semibold text-gray-900">
         <%= employee_counts.fetch(department.id, 0) %>
       </span>
     </p>

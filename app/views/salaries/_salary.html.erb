@@ -1,5 +1,5 @@
 <%= turbo_frame_tag dom_id(salary) do %>
-  <div class="grid grid-cols-2 md:grid-cols-12 gap-x-3 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+  <div class="grid grid-cols-2 md:grid-cols-12 gap-x-3 border-b border-gray-200 hover:bg-gray-100">
     <div class="col-span-1 md:col-span-2 px-2 py-2 font-mono"><%= humanized_money salary.amount %></div>
     <div class="col-span-1 md:col-span-2 px-2 py-2"><%= salary.month %></div>
     <div class="col-span-1 md:col-span-3 px-2 py-2"><%= salary.department&.name || '—' %></div>

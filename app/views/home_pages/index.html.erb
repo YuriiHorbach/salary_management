@@ -1,10 +1,10 @@
 <% working_month = current_user.current_working_month %>
 
 <main class="mx-auto max-w-3xl space-y-6 p-6">
-  <h1 class="text-3xl font-bold text-gray-900 dark:text-white"><%= t('.title') %></h1>
+  <h1 class="text-3xl font-bold text-gray-900"><%= t('.title') %></h1>
 
   <% if working_month.present? %>
-    <section class="rounded-lg border border-green-300 bg-green-50 p-4 text-green-900 dark:border-green-700 dark:bg-green-900/20 dark:text-green-100">
+    <section class="rounded-lg border border-green-300 bg-green-50 p-4 text-green-900">
       <p class="font-semibold">
         <%= t('.current_month', month: l(working_month, format: :short)) %>
       </p>
@@ -13,7 +13,7 @@
       </p>
     </section>
   <% else %>
-    <section class="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-900 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-100">
+    <section class="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-900">
       <p class="font-semibold"><%= t('.choose_month') %></p>
       <p class="mt-1 text-sm">
         <%= t('.choose_month_hint') %>
@@ -21,15 +21,15 @@
     </section>
   <% end %>
 
-  <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+  <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
     <%= form_with url: current_working_month_path, method: :patch, class: 'flex flex-wrap items-end gap-4' do |form| %>
       <div>
         <%= form.label :current_working_month, t('.field_label'),
-                       class: 'mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200' %>
+                       class: 'mb-1 block text-sm font-medium text-gray-700' %>
         <%= form.month_field :current_working_month,
                              value: (working_month || Date.current).strftime('%Y-%m'),
                              required: true,
-                             class: 'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white' %>
+                             class: 'rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500' %>
       </div>
 
       <%= form.submit t('.save_month'),

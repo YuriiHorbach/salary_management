@@ -1,5 +1,5 @@
 <%= turbo_frame_tag dom_id(sd) do %>
-  <div class="grid grid-cols-2 lg:grid-cols-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors py-2">
+  <div class="grid grid-cols-2 lg:grid-cols-5 items-center hover:bg-gray-50 transition-colors py-2">
     <div class="px-4 text-sm text-gray-500"><%= l(sd.period, format: :month_year) if sd.period %></div>
     <div class="px-4 text-right"><%= number_to_currency(sd.pfu_amount) %></div>
     <div class="px-4 text-right"><%= number_to_currency(sd.enterprise_amount) %></div>

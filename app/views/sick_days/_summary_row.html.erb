@@ -1,10 +1,10 @@
-<div id="summary_<%= period.strftime("%Y-%m") %>" class="grid grid-cols-2 lg:grid-cols-5 bg-blue-50 dark:bg-blue-900/30 font-bold items-center py-3 border-t-2 border-blue-200">
-  <div class="px-4 text-blue-800 dark:text-blue-300 text-sm">
+<div id="summary_<%= period.strftime("%Y-%m") %>" class="grid grid-cols-2 lg:grid-cols-5 bg-blue-50 font-bold items-center py-3 border-t-2 border-blue-200">
+  <div class="px-4 text-blue-800 text-sm">
     <%= t('sick_days.summary.total_for', period: l(period, format: :month_year)) %>
   </div>
   <div class="px-4 text-right text-blue-800"><%= summary_amount_for(summaries, period, :pfu) %></div>
   <div class="px-4 text-right text-blue-800"><%= summary_amount_for(summaries, period, :enterprise) %></div>
-  <div class="px-4 text-right text-blue-900 dark:text-blue-100 text-lg underline decoration-double">
+  <div class="px-4 text-right text-blue-900 text-lg underline decoration-double">
     <%= summary_amount_for(summaries, period, :total) %>
   </div>
   <div class="hidden lg:block"></div>

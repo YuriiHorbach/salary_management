@@ -20,7 +20,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 
 | Layer | Technology |
 |---|---|
-| Language | Ruby 3.4.3 |
+| Language | Ruby 3.4.12 |
 | Framework | Rails 8.0 |
 | Database | PostgreSQL 16 |
 | Frontend | Hotwire (Turbo), Stimulus, Tailwind CSS |
@@ -31,7 +31,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 
 ## Requirements
 
-- Ruby 3.4.3 and Bundler
+- Ruby 3.4.12 and Bundler
 - PostgreSQL 16, local or via Docker
 - Docker Desktop (recommended)
 - Node.js 22.12+ only for the Electron desktop shell

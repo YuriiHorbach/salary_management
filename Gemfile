@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '3.4.3'
+ruby '3.4.12'
 
 # Use the latest stable version of Rails
 gem 'rails', '~> 8.0'

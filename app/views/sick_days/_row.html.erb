@@ -1,10 +1,10 @@
 <%= turbo_frame_tag dom_id(sd) do %>
-  <div class="grid grid-cols-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors py-2">
+  <div class="grid grid-cols-2 lg:grid-cols-5 items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors py-2">
     <div class="px-4 text-sm text-gray-500"><%= l(sd.period, format: :month_year) if sd.period %></div>
     <div class="px-4 text-right"><%= number_to_currency(sd.pfu_amount) %></div>
     <div class="px-4 text-right"><%= number_to_currency(sd.enterprise_amount) %></div>
     <div class="px-4 text-right font-medium"><%= number_to_currency(sd.total_amount) %></div>
-    <div class="px-4 text-center">
+    <div class="px-4 text-center col-span-2 lg:col-span-1">
       <%= link_to "✏️", edit_employee_sick_day_path(@employee, sd),
           class: "hover:scale-110 transition-transform p-1" %>
       <%= button_to "❌", employee_sick_day_path(@employee, sd),

@@ -28,7 +28,8 @@
   <%= form.submit t('.show'), class: "btn btn-primary btn-xs rounded-md font-medium transition shadow-sm" %>
 <% end %>
 
-<table class="w-full table-auto border-collapse text-sm">
+<div class="overflow-x-auto">
+  <table class="w-full table-auto border-collapse text-sm">
   <thead>
     <tr class="bg-gray-100">
       <th class="px-3 py-2 border border-gray-300 text-left"><%= sort_link(@q, :id_code, "ID") %></th>
@@ -114,6 +115,7 @@
       <td class="px-3 py-2 border border-gray-300"></td>
     </tr>
   </tfoot>
-</table>
+  </table>
+</div>
 <br>
 <%= link_to t('.add_employees'), new_department_employee_path(department_id: @department.id), class: "btn btn-primary btn-xs mt-4 py-2 rounded hover:bg-blue-700" %>

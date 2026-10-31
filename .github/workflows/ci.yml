@@ -15,6 +15,9 @@ concurrency:
 jobs:
   test:
     name: RSpec
+    # ubuntu-latest is fine now: the project runs the latest 3.4.x patch, and
+    # ruby/setup-ruby always publishes builds for the newest patch of a series
+    # on current runner images.
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -45,7 +48,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.3'
+          ruby-version: '3.4.12'
           bundler-cache: true
 
       - name: Set up Chrome

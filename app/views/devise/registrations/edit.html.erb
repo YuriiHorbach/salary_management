@@ -1,43 +1,49 @@
-<h2><%= t('devise_views.registrations.edit_title') %></h2>
+<h2 class="text-3xl font-bold text-center text-gray-700 mb-6"><%= t('devise_views.registrations.edit_title') %></h2>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "max-w-md mx-auto" }) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+  <div class="mb-4">
+    <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+    <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
   </div>
 
   <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div><%= t('devise_views.registrations.waiting_confirmation', email: resource.unconfirmed_email) %></div>
+    <div class="mb-4 text-sm text-gray-600"><%= t('devise_views.registrations.waiting_confirmation', email: resource.unconfirmed_email) %></div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :password %> <i>(<%= t('devise_views.registrations.password_hint') %>)</i><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
+  <div class="mb-4">
+    <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+    <em class="text-sm text-gray-500">(<%= t('devise_views.registrations.password_hint') %>)</em>
+    <%= f.password_field :password, autocomplete: "new-password", class: "mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
     <% if @minimum_password_length %>
-      <br />
-      <em><%= t('devise_views.min_chars', count: @minimum_password_length) %></em>
+      <em class="text-sm text-gray-500">(<%= t('devise_views.min_chars', count: @minimum_password_length) %>)</em>
     <% end %>
   </div>
 
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  <div class="mb-4">
+    <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700" %>
+    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
   </div>
 
-  <div class="field">
-    <%= f.label :current_password %> <i>(<%= t('devise_views.registrations.current_password_hint') %>)</i><br />
-    <%= f.password_field :current_password, autocomplete: "current-password" %>
+  <div class="mb-4">
+    <%= f.label :current_password, class: "block text-sm font-medium text-gray-700" %>
+    <em class="text-sm text-gray-500">(<%= t('devise_views.registrations.current_password_hint') %>)</em>
+    <%= f.password_field :current_password, autocomplete: "current-password", class: "mt-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" %>
   </div>
 
-  <div class="actions">
-    <%= f.submit t('devise_views.registrations.update') %>
+  <div class="mt-4">
+    <%= f.submit t('devise_views.registrations.update'), class: "btn btn-primary btn-xs w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
   </div>
 <% end %>
 
-<h3><%= t('devise_views.registrations.cancel_title') %></h3>
+<div class="max-w-md mx-auto mt-10">
+  <h3 class="text-lg font-semibold text-gray-700 mb-2"><%= t('devise_views.registrations.cancel_title') %></h3>
 
-<div><%= t('devise_views.registrations.unhappy') %> <%= button_to t('devise_views.registrations.cancel_account'), registration_path(resource_name), data: { confirm: t('devise_views.registrations.confirm'), turbo_confirm: t('devise_views.registrations.confirm') }, method: :delete %></div>
+  <p class="text-sm text-gray-600 mb-3"><%= t('devise_views.registrations.unhappy') %></p>
+  <%= button_to t('devise_views.registrations.cancel_account'), registration_path(resource_name),
+                data: { confirm: t('devise_views.registrations.confirm'), turbo_confirm: t('devise_views.registrations.confirm') },
+                method: :delete, class: "btn btn-danger btn-xs w-full p-2 mb-4" %>
 
-<%= link_to t('devise_views.registrations.back'), :back %>
+  <%= link_to t('devise_views.registrations.back'), :back, class: "block text-center text-sm text-blue-600 hover:underline" %>
+</div>

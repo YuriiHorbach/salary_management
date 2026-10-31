@@ -1,31 +1,30 @@
 <%= turbo_frame_tag dom_id(employee) do %>
-  <div class="grid hover:bg-gray-50 dark:hover:bg-gray-800 items-center border-b border-gray-200" 
-       style="grid-template-columns: 120px 1.5fr 80px 80px 80px 80px 1fr 100px;">
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-sm truncate"><%= employee.id_code %></div>
-    
-    <div class="px-2 py-5 border-r border-gray-200 text-sm leading-tight">
+  <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 hover:bg-gray-50 dark:hover:bg-gray-800 items-center border-b border-gray-200">
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-sm truncate"><%= employee.id_code %></div>
+
+    <div class="px-2 py-5 md:border-r border-gray-200 text-sm leading-tight">
       <div class="font-bold text-gray-800"><%= employee.last_name %></div>
-      <div class="text-[11px] text-gray-500"><%= employee.first_name %> <%= employee.patronic_name %></div>
+      <div class="text-xs text-gray-500"><%= employee.first_name %> <%= employee.patronic_name %></div>
     </div>
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm"><%= employee.children_count %></div>
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm"><%= employee.disability_group %></div>
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm">
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-center text-sm"><%= employee.children_count %></div>
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-center text-sm"><%= employee.disability_group %></div>
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-center text-sm">
       <%= employee.chaes ? "✅" : "—" %>
     </div>
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-center text-sm">
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-center text-sm">
       <%= employee.contract ? "✅" : "—" %>
     </div>
-    
-    <div class="px-2 py-2 border-r border-gray-200 text-[11px] text-gray-600 truncate" title="<%= employee.territory_info %>">
+
+    <div class="px-2 py-2 md:border-r border-gray-200 text-xs text-gray-600 truncate" title="<%= employee.territory_info %>">
       <%= employee.territory_info %>
     </div>
-    
-    <div class="px-2 py-2 flex flex-col space-y-0.5 items-stretch">
+
+    <div class="col-span-2 sm:col-span-1 px-2 py-2 flex flex-wrap gap-2 md:flex-col md:items-stretch md:gap-1">
 <%= link_to t('.show'), employee_path(employee),
           class: "btn btn-primary btn-xs rounded",
           data: { turbo: :false } %>
@@ -34,7 +33,7 @@
           class: "btn btn-primary btn-yellow btn-xs rounded",
           data: { turbo_frame: dom_id(employee) } %>
 
-      <%= link_to t('.add_sick_day'), new_employee_sick_day_path(employee), 
+      <%= link_to t('.add_sick_day'), new_employee_sick_day_path(employee),
             class: "btn btn-secondary btn-xs rounded",
             data: { turbo: false } %>
 

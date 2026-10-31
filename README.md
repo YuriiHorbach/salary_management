@@ -20,7 +20,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 
 | Layer | Technology |
 |---|---|
-| Language | Ruby 3.4.3 |
+| Language | Ruby 3.4.12 |
 | Framework | Rails 8.0 |
 | Database | PostgreSQL 16 |
 | Frontend | Hotwire (Turbo), Stimulus, Tailwind CSS |
@@ -31,7 +31,7 @@ A Rails application for managing employees, departments, positions, salaries, va
 
 ## Requirements
 
-- Ruby 3.4.3 and Bundler
+- Ruby 3.4.12 and Bundler
 - PostgreSQL 16, local or via Docker
 - Docker Desktop (recommended)
 - Node.js 22.12+ only for the Electron desktop shell
@@ -45,11 +45,7 @@ docker compose up --build
 - Application: <http://localhost:3000>
 - PostgreSQL: `127.0.0.1:5433` (bound to localhost only)
 
-The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db`, and PostgreSQL listens on `5432` inside the container, so ensure `DB_PORT=5432` is set in `.env`:
-
-```dotenv
-DB_PORT=5432
-```
+The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db` **and** `DB_PORT=5432` in `docker-compose.yml` (PostgreSQL listens on `5432` inside the compose network; `5433` is only the host mapping `127.0.0.1:5433:5432`), so no `.env` change is needed for Docker — the compose environment takes precedence over `.env` values. The `db` service also has a `pg_isready` healthcheck and `web` waits for `condition: service_healthy`, which prevents `db:prepare` from racing a still-starting PostgreSQL.
 
 ```bash
 docker compose down            # stop, keep data

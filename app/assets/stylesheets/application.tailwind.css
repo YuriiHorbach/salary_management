@@ -9,57 +9,33 @@ summary {
   list-style: none;
 }
 
+/* Button system compiled with `@apply` so colors come from the Tailwind
+   palette (purge-safe, consistent, overridable by utility classes like
+   `w-full sm:w-auto`). No hardcoded hex/oklch values. */
+
 .btn {
-  --btn-font-size: .875rem;
-  --btn-py: .5rem;
-  --btn-px: 1rem;
-  display: inline-block;
-  padding: var(--btn-py) var(--btn-px);
-  font-size: var(--btn-font-size);
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  color: #000;
-  border-radius: .375rem;
-  border: 1px solid #9ca3af;
-  cursor: pointer;
-  text-decoration: none;
+  @apply inline-block cursor-pointer rounded border border-gray-400 px-4 py-2 text-center text-sm font-medium leading-tight text-black no-underline;
 }
 
-.btn-xs { --btn-font-size: .75rem;  --btn-py: .125rem; --btn-px: .5rem; }
-.btn-sm { --btn-font-size: .8125rem; --btn-py: .25rem; --btn-px: .75rem; }
-.btn-lg { --btn-font-size: 1rem;    --btn-py: .75rem; --btn-px: 1.5rem; }
+.btn-xs { @apply px-2 py-1 text-xs; }
+/* Tailwind has no 13px step; 12px keeps the size ladder without arbitrary values. */
+.btn-sm { @apply px-3 py-1 text-xs; }
+.btn-lg { @apply px-6 py-3 text-base; }
 
-.btn-bold  { font-weight: 700; }
-.btn-upper { text-transform: uppercase; letter-spacing: .05em; }
+.btn-bold  { @apply font-bold; }
+.btn-upper { @apply uppercase tracking-wider; }
 
-.btn-primary {
-  background: oklch(62.7% 0.194 149.214);
-}
-.btn-primary:hover {
-  background: oklch(58% 0.18 149.214);
-}
-.btn-secondary {
-  background: #fff;
-}
-.btn-secondary:hover {
-  background: #f3f4f6;
-}
-.btn-danger {
-  background: #B32100;
-}
-.btn-danger:hover {
-  background: #991b00;
-}
-.btn-blue {
-  background: #0D51DA;
-}
-.btn-blue:hover {
-  background: #0a46c2;
-}
-.btn-yellow {
-  background: #F59E0B;
-}
-.btn-yellow:hover {
-  background: #d97706;
-}
+.btn-primary { @apply bg-green-600; }
+.btn-primary:hover { @apply bg-green-700; }
+
+.btn-secondary { @apply bg-white; }
+.btn-secondary:hover { @apply bg-gray-100; }
+
+.btn-danger { @apply bg-red-700; }
+.btn-danger:hover { @apply bg-red-800; }
+
+.btn-blue { @apply bg-blue-700; }
+.btn-blue:hover { @apply bg-blue-800; }
+
+.btn-yellow { @apply bg-amber-500; }
+.btn-yellow:hover { @apply bg-amber-600; }

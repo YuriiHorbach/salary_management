@@ -1,10 +1,10 @@
 <%= turbo_frame_tag dom_id(salary) do %>
-  <div class="grid grid-cols-12 gap-x-3 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-    <div class="col-span-2 px-2 py-2 font-mono"><%= humanized_money salary.amount %></div>
-    <div class="col-span-2 px-2 py-2"><%= salary.month %></div>
-    <div class="col-span-3 px-2 py-2"><%= salary.department&.name || '—' %></div>
-    <div class="col-span-3 px-2 py-2"><%= salary.position&.position_name || '—' %></div>
-    <div class="col-span-2 px-2 py-2 flex space-x-2">
+  <div class="grid grid-cols-2 md:grid-cols-12 gap-x-3 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">
+    <div class="col-span-1 md:col-span-2 px-2 py-2 font-mono"><%= humanized_money salary.amount %></div>
+    <div class="col-span-1 md:col-span-2 px-2 py-2"><%= salary.month %></div>
+    <div class="col-span-1 md:col-span-3 px-2 py-2"><%= salary.department&.name || '—' %></div>
+    <div class="col-span-1 md:col-span-3 px-2 py-2"><%= salary.position&.position_name || '—' %></div>
+    <div class="col-span-2 md:col-span-2 px-2 py-2 flex flex-wrap gap-2">
       <%= link_to t('salaries.salary.edit'), edit_employee_salary_path(@employee.id, salary.id), class: 'text-blue-500 hover:underline' %>
       <%= button_to t('salaries.salary.delete'), employee_salary_path(@employee.id, salary.id), method: :delete, data: { confirm: t('salaries.salary.confirm_delete') }, class: 'text-red-500 hover:underline' %>
     </div>

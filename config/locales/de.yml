@@ -69,6 +69,7 @@ de:
     books: Bücher
     logout: Abmelden
     login: Anmelden
+    toggle_menu: Navigationsmenü umschalten
   locales:
     en: English
     uk: Українська

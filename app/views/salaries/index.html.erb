@@ -74,12 +74,12 @@
 <%= render 'salaries/salary_totals_by_position' %>
 
 <div class="m-5">
-  <div class="grid grid-cols-12 gap-x-3 border-b border-gray-300 font-semibold text-sm">
-    <div class="col-span-2 px-2 py-2"><%= t('salaries.index.amount') %></div>
-    <div class="col-span-2 px-2 py-2"><%= t('salaries.index.period') %></div>
-    <div class="col-span-3 px-2 py-2"><%= t('salaries.index.department') %></div>
-    <div class="col-span-3 px-2 py-2"><%= t('salaries.index.position') %></div>
-    <div class="col-span-2 px-2 py-2"><%= t('salaries.index.actions') %></div>
+  <div class="grid grid-cols-2 md:grid-cols-12 gap-x-3 border-b border-gray-300 font-semibold text-sm">
+    <div class="col-span-1 md:col-span-2 px-2 py-2"><%= t('salaries.index.amount') %></div>
+    <div class="col-span-1 md:col-span-2 px-2 py-2"><%= t('salaries.index.period') %></div>
+    <div class="col-span-1 md:col-span-3 px-2 py-2"><%= t('salaries.index.department') %></div>
+    <div class="col-span-1 md:col-span-3 px-2 py-2"><%= t('salaries.index.position') %></div>
+    <div class="col-span-2 md:col-span-2 px-2 py-2"><%= t('salaries.index.actions') %></div>
   </div>
 
   <%= turbo_frame_tag "new_salary" %>

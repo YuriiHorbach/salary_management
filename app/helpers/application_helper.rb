@@ -3,6 +3,27 @@
 # View helpers shared by the whole application, including flash streams and
 # locale-aware navigation links.
 module ApplicationHelper
+  # Complete, JIT-safe Tailwind class strings per flash type.
+  #
+  # Classes must appear literally in scanned sources (helpers are part of the
+  # Tailwind content globs); string interpolation would hide them from the
+  # Tailwind scanner and they would never be generated in the built CSS.
+  FLASH_CLASSES = {
+    'notice' => 'mb-4 rounded-lg bg-blue-100 p-4 text-sm text-blue-700',
+    'alert' => 'mb-4 rounded-lg bg-red-100 p-4 text-sm text-red-700'
+  }.freeze
+
+  # Neutral fallback for flash types without a dedicated style.
+  DEFAULT_FLASH_CLASSES = 'mb-4 rounded-lg bg-gray-100 p-4 text-sm text-gray-800'
+
+  # Tailwind classes for a flash message.
+  #
+  # @param type [String, Symbol] flash key (+notice+, +alert+, …)
+  # @return [String] complete Tailwind class list safe for the JIT scanner
+  def flash_classes(type)
+    FLASH_CLASSES.fetch(type.to_s, DEFAULT_FLASH_CLASSES)
+  end
+
   # Builds a Turbo Stream that prepends the shared flash partial.
   #
   # @return [Turbo::Streams::TagBuilder] stream containing the flash partial

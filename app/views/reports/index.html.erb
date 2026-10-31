@@ -1,8 +1,8 @@
 <h1><%= t('reports.index.title') %></h1>
 
-<div class="filter-form flex mb-4 mt-4">
-  <%= search_form_for @q, url: reports_path, method: :get, class: "flex space-x-3 flex-auto", data: { turbo_frame: "report_results" } do |f| %>
-    <div class="field flex-initial flex space-x-2">
+<div class="filter-form flex flex-wrap mb-4 mt-4">
+  <%= search_form_for @q, url: reports_path, method: :get, class: "flex flex-wrap items-end gap-3 flex-auto", data: { turbo_frame: "report_results" } do |f| %>
+    <div class="field flex flex-wrap items-center gap-2">
       <%= f.label :by_year, t('reports.index.year'), class: "mt-1" %>
       <%= f.select :by_year,
           options_for_select(year_options, params.dig(:q, :by_year).to_s),
@@ -11,14 +11,14 @@
       %>
     </div>
 
-    <div class="field flex-initial flex space-x-2">
+    <div class="field flex flex-wrap items-center gap-2">
       <%= f.label :by_month, t('reports.index.month'), class: "mt-1" %>
       <%= f.select :by_month, options_for_select(month_options, params.dig(:q, :by_month).to_i),
           { include_blank: t('reports.index.all_months') },
           class: "select border border-gray-300 rounded-md px-4 w-auto" %>
     </div>
 
-    <div class="field flex-initial flex space-x-2">
+    <div class="field flex flex-wrap items-center gap-2">
       <%= f.label :by_department, t('reports.index.department'), class: "mt-1" %>
       <%= f.select :by_department, options_from_collection_for_select(@departments, 'id', 'name', params.dig(:q, :by_department)),
           { include_blank: t('reports.index.all_departments') },
@@ -35,6 +35,7 @@
   <h2 class="mt-4 mb-2 text-xl font-semibold"><%= t('reports.index.results') %></h2>
 
   <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+    <div class="overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -110,5 +111,6 @@
         </tr>
       </tfoot>
     </table>
+    </div>
   </div>
 <% end %>

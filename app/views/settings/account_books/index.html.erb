@@ -25,11 +25,13 @@
           <tr>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono"><%= book.code || '—' %></td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <%= link_to t('settings.account_books.index.edit'), edit_settings_account_book_path(book),
-                          class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
-              <%= link_to t('settings.account_books.index.delete'), settings_account_book_path(book),
-                          data: { turbo_method: :delete, turbo_confirm: t('settings.account_books.index.confirm_delete') },
-                          class: "text-red-600 hover:text-red-800 underline text-sm ml-4" %>
+              <div class="flex flex-wrap justify-end gap-4">
+                <%= link_to t('settings.account_books.index.edit'), edit_settings_account_book_path(book),
+                            class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
+                <%= link_to t('settings.account_books.index.delete'), settings_account_book_path(book),
+                            data: { turbo_method: :delete, turbo_confirm: t('settings.account_books.index.confirm_delete') },
+                            class: "text-red-600 hover:text-red-800 underline text-sm" %>
+              </div>
             </td>
           </tr>
         <% end %>

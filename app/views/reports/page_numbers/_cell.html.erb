@@ -13,7 +13,7 @@
                       class: 'border border-gray-300 rounded px-1 py-0.5 text-xs',
                       aria: { label: t('reports.detailed_columns.page_number') },
                       onchange: 'this.form.requestSubmit()' %>
-      <span class="text-[11px] text-gray-500 whitespace-nowrap"><%= row[:page_number].presence || '—' %></span>
+      <span class="text-xs text-gray-500 whitespace-nowrap"><%= row[:page_number].presence || '—' %></span>
     <% end %>
   <% else %>
     <span class="text-gray-400">—</span>

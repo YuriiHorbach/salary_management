@@ -21,7 +21,7 @@
         <%= f.search_field :first_name_cont, class: "border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" %>
       </div>
 
-      <div class="flex items-center space-x-2 h-10">
+      <div class="flex flex-wrap items-center gap-2">
         <%= f.submit t('department_employees.new.submit'), class: "btn btn-primary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-blue-800 cursor-pointer text-sm shadow-md" %>
         <%= link_to t('department_employees.new.clear'), new_department_employee_path(department_id: @department.id), class: "btn btn-secondary btn-xs flex-1 font-bold py-2 px-3 rounded-lg hover:bg-gray-800 cursor-pointer text-sm shadow-md" %>
       </div>

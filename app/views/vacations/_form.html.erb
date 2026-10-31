@@ -1,6 +1,6 @@
 <%= form_with(model: [@employee, vacation],
     data: { turbo_frame: dom_id(vacation) },
-    class: "grid grid-cols-5 items-center bg-blue-50 dark:bg-blue-900/20 py-2 border-b-2 border-blue-200") do |f| %>
+    class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-center bg-blue-50 dark:bg-blue-900/20 py-2 border-b-2 border-blue-200") do |f| %>
 
   <% input_classes = "block w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-blue-500 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white" %>
 
@@ -18,11 +18,11 @@
         step: :any, class: "#{input_classes} text-right" %>
   </div>
 
-  <div class="px-4 text-right font-medium text-gray-400">
+  <div class="px-4 text-right font-medium text-gray-400 hidden lg:block">
     —
   </div>
 
-  <div class="px-4 text-center flex items-center justify-center gap-4">
+  <div class="px-4 text-center flex items-center justify-center gap-4 sm:col-span-2 lg:col-span-1">
     <%= f.button type: :submit, class: "hover:scale-125 transition text-lg", title: t('vacations.form.save') do %>
       ✅
     <% end %>

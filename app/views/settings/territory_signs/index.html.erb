@@ -23,11 +23,13 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= sign.name %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><%= sign.name.to_s.strip[0]&.upcase || '—' %></td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <%= link_to t('settings.territory_signs.index.edit'), edit_settings_territory_sign_path(sign),
-                          class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
-              <%= link_to t('settings.territory_signs.index.delete'), settings_territory_sign_path(sign),
-                          data: { turbo_method: :delete, turbo_confirm: t('settings.territory_signs.index.confirm_delete') },
-                          class: "text-red-600 hover:text-red-800 underline text-sm ml-4" %>
+              <div class="flex flex-wrap justify-end gap-4">
+                <%= link_to t('settings.territory_signs.index.edit'), edit_settings_territory_sign_path(sign),
+                            class: "text-blue-600 hover:text-blue-800 underline text-sm" %>
+                <%= link_to t('settings.territory_signs.index.delete'), settings_territory_sign_path(sign),
+                            data: { turbo_method: :delete, turbo_confirm: t('settings.territory_signs.index.confirm_delete') },
+                            class: "text-red-600 hover:text-red-800 underline text-sm" %>
+              </div>
             </td>
           </tr>
         <% end %>

@@ -7,7 +7,7 @@
 
   <%= turbo_frame_tag "new_department" %>
 
-  <div class="grid grid-cols-5 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     <%= render partial: 'department', collection: @departments, as: :department,
                locals: { employee_counts: @employee_counts } %>
   </div>

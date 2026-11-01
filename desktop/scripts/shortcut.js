@@ -3,6 +3,7 @@
 const fs = require("node:fs")
 const os = require("node:os")
 const path = require("node:path")
+const { spawnSync } = require("node:child_process")
 
 const APP_NAME = "Salary Management"
 const APPLICATION_ID = "salary-management"
@@ -38,7 +39,7 @@ function projectDesktopDir(projectRoot, platform) {
 function electronBinary(projectRoot, platform) {
   const segments = ELECTRON_BINARY[platform]
   if (!segments) {
-    throw new Error(`Платформа "${platform}" не підтримується.`)
+    throw new Error(`Unsupported platform "${platform}".`)
   }
 
   return joinFor(platform, projectRoot, "desktop", ...segments)
@@ -56,7 +57,7 @@ function launcherPaths(platform, homeDir) {
         path.join(homeDir, "Desktop", `${APP_NAME}.desktop`),
       ]
     default:
-      throw new Error(`Платформа "${platform}" не підтримується.`)
+      throw new Error(`Unsupported platform "${platform}".`)
   }
 }
 
@@ -110,7 +111,7 @@ function linuxLauncher({ projectRoot, electronBinary: binary }) {
 
 function buildLaunchers({ platform, homeDir, projectRoot, electronBinary: binary }) {
   if (!ELECTRON_BINARY[platform]) {
-    throw new Error(`Платформа "${platform}" не підтримується.`)
+    throw new Error(`Unsupported platform "${platform}".`)
   }
 
   const paths = launcherPaths(platform, homeDir)
@@ -135,20 +136,49 @@ function buildLaunchers({ platform, homeDir, projectRoot, electronBinary: binary
   }
 }
 
+function defaultInstallElectron({ installScript, cwd, log }) {
+  log(`Electron not found. Downloading automatically: node "${installScript}"`)
+  const result = spawnSync(process.execPath, [installScript], { cwd, stdio: "inherit" })
+  return result.status === 0
+}
+
 function installShortcut({
   platform = process.platform,
   homeDir = os.homedir(),
   projectRoot = path.resolve(__dirname, "..", ".."),
   electronBinary: binary,
   log = console.log,
+  installElectron = defaultInstallElectron,
 } = {}) {
   const binaryPath = binary || electronBinary(projectRoot, platform)
 
   if (!binary && !fs.existsSync(binaryPath)) {
-    throw new Error(
-      `Не знайдено Electron за шляхом: ${binaryPath}\n` +
-        "Спочатку виконай: cd desktop && npm install"
-    )
+    const installScript = joinFor(platform, projectRoot, "desktop", "node_modules", "electron", "install.js")
+
+    if (!fs.existsSync(installScript)) {
+      throw new Error(
+        `Electron not found at path: ${binaryPath}\n` +
+          "Run first: cd desktop && npm install"
+      )
+    }
+
+    const succeeded = installElectron({
+      installScript,
+      cwd: projectDesktopDir(projectRoot, platform),
+      log,
+    })
+
+    if (!succeeded || !fs.existsSync(binaryPath)) {
+      throw new Error(
+        `Failed to download Electron automatically (path: ${binaryPath}).\n` +
+          "Try manually:\n" +
+          "  cd desktop\n" +
+          "  node node_modules/electron/install.js\n" +
+          "If that also does not work — check your network/firewall (the binary is downloaded from github.com)."
+      )
+    }
+
+    log("Electron downloaded successfully.")
   }
 
   const files = buildLaunchers({
@@ -162,7 +192,7 @@ function installShortcut({
     fs.mkdirSync(path.dirname(file.path), { recursive: true })
     fs.writeFileSync(file.path, file.content, { mode: file.mode })
     fs.chmodSync(file.path, file.mode)
-    log(`Створено ярлик: ${file.path}`)
+    log(`Launcher created: ${file.path}`)
   }
 
   return files.map((file) => file.path)
@@ -177,7 +207,7 @@ function uninstallShortcut({
 
   for (const filePath of removed) {
     fs.rmSync(filePath, { force: true })
-    log(`Видалено ярлик: ${filePath}`)
+    log(`Launcher removed: ${filePath}`)
   }
 
   return removed
@@ -190,11 +220,11 @@ if (require.main === module) {
   try {
     if (remove) {
       const removed = uninstallShortcut()
-      if (removed.length === 0) console.log("Ярликів не знайдено.")
+      if (removed.length === 0) console.log("No launchers found.")
     } else {
       const created = installShortcut()
-      console.log(`\nГотово. Ярликів створено: ${created.length}.`)
-      console.log("Тепер запускай застосунок подвійним кліком на Робочому столі.")
+      console.log(`\nDone. Launchers created: ${created.length}.`)
+      console.log("Now launch the app by double-clicking the icon on your Desktop.")
     }
   } catch (error) {
     console.error(error.message)

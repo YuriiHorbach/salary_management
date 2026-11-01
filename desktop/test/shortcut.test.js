@@ -119,6 +119,101 @@ test("uninstallShortcut removes generated launchers", () => {
   assert.equal(fs.existsSync(removed[0]), false)
 })
 
+test("installShortcut downloads electron automatically when the binary is missing", () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "salary-project-"))
+  const electronDir = path.join(projectRoot, "desktop", "node_modules", "electron")
+  fs.mkdirSync(electronDir, { recursive: true })
+  fs.writeFileSync(path.join(electronDir, "install.js"), "")
+
+  const binaryPath = path.join(electronDir, "dist", "electron")
+  let installCalls = 0
+
+  const written = installShortcut({
+    platform: "linux",
+    homeDir,
+    projectRoot,
+    log: () => {},
+    installElectron: () => {
+      installCalls += 1
+      fs.mkdirSync(path.dirname(binaryPath), { recursive: true })
+      fs.writeFileSync(binaryPath, "")
+      return true
+    },
+  })
+
+  assert.equal(installCalls, 1)
+  assert.equal(written.length > 0, true)
+
+  fs.rmSync(projectRoot, { recursive: true, force: true })
+})
+
+test("installShortcut reports a clear error when the automatic download fails", () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "salary-project-"))
+  const electronDir = path.join(projectRoot, "desktop", "node_modules", "electron")
+  fs.mkdirSync(electronDir, { recursive: true })
+  fs.writeFileSync(path.join(electronDir, "install.js"), "")
+
+  let installCalls = 0
+  const binaryPath = path.join(electronDir, "dist", "electron")
+
+  assert.throws(
+    () =>
+      installShortcut({
+        platform: "linux",
+        homeDir,
+        projectRoot,
+        log: () => {},
+        installElectron: () => {
+          installCalls += 1
+          return false
+        },
+      }),
+    (error) => {
+      assert.match(error.message, /failed to download electron automatically/i)
+      assert.match(error.message, new RegExp(binaryPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+      assert.match(error.message, /cd desktop/)
+      assert.match(error.message, /node node_modules\/electron\/install\.js/)
+      assert.match(error.message, /github\.com/)
+      assert.match(error.message, /network\/firewall/)
+      return true
+    }
+  )
+
+  assert.equal(installCalls, 1)
+
+  fs.rmSync(projectRoot, { recursive: true, force: true })
+})
+
+test("installShortcut tells the user to run npm install when the electron package itself is missing", () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "salary-project-"))
+  fs.mkdirSync(path.join(projectRoot, "desktop"), { recursive: true })
+
+  let installCalls = 0
+
+  assert.throws(
+    () =>
+      installShortcut({
+        platform: "linux",
+        homeDir,
+        projectRoot,
+        log: () => {},
+        installElectron: () => {
+          installCalls += 1
+          return true
+        },
+      }),
+    (error) => {
+      assert.match(error.message, /Electron not found at path/)
+      assert.match(error.message, /cd desktop && npm install/)
+      return true
+    }
+  )
+
+  assert.equal(installCalls, 0, "installElectron must never run without install.js")
+
+  fs.rmSync(projectRoot, { recursive: true, force: true })
+})
+
 test("buildLaunchers rejects unsupported platforms", () => {
   assert.throws(
     () =>
@@ -128,6 +223,6 @@ test("buildLaunchers rejects unsupported platforms", () => {
         projectRoot: PROJECT_ROOT,
         electronBinary: ELECTRON_BINARIES.linux,
       }),
-    /не підтримується/
+    /Unsupported platform/
   )
 })

@@ -8,7 +8,7 @@
   </div>
 
   <div class="bg-white divide-y divide-gray-200">
-    <% sick_days.group_by(&:period).each do |period, days| %>
+    <% grouped_sick_days.each do |period, days| %>
       <%= render partial: 'row', collection: days, as: :sd %>
       <%= render 'summary_row', period: period, summaries: sick_days_summaries %>
     <% end %>

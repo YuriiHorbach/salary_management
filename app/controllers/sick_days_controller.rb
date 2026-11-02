@@ -61,6 +61,7 @@ class SickDaysController < ApplicationController
 
   def load_sick_days
     @sick_days = @employee.sick_days.order(period: :desc)
+    @sick_days_by_period = @sick_days.group_by(&:period)
     @sick_days_summaries = @employee.sick_days_summaries(@sick_days)
   end
 
@@ -79,7 +80,7 @@ class SickDaysController < ApplicationController
     turbo_stream.replace(
       'sick_days_list',
       partial: 'sick_days/list',
-      locals: { sick_days: @sick_days, sick_days_summaries: summaries }
+      locals: { grouped_sick_days: @sick_days_by_period, sick_days_summaries: summaries }
     )
   end
 

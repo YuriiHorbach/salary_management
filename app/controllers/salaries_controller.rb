@@ -25,6 +25,7 @@ class SalariesController < ApplicationController
     @pagy, @salaries = pagy(:offset, salaries, limit: SALARIES_PER_PAGE)
     @period_incomes = EmployeePeriodIncome.where(employee: @employee).order(period: :desc)
     @period_incomes = @period_incomes.for_period(@period) if @period
+    @period_income_rows = Salaries::PeriodIncomeTable.new(@period_incomes).call
     @departments = @employee.departments.distinct.order(:name)
     load_salary_totals_by_position
   end

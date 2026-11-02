@@ -19,7 +19,6 @@
 <% if @period_incomes.any? %>
   <div class="m-5 overflow-x-auto">
     <h2 class="text-lg font-semibold mb-2"><%= t('salaries.index.period_totals') %></h2>
-    <% money = ->(cents) { number_to_currency(cents.to_i / 100.0) } %>
     <table class="min-w-full border-collapse text-sm">
       <thead class="bg-gray-100">
         <tr>
@@ -39,31 +38,21 @@
         </tr>
       </thead>
       <tbody>
-        <% @period_incomes.group_by(&:period).sort_by(&:first).reverse_each do |period, rows| %>
-          <% by_type = rows.index_by(&:income_type) %>
-          <% salary = by_type['salary'] %>
-          <% vacation = by_type['vacation'] %>
-          <% sick = by_type['sick_day'] %>
+        <% @period_income_rows.each do |row| %>
           <tr class="hover:bg-gray-50">
-            <td class="border border-gray-300 px-2 py-2 whitespace-nowrap"><%= period.strftime('%m-%Y') %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(salary&.gross_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(salary&.income_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(salary&.military_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(vacation&.gross_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(vacation&.income_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(vacation&.military_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(sick&.gross_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(sick&.income_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= money.call(sick&.military_tax_cents) %></td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono">
-              <%= money.call((salary&.gross_cents.to_i) + (vacation&.gross_cents.to_i) + (sick&.gross_cents.to_i)) %>
-            </td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono">
-              <%= money.call((salary&.income_tax_cents.to_i) + (vacation&.income_tax_cents.to_i) + (sick&.income_tax_cents.to_i)) %>
-            </td>
-            <td class="border border-gray-300 px-2 py-2 text-right font-mono">
-              <%= money.call((salary&.military_tax_cents.to_i) + (vacation&.military_tax_cents.to_i) + (sick&.military_tax_cents.to_i)) %>
-            </td>
+            <td class="border border-gray-300 px-2 py-2 whitespace-nowrap"><%= row.period.strftime('%m-%Y') %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.salary&.gross_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.salary&.income_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.salary&.military_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.vacation&.gross_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.vacation&.income_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.vacation&.military_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.sick&.gross_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.sick&.income_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.sick&.military_tax_cents) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.gross_total) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.income_tax_total) %></td>
+            <td class="border border-gray-300 px-2 py-2 text-right font-mono"><%= format_money(row.military_tax_total) %></td>
           </tr>
         <% end %>
       </tbody>

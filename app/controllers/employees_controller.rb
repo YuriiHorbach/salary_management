@@ -26,9 +26,7 @@ class EmployeesController < ApplicationController
     name_filters = {}
     %w[last_name first_name patronic_name].each do |field|
       key = "#{field}_cont"
-      if search_params[key].present?
-        name_filters[field] = search_params.delete(key)
-      end
+      name_filters[field] = search_params.delete(key) if search_params[key].present?
     end
 
     base_scope = Employee
@@ -49,20 +47,12 @@ class EmployeesController < ApplicationController
 
     @salary_amount_uah = params.dig(:salary_q, :amount_cents_eq).to_s.strip
 
-    # used salary_q from params
-    @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q)
-    salary_scope = @salary_q.result
-    @pagy_salaries, salary_records = pagy(:offset, salary_scope.includes(:department),
-                                          limit: SALARIES_PER_PAGE, page_key: 'salaries_page')
-    @employee_salaries = salary_records.group_by(&:department)
-
+    salary_scope = load_salary_search
     @departments = Department.all
 
     prepare_monthly_totals(salary_scope)
 
-    @vacation_q = @employee.vacations.ransack(params[:vacation_q], search_key: :vacation_q)
-    @pagy_vacations, @vacations = pagy(:offset, @vacation_q.result.order(period: :desc),
-                                       limit: VACATIONS_PER_PAGE, page_key: 'vacations_page')
+    load_vacation_search
 
     @sick_days_summaries = @employee.addition_income_summaries(@employee.sick_days)
   end
@@ -168,13 +158,48 @@ class EmployeesController < ApplicationController
 
   def prepare_monthly_totals(scope)
     grouped = scope.group_by { |salary| salary.paid_on.strftime('%Y-%m') }
-    @monthly_totals = grouped.transform_values { |salaries| salaries.sum(&:amount_cents) / 100.0 }
+    totals = grouped.transform_values { |salaries| salaries.sum(&:amount_cents) / 100.0 }
 
-    if params[:month].present?
-      month_param = params[:month].rjust(2, '0')
-      @monthly_totals.select! { |m, _| m.split('-').last == month_param }
-    end
+    @monthly_totals = sort_monthly_totals(filter_monthly_totals(totals))
+  end
 
-    @monthly_totals.select! { |m, _| m.split('-').first == params[:year] } if params[:year].present?
+  # Keeps only the months requested through the +year+/+month+ filters.
+  #
+  # @param totals [Hash{String => Float}] monthly totals keyed by +YYYY-MM+
+  # @return [Hash{String => Float}] filtered copy of +totals+
+  def filter_monthly_totals(totals)
+    totals = totals.select { |m, _| m.split('-').last == params[:month].rjust(2, '0') } if params[:month].present?
+
+    totals = totals.select { |m, _| m.split('-').first == params[:year] } if params[:year].present?
+
+    totals
+  end
+
+  # Orders monthly totals newest month first for rendering.
+  #
+  # @param totals [Hash{String => Float}] monthly totals keyed by +YYYY-MM+
+  # @return [Hash{String => Float}] totals sorted by month descending
+  def sort_monthly_totals(totals)
+    totals.sort.reverse.to_h
+  end
+
+  # Loads the salary search, its paginated page and the rows grouped by
+  # department.
+  #
+  # @return [ActiveRecord::Relation] searched scope used for monthly totals
+  def load_salary_search
+    @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q)
+    salary_scope = @salary_q.result
+    @pagy_salaries, salary_records = pagy(:offset, salary_scope.includes(:department),
+                                          limit: SALARIES_PER_PAGE, page_key: 'salaries_page')
+    @employee_salaries = salary_records.group_by(&:department)
+    salary_scope
+  end
+
+  # Loads the vacation search and its paginated page.
+  def load_vacation_search
+    @vacation_q = @employee.vacations.ransack(params[:vacation_q], search_key: :vacation_q)
+    @pagy_vacations, @vacations = pagy(:offset, @vacation_q.result.order(period: :desc),
+                                       limit: VACATIONS_PER_PAGE, page_key: 'vacations_page')
   end
 end

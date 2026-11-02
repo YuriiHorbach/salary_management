@@ -102,7 +102,7 @@
       </tr>
     </thead>
     <tbody>
-      <% @monthly_totals.sort.reverse.each do |month, total| %>
+      <% @monthly_totals.each do |month, total| %>
         <tr class="border-b border-gray-100">
           <td class="px-2 py-1"><%= month %></td>
           <td class="px-2 py-1"><%= number_to_currency(total) %></td>

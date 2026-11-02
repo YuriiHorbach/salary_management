@@ -11,5 +11,7 @@
              title: t('sick_days.index.title', name: "#{@employee.last_name} #{@employee.first_name}"),
              actions: actions %>
 
-  <%= render 'list', sick_days: @sick_days, sick_days_summaries: @sick_days_summaries %>
+  <%= render 'list',
+             grouped_sick_days: @sick_days_by_period,
+             sick_days_summaries: @sick_days_summaries %>
 </div>

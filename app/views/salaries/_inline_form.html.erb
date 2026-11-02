@@ -23,7 +23,7 @@
     <% end %>
 
     <% typed_amount = params.dig(:salary, :amount).presence %>
-    <% persisted_amount = salary.amount_cents.to_i.positive? ? salary.amount_cents / 100.0 : nil %>
+    <% persisted_amount = salary.amount_cents.to_i.positive? ? money_value(salary.amount_cents) : nil %>
     <%= form.number_field :amount,
                           step: :any,
                           min: 0,

@@ -6,7 +6,7 @@
            class="flex items-center justify-between gap-2">
         <span class="text-xs text-gray-600 truncate"><%= position.position_name %>:</span>
         <% if amount_cents %>
-          <%= link_to number_to_currency(amount_cents / 100.0),
+          <%= link_to format_money(amount_cents),
                       employee_salaries_path(employee, period: period.strftime('%Y-%m')),
                       data: { turbo_frame: '_top' },
                       class: "text-blue-600 hover:underline font-mono text-xs whitespace-nowrap" %>
@@ -27,7 +27,7 @@
       <div id="salary_position_<%= employee.id %>_none"
            class="flex items-center justify-between gap-2">
         <span class="text-xs text-gray-600 truncate"><%= t('.no_position') %></span>
-        <%= link_to number_to_currency(positionless_amount_cents / 100.0),
+        <%= link_to format_money(positionless_amount_cents),
                     employee_salaries_path(employee, period: period.strftime('%Y-%m')),
                     data: { turbo_frame: '_top' },
                     class: "text-blue-600 hover:underline font-mono text-xs whitespace-nowrap" %>

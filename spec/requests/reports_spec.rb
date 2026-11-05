@@ -56,6 +56,12 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).not_to include('$3000,00', '₴3000,00', '3000,00 ₴')
     end
 
+    it 'renders a link to the 4-DF CSV export keeping the active filters' do
+      get reports_path(q: { by_year: Date.current.year })
+
+      expect(response.body).to include(four_df_reports_path(q: { by_year: Date.current.year }))
+    end
+
     context 'when two departments contain salaries with the same amount' do
       let!(:salary) { nil } # disable the shared salary so the footer is deterministic
       let(:first_department) { create(:department, name: 'Відділ C1 A') }
@@ -196,6 +202,76 @@ RSpec.describe 'Reports', type: :request do
 
         expect(response.media_type).to eq('text/html')
       end
+    end
+  end
+
+  describe 'GET /reports/four_df' do
+    it 'returns a CSV attachment named after the 4-DF form' do
+      get four_df_reports_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+      expect(response.headers['Content-Disposition']).to include("4df-#{Date.current}.csv")
+    end
+
+    it 'renders the 25 M.E.Doc headers as the first row' do
+      get four_df_reports_path
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+      expect(rows.first.size).to eq(25)
+      expect(rows.first.first).to eq('TIN,C,10')
+      expect(rows.first.last).to eq('R3_OZN,N,1,0')
+    end
+
+    it 'exports one aggregated row per employee with comma money formatting' do
+      get four_df_reports_path
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+      data_row = rows.last
+
+      expect(rows.size).to eq(2)
+      expect(data_row[0]).to eq(employee.id_code)
+      expect(data_row[1]).to eq('3000,00')
+      expect(data_row[7]).to eq('101')
+    end
+
+    it 'respects the year filter of the general report' do
+      get four_df_reports_path(q: { by_year: Date.current.year + 1 })
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+      expect(rows.size).to eq(1)
+    end
+
+    it 'exports money cells that equal the detailed report totals' do
+      create(:vacation, employee: employee, vacation_amount_cents: 100_000,
+                        income_tax_cents: 18_000, military_tax_cents: 5_000, net_amount_cents: 77_000)
+      create(:sick_day, employee: employee, pfu_amount_cents: 20_000,
+                        enterprise_amount_cents: 10_000, period: Date.current)
+
+      get four_df_reports_path
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+      data_row = rows.last
+      detailed = Reports::EmployeeDetailedQuery.new.call[:employees]
+                                               .find { |row| row[:employee_id] == employee.id }
+      to_cents = ->(cell) { (cell.tr(',', '.').to_f * 100).round }
+
+      expect(to_cents.call(data_row[1])).to eq((detailed[:total_income] * 100).round)   # S_NAR/S_DOX
+      expect(to_cents.call(data_row[3])).to eq((detailed[:total_tax] * 100).round)      # S_TAXN/S_TAXP
+      expect(to_cents.call(data_row[5])).to eq((detailed[:total_military] * 100).round) # A051/A05
+    end
+
+    it 'fills OZN_PILG from the employee benefit flags in the database' do
+      employee.update!(children_count: 3)
+
+      get four_df_reports_path
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+      expect(rows.last[10]).to eq('4')
     end
   end
 

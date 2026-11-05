@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 module Reports
-  # Builds the detailed payroll report rows and totals for the active filters.
-  #
-  # Employee search uses the precomputed +search_text+ column so partial,
-  # multi-word and Cyrillic case-insensitive lookups work under any collation.
   class EmployeeDetailedQuery
     COLUMN_LABELS = {
       id_code: 'ІПН',
@@ -138,34 +134,23 @@ module Reports
       }
     end
 
-    # Salary and vacation are taxed together, so the PSP and its threshold apply
-    # to their combined gross instead of each income type separately. Sick leave
-    # keeps its own flat-rate taxes and is only added afterwards.
     def total_columns(salary, vacation, sick, employee)
-      gross_cents = salary[:gross_cents] + vacation[:gross_cents]
-      tax = Reports::SalaryVacationTaxCalculator.call(
+      totals = Reports::EmployeePeriodTotals.call(
+        salary: salary,
+        vacation: vacation,
+        sick: sick,
         employee: employee,
-        gross_cents: gross_cents,
         settings: tax_settings
       )
 
-      combined_columns(gross_cents, tax).merge(overall_columns(gross_cents, tax, sick))
-    end
-
-    def combined_columns(gross_cents, tax)
       {
-        gross_vacation: uah(gross_cents),
-        gross_vacation_income_tax: uah(tax[:income_tax_cents]),
-        gross_vacation_military_tax: uah(tax[:military_tax_cents])
-      }
-    end
-
-    def overall_columns(gross_cents, tax, sick)
-      {
-        total_income: uah(gross_cents + sick[:gross_cents]),
-        total_tax: uah(tax[:income_tax_cents] + sick[:income_tax_cents]),
-        total_military: uah(tax[:military_tax_cents] + sick[:military_tax_cents]),
-        net_pay: uah(tax[:net_amount_cents] + sick[:net_cents])
+        gross_vacation: uah(totals[:combined_gross_cents]),
+        gross_vacation_income_tax: uah(totals[:combined_income_tax_cents]),
+        gross_vacation_military_tax: uah(totals[:combined_military_tax_cents]),
+        total_income: uah(totals[:gross_cents]),
+        total_tax: uah(totals[:income_tax_cents]),
+        total_military: uah(totals[:military_tax_cents]),
+        net_pay: uah(totals[:net_amount_cents])
       }
     end
 
@@ -219,8 +204,15 @@ module Reports
       @period_incomes ||= EmployeePeriodIncome.where(employee_id: employee_ids, period: period_range)
                                               .group_by(&:employee_id)
                                               .transform_values do |rows|
-                                                rows.index_by(&:income_type).transform_values { |row| income_hash(row) }
+                                                rows.group_by(&:income_type).transform_values do |typed_rows|
+                                                  typed_rows.map { |row| income_hash(row) }
+                                                           .reduce(zero_income) { |total, row| sum_hashes(total, row) }
+                                                end
                                               end
+    end
+
+    def sum_hashes(total, row)
+      total.merge(row) { |_key, left, right| left + right }
     end
 
     def income_hash(row)

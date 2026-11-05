@@ -63,6 +63,7 @@ en:
     reports: Reports
     summary_report: Salary summary
     detailed_report: Detailed report
+    export_4df: Export 4-DF
     settings: Settings
     system_settings: System settings
     brigades: Brigades
@@ -547,6 +548,7 @@ en:
       department: Department
       all_departments: All departments
       filter: Filter
+      export_4df: Export 4-DF (CSV)
       results: Report results
       headers:
         department: Department

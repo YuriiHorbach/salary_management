@@ -9,12 +9,7 @@ class ReportsController < ApplicationController
     @q = Salary.ransack(params[:q])
     @departments = Department.all
 
-    salaries = @q.result
-                 .by_month(params.dig(:q, :by_month))
-                 .by_year(params.dig(:q, :by_year))
-                 .by_department(params.dig(:q, :by_department))
-
-    report = SalaryReportService.new(salaries)
+    report = SalaryReportService.new(filtered_salaries(@q.result))
     @total_records = report.call
     @monthly_department_salaries = report.department_totals
   end
@@ -37,7 +32,22 @@ class ReportsController < ApplicationController
     end
   end
 
+  def four_df
+    rows = Reports::FourDfQuery.new(
+      year: params.dig(:q, :by_year),
+      month: params.dig(:q, :by_month),
+      department: params.dig(:q, :by_department)
+    ).call
+    send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df')
+  end
+
   private
+
+  def filtered_salaries(scope = Salary.ransack(params[:q]).result)
+    scope.by_month(params.dig(:q, :by_month))
+         .by_year(params.dig(:q, :by_year))
+         .by_department(params.dig(:q, :by_department))
+  end
 
   def prepare_detailed_html
     @q = Employee.ransack(params[:q])

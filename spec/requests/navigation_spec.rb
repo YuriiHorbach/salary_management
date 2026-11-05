@@ -49,6 +49,13 @@ RSpec.describe 'Main navigation menu', type: :request do
       expect(response.body).to include('/reports/detailed')
     end
 
+    it 'renders the 4-DF export sub-link inside the reports dropdown' do
+      get root_path
+
+      expect(response.body).to include(I18n.t('navigation.export_4df'))
+      expect(response.body).to include('/reports/four_df')
+    end
+
     it 'renders Stimulus dropdown controller on details elements' do
       get root_path
 

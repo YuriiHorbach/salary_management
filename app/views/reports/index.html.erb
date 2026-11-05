@@ -29,6 +29,12 @@
   <% end %>
 </div>
 
+<div class="mb-4">
+  <%= link_to t('reports.index.export_4df'),
+              four_df_reports_path(q: params[:q]&.permit(:by_year, :by_month, :by_department)),
+              class: 'btn btn-primary btn-xs font-bold py-2 px-4 rounded hover:bg-blue-700' %>
+</div>
+
 <hr>
 
 <%= turbo_frame_tag "report_results" do %>

@@ -159,5 +159,60 @@ RSpec.describe TaxCalculator, type: :service do
         expect(setting.psp_uah).to eq(TaxSetting::DEFAULTS[:psp_uah])
       end
     end
+
+    describe 'psp_sign (code of the benefit actually applied)' do
+      it 'is 2 when the disability benefit reduces the tax' do
+        res = described_class.call(amount_cents: 100_000, disability_group: 1)
+
+        expect(res[:psp_sign]).to eq('2')
+      end
+
+      it 'is 2 for a Chernobyl liquidator below the threshold' do
+        res = described_class.call(amount_cents: 300_000, chaes: true)
+
+        expect(res[:psp_sign]).to eq('2')
+      end
+
+      it 'is 4 when the children benefit reduces the tax' do
+        res = described_class.call(amount_cents: 200_000, children_count: 2)
+
+        expect(res[:psp_sign]).to eq('4')
+      end
+
+      it 'is empty for the ordinary benefit that has no special sign' do
+        res = described_class.call(amount_cents: 200_000)
+
+        expect(res[:psp_sign]).to eq('')
+      end
+
+      it 'is empty when the income exceeds the threshold and no benefit applies' do
+        res = described_class.call(amount_cents: 500_000, disability_group: 1)
+
+        expect(res[:income_tax_cents]).to eq(90_000) # flat 18%, пільгу не застосовано
+        expect(res[:psp_sign]).to eq('')
+      end
+
+      it 'reports the benefit actually applied when disability and children compete' do
+        # Two children give a 2x PSP that beats the 1.5x disability PSP.
+        res = described_class.call(amount_cents: 200_000, disability_group: 1, children_count: 2)
+
+        expect(res[:psp_sign]).to eq('4')
+      end
+
+      it 'has no sign for the single-parent benefit (no code defined)' do
+        res = described_class.call(amount_cents: 200_000, single_parent: true, children_count: 1)
+
+        expect(res[:psp_sign]).to eq('')
+      end
+
+      it 'is empty for contract and simple calculations without PSP' do
+        expect(described_class.call(amount_cents: 100_000, contract: true)[:psp_sign]).to eq('')
+        expect(described_class.call(amount_cents: 100_000, simple: true)[:psp_sign]).to eq('')
+      end
+
+      it 'is empty for a non-positive amount' do
+        expect(described_class.call(amount_cents: 0)[:psp_sign]).to eq('')
+      end
+    end
   end
 end

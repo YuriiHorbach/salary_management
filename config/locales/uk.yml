@@ -63,6 +63,7 @@ uk:
     reports: Звіти
     summary_report: Зведений звіт
     detailed_report: Детальний звіт
+    export_4df: Експорт 4-ДФ
     settings: Налаштування
     system_settings: Налаштування системи
     brigades: Бригади
@@ -545,6 +546,7 @@ uk:
       department: Відділ
       all_departments: Всі відділи
       filter: Фільтрувати
+      export_4df: Експорт 4-ДФ (CSV)
       results: Результати звіту
       headers:
         department: Відділ

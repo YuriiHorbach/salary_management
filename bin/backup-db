@@ -3,9 +3,50 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DB_NAME="${DB_NAME:-salary_management_development}"
-DB_USER="${DB_USER:-postgres}"
+# Target selection: the scripts run pg_dump/psql inside a Compose container, so
+# the important value is the service name, not the host port. Still, derive it
+# from DB_PORT/DB_NAME because agent shells export 5434/agent values while the
+# real development database lives in the `db` service on 5433.
+DB_PORT="${DB_PORT:-}"
+DB_NAME="${DB_NAME:-}"
+DB_SERVICE_WAS_SET="${DB_SERVICE:+1}"
+DB_SERVICE="${DB_SERVICE:-}"
+
+if [[ -z "$DB_SERVICE" ]]; then
+  if [[ "$DB_PORT" == "5434" || "$DB_NAME" == "salary_management_agent" ]]; then
+    DB_SERVICE="agent_db"
+  else
+    DB_SERVICE="db"
+  fi
+fi
+
+if [[ "$DB_SERVICE" == "agent_db" ]]; then
+  COMPOSE_PROFILE=(--profile agent)
+  DEFAULT_DB_NAME="salary_management_agent"
+  DEFAULT_DB_USER="sm_agent"
+else
+  COMPOSE_PROFILE=()
+  DEFAULT_DB_NAME="salary_management_development"
+  DEFAULT_DB_USER="postgres"
+fi
+
+DB_NAME="${DB_NAME:-$DEFAULT_DB_NAME}"
+DB_USER="${DB_USER:-${DB_USERNAME:-$DEFAULT_DB_USER}}"
+
 OUTPUT="${1:-backups/salary-management-$(date +%Y%m%d-%H%M%S).sql}"
+MANIFEST="${OUTPUT}.manifest"
+
+# Never silently mix an agent database name with the real `db` service.
+if [[ -z "$DB_SERVICE_WAS_SET" && "$DB_SERVICE" == "db" && "$DB_NAME" == *agent* ]]; then
+  echo "Помилка: база '$DB_NAME' схожа на агентську, але вибрано сервіс 'db' (порт 5433)." >&2
+  echo "Вкажи DB_SERVICE=agent_db або перевір DB_PORT/DB_NAME." >&2
+  exit 1
+fi
+
+if [[ "$DB_SERVICE" == "agent_db" && "$DB_NAME" == "salary_management_development" ]]; then
+  echo "Помилка: сервіс 'agent_db' не повинен бекапити робочу базу '$DB_NAME'." >&2
+  exit 1
+fi
 
 if docker compose version >/dev/null 2>&1; then
   COMPOSE=(docker compose)
@@ -21,12 +62,12 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Запускаю контейнер бази даних..."
-"${COMPOSE[@]}" up -d db >/dev/null
+echo "Запускаю сервіс '$DB_SERVICE'..."
+"${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" up -d "$DB_SERVICE" >/dev/null
 
 echo -n "Чекаю готовності PostgreSQL"
 for _ in {1..30}; do
-  if "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
+  if "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
     echo " — готово."
     break
   fi
@@ -34,9 +75,9 @@ for _ in {1..30}; do
   sleep 1
 done
 
-if ! "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
+if ! "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
   echo
-  echo "Помилка: база '$DB_NAME' недоступна. Перевір: ${COMPOSE[*]} logs db" >&2
+  echo "Помилка: база '$DB_NAME' недоступна в сервісі '$DB_SERVICE'. Перевір: ${COMPOSE[*]} logs $DB_SERVICE" >&2
   exit 1
 fi
 
@@ -45,8 +86,28 @@ umask 077
 TMP_OUTPUT="${OUTPUT}.part"
 trap 'rm -f "$TMP_OUTPUT"' EXIT
 
-echo "Створюю дамп бази '$DB_NAME'..."
-"${COMPOSE[@]}" exec -T db pg_dump -U "$DB_USER" -d "$DB_NAME" > "$TMP_OUTPUT"
+echo "Створюю дамп бази '$DB_NAME' (сервіс '$DB_SERVICE')..."
+"${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_dump -U "$DB_USER" -d "$DB_NAME" > "$TMP_OUTPUT"
 mv "$TMP_OUTPUT" "$OUTPUT"
 
+# A manifest lets restore-db verify that every table and row count survived the
+# round trip. It is written separately from the SQL dump so the dump stays a
+# plain, portable pg_dump file.
+COUNTS_SQL="SELECT relname, (xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM public.%I', relname), false, true, '')))[1]::text::int AS rows FROM pg_stat_user_tables WHERE schemaname = 'public' ORDER BY relname;"
+
+if ! {
+  echo "# salary_management backup manifest v1"
+  echo "database|$DB_NAME"
+  echo "service|$DB_SERVICE"
+  echo "created_at|$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "table|rows"
+  "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" psql -U "$DB_USER" -d "$DB_NAME" -At -F '|' -c "$COUNTS_SQL"
+} > "$MANIFEST"; then
+  rm -f "$MANIFEST"
+  echo "Попередження: дамп створено, але маніфест кількості рядків не вдався." >&2
+fi
+
 echo "Готово: $OUTPUT ($(du -h "$OUTPUT" | cut -f1))"
+if [[ -f "$MANIFEST" ]]; then
+  echo "Маніфест рядків: $MANIFEST"
+fi

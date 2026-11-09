@@ -3,13 +3,44 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DB_NAME="${DB_NAME:-salary_management_development}"
-DB_USER="${DB_USER:-postgres}"
-DB_PASSWORD="${DB_PASSWORD:-password}"
+# Target selection: the scripts run pg_dump/psql inside a Compose container, so
+# the important value is the service name, not the host port. Still, derive it
+# from DB_PORT/DB_NAME because agent shells export 5434/agent values while the
+# real development database lives in the `db` service on 5433.
+DB_PORT="${DB_PORT:-}"
+DB_NAME="${DB_NAME:-}"
+DB_SERVICE_WAS_SET="${DB_SERVICE:+1}"
+DB_SERVICE="${DB_SERVICE:-}"
+
+if [[ -z "$DB_SERVICE" ]]; then
+  if [[ "$DB_PORT" == "5434" || "$DB_NAME" == "salary_management_agent" ]]; then
+    DB_SERVICE="agent_db"
+  else
+    DB_SERVICE="db"
+  fi
+fi
+
+if [[ "$DB_SERVICE" == "agent_db" ]]; then
+  COMPOSE_PROFILE=(--profile agent)
+  DEFAULT_DB_NAME="salary_management_agent"
+  DEFAULT_DB_USER="sm_agent"
+  DEFAULT_DB_PASSWORD="agent_password"
+else
+  COMPOSE_PROFILE=()
+  DEFAULT_DB_NAME="salary_management_development"
+  DEFAULT_DB_USER="postgres"
+  DEFAULT_DB_PASSWORD="password"
+fi
+
+DB_NAME="${DB_NAME:-$DEFAULT_DB_NAME}"
+DB_USER="${DB_USER:-${DB_USERNAME:-$DEFAULT_DB_USER}}"
+DB_PASSWORD="${DB_PASSWORD:-$DEFAULT_DB_PASSWORD}"
+
+COUNTS_SQL="SELECT relname, (xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM public.%I', relname), false, true, '')))[1]::text::int AS rows FROM pg_stat_user_tables WHERE schemaname = 'public' ORDER BY relname;"
 
 usage() {
   cat <<'USAGE'
-Використання: bin/restore-db <файл-дампу> [--yes]
+Використання: bin/restore-db <файл-дампу> [--yes] [--no-verify] [--migrate]
 
 Відновлює базу даних з дампу, створеного pg_dump.
 Підтримуються plain SQL та custom/tar формати.
@@ -17,27 +48,45 @@ usage() {
 За замовчуванням поточна база ПЕРЕСТВОРЮЄТЬСЯ (дані буде втрачено),
 тому перед цим буде запитано підтвердження.
 
-  -y, --yes    не питати підтвердження
-  -h, --help   показати цю довідку
+Після відновлення скрипт перевіряє кількість рядків кожної таблиці за
+файлом-маніфестом, який створює bin/backup-db. Це виявляє неповне
+відновлення або відновлення не в ту базу.
+
+Міграції за замовчуванням НЕ застосовуються: дамп відновлюється точно
+як є. Це захищає від втрати рядків, яку можуть спричинити міграції з
+дедублікацією або перетворенням даних. Якщо код новіший за дамп,
+запусти міграції окремо або додай --migrate.
+
+  -y, --yes        не питати підтвердження
+  -n, --no-verify  не порівнювати кількість рядків з маніфестом
+  -m, --migrate    застосувати міграції після відновлення (може змінити дані)
+  -h, --help       показати цю довідку
 
 Змінні середовища:
-  DB_NAME      ім'я бази (типово salary_management_development)
-  DB_USER      користувач (типово postgres)
-  DB_PASSWORD  пароль (типово password)
+  DB_SERVICE   compose-сервіс: db (5433, робоча) або agent_db (5434)
+  DB_PORT      порт на хості; 5434 автоматично вибирає agent_db
+  DB_NAME      ім'я бази (типово залежить від сервісу)
+  DB_USER      користувач (також читається DB_USERNAME)
+  DB_PASSWORD  пароль (типово залежить від сервісу)
 
 Приклади:
   bin/restore-db backups/salary-management-20261020-120000.sql
   bin/restore-db dump.sql --yes
-  DB_NAME=salary_management_restore_test bin/restore-db dump.sql --yes
+  DB_SERVICE=agent_db DB_NAME=salary_management_agent_restore_check \
+    bin/restore-db dump.sql --yes
 USAGE
 }
 
 DUMP_FILE=""
 ASSUME_YES=false
+VERIFY=true
+RUN_MIGRATIONS=false
 
 for arg in "$@"; do
   case "$arg" in
     -y|--yes) ASSUME_YES=true ;;
+    -n|--no-verify) VERIFY=false ;;
+    -m|--migrate) RUN_MIGRATIONS=true ;;
     -h|--help) usage; exit 0 ;;
     -*) echo "Невідомий параметр: $arg" >&2; usage; exit 1 ;;
     *) DUMP_FILE="$arg" ;;
@@ -51,6 +100,18 @@ fi
 
 if [[ ! -f "$DUMP_FILE" ]]; then
   echo "Помилка: файл не знайдено: $DUMP_FILE" >&2
+  exit 1
+fi
+
+# Never silently mix an agent database name with the real `db` service.
+if [[ -z "$DB_SERVICE_WAS_SET" && "$DB_SERVICE" == "db" && "$DB_NAME" == *agent* ]]; then
+  echo "Помилка: база '$DB_NAME' схожа на агентську, але вибрано сервіс 'db' (порт 5433)." >&2
+  echo "Вкажи DB_SERVICE=agent_db або перевір DB_PORT/DB_NAME." >&2
+  exit 1
+fi
+
+if [[ "$DB_SERVICE" == "agent_db" && "$DB_NAME" == "salary_management_development" ]]; then
+  echo "Помилка: сервіс 'agent_db' не повинен відновлювати робочу базу '$DB_NAME'." >&2
   exit 1
 fi
 
@@ -69,7 +130,7 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 if [[ "$ASSUME_YES" != true ]]; then
-  echo "УВАГА: базу '$DB_NAME' буде видалено й створено заново."
+  echo "УВАГА: базу '$DB_NAME' у сервісі '$DB_SERVICE' буде видалено й створено заново."
   echo "Усі поточні дані в ній буде втрачено."
   read -r -p "Продовжити? [y/N] " answer
   if [[ ! "$answer" =~ ^[Yy]$ ]]; then
@@ -78,12 +139,12 @@ if [[ "$ASSUME_YES" != true ]]; then
   fi
 fi
 
-echo "Запускаю контейнер бази даних..."
-"${COMPOSE[@]}" up -d db >/dev/null
+echo "Запускаю сервіс '$DB_SERVICE'..."
+"${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" up -d "$DB_SERVICE" >/dev/null
 
 echo -n "Чекаю готовності PostgreSQL"
 for _ in {1..30}; do
-  if "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" >/dev/null 2>&1; then
+  if "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
     echo " — готово."
     break
   fi
@@ -91,19 +152,19 @@ for _ in {1..30}; do
   sleep 1
 done
 
-if ! "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" >/dev/null 2>&1; then
+if ! "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
   echo
-  echo "Помилка: PostgreSQL недоступний. Перевір: ${COMPOSE[*]} logs db" >&2
+  echo "Помилка: PostgreSQL недоступний у сервісі '$DB_SERVICE'. Перевір: ${COMPOSE[*]} logs $DB_SERVICE" >&2
   exit 1
 fi
 
-if [[ "$DB_NAME" == "salary_management_development" ]]; then
+if [[ "$DB_SERVICE" == "db" && "$DB_NAME" == "salary_management_development" ]]; then
   echo "Зупиняю web, щоб звільнити з'єднання з базою..."
   "${COMPOSE[@]}" stop web >/dev/null 2>&1 || true
 fi
 
-echo "Перестворюю базу '$DB_NAME'..."
-"${COMPOSE[@]}" exec -T db psql -U "$DB_USER" -d postgres -v ON_ERROR_STOP=1 \
+echo "Перестворюю базу '$DB_NAME' у сервісі '$DB_SERVICE'..."
+"${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" psql -U "$DB_USER" -d postgres -v ON_ERROR_STOP=1 \
   -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();" \
   -c "DROP DATABASE IF EXISTS \"$DB_NAME\";" \
   -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
@@ -112,23 +173,74 @@ MAGIC="$(head -c 5 "$DUMP_FILE" 2>/dev/null || true)"
 
 echo "Відновлюю дані з '$DUMP_FILE'..."
 if [[ "$MAGIC" == "PGDMP" ]]; then
-  "${COMPOSE[@]}" exec -T db pg_restore -U "$DB_USER" -d "$DB_NAME" \
-    --no-owner --no-privileges < "$DUMP_FILE"
+  "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" pg_restore -U "$DB_USER" -d "$DB_NAME" \
+    --no-owner --no-privileges --exit-on-error < "$DUMP_FILE"
 else
-  "${COMPOSE[@]}" exec -T db psql -q -U "$DB_USER" -d "$DB_NAME" \
+  "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" psql -q -U "$DB_USER" -d "$DB_NAME" \
     -v ON_ERROR_STOP=1 < "$DUMP_FILE"
 fi
 
-echo "Застосовую міграції до '$DB_NAME'..."
-DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}"
-"${COMPOSE[@]}" run --rm -e DATABASE_URL="$DATABASE_URL" -e SKIP_SCHEMA_DUMP=1 \
-  web bin/rails db:migrate
+restored_table_counts() {
+  "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" exec -T "$DB_SERVICE" psql -U "$DB_USER" -d "$DB_NAME" \
+    -At -F '|' -c "$COUNTS_SQL"
+}
 
-if [[ "$DB_NAME" == "salary_management_development" ]]; then
+EXPECTED_COUNTS=""
+ACTUAL_COUNTS=""
+cleanup() {
+  if [[ -n "$EXPECTED_COUNTS" ]]; then rm -f "$EXPECTED_COUNTS"; fi
+  if [[ -n "$ACTUAL_COUNTS" ]]; then rm -f "$ACTUAL_COUNTS"; fi
+  return 0
+}
+trap cleanup EXIT
+
+MANIFEST="${DUMP_FILE}.manifest"
+if [[ "$VERIFY" == true ]]; then
+  if [[ -f "$MANIFEST" ]]; then
+    echo "Перевіряю кількість рядків у відновленій базі за маніфестом..."
+    EXPECTED_COUNTS="$(mktemp "${TMPDIR:-/tmp}/restore-expected.XXXXXX")"
+    ACTUAL_COUNTS="$(mktemp "${TMPDIR:-/tmp}/restore-actual.XXXXXX")"
+
+    if ! grep -E '^[A-Za-z0-9_]+\|[0-9]+$' "$MANIFEST" | LC_ALL=C sort > "$EXPECTED_COUNTS"; then
+      echo "Помилка: маніфест '$MANIFEST' не містить таблиць із кількістю рядків." >&2
+      exit 1
+    fi
+
+    restored_table_counts | LC_ALL=C sort > "$ACTUAL_COUNTS"
+
+    if diff -u "$EXPECTED_COUNTS" "$ACTUAL_COUNTS"; then
+      echo "Перевірка рядків: OK — усі таблиці та кількості рядків збігаються."
+    else
+      echo "ПОМИЛКА: кількість рядків не збігається з маніфестом." >&2
+      echo "Можливі причини: пошкоджений дамп, інша база/схема або відновлення не в той сервіс." >&2
+      exit 1
+    fi
+  else
+    echo "Маніфест '$MANIFEST' не знайдено — перевірку рядків пропущено."
+    echo "Для повної перевірки створюй бекап через bin/backup-db."
+  fi
+fi
+
+if [[ "$RUN_MIGRATIONS" == true ]]; then
+  echo "Застосовую міграції до '$DB_NAME' (це може змінити або видалити дані)..."
+  "${COMPOSE[@]}" "${COMPOSE_PROFILE[@]}" run --rm --no-deps \
+    -e DB_HOST="$DB_SERVICE" \
+    -e DB_PORT=5432 \
+    -e DB_NAME="$DB_NAME" \
+    -e DB_USERNAME="$DB_USER" \
+    -e DB_PASSWORD="$DB_PASSWORD" \
+    -e SKIP_SCHEMA_DUMP=1 \
+    web bin/rails db:migrate
+else
+  echo "Міграції не застосовувались: дамп відновлено точно як є."
+  echo "Якщо код новіший за дамп, запусти міграції окремо або додай --migrate."
+fi
+
+if [[ "$DB_SERVICE" == "db" && "$DB_NAME" == "salary_management_development" ]]; then
   echo "Запускаю web..."
   "${COMPOSE[@]}" up -d web >/dev/null
   echo "Готово. Застосунок доступний на http://localhost:3000"
 else
-  echo "Готово. Базу '$DB_NAME' відновлено."
-  echo "Щоб запустити застосунок саме з нею, задай DATABASE_URL для контейнера web."
+  echo "Готово. Базу '$DB_NAME' відновлено в сервісі '$DB_SERVICE'."
+  echo "Щоб запустити застосунок саме з нею, задай відповідні DB_* для контейнера web."
 fi

@@ -95,7 +95,39 @@ bin/backup-db
 bin/restore-db backups/salary-management-dump.sql --yes
 ```
 
-> **Warning:** `restore-db` deletes and recreates the target database. Verify the database name first.
+`bin/backup-db` writes the SQL dump plus a `<dump>.manifest` file with the exact
+row count of every `public` table. `bin/restore-db` restores the dump and, when
+the manifest is present, compares every table and row count before finishing.
+This catches truncated dumps and restores aimed at the wrong database.
+
+The scripts choose the Compose service from the environment:
+
+| Environment | Service | Database |
+|---|---|---|
+| `DB_PORT=5433` (default) | `db` | `salary_management_development` |
+| `DB_PORT=5434` or `DB_NAME=salary_management_agent` | `agent_db` | `salary_management_agent` |
+
+Override the service explicitly with `DB_SERVICE=db` or `DB_SERVICE=agent_db`.
+The scripts also honour `DB_USERNAME` (or `DB_USER`).
+
+Restoring an agent database into a throw-away database for verification:
+
+```bash
+DB_PORT=5434 DB_NAME=salary_management_agent bin/backup-db /tmp/agent.sql
+DB_SERVICE=agent_db DB_NAME=salary_management_agent_restore_check \
+  bin/restore-db /tmp/agent.sql --yes
+```
+
+Migrations are **not** applied automatically after a restore, because data
+migrations can merge or delete rows (for example, duplicate salaries). The dump
+is restored exactly as-is. If the application code is newer than the dump, run
+migrations explicitly:
+
+```bash
+bin/restore-db backups/salary-management-dump.sql --yes --migrate
+```
+
+> **Warning:** `restore-db` deletes and recreates the target database. Verify the database name and `DB_SERVICE` first.
 
 ## Testing
 

@@ -545,6 +545,7 @@ en:
       all_years: All years
       month: Month
       all_months: All months
+      period: Period
       department: Department
       all_departments: All departments
       filter: Filter
@@ -572,6 +573,8 @@ en:
       title: Detailed employee report
       date_from: From date
       date_to: To date
+      period: Period
+      export_period_hint: Optional. Leave empty to export using the current filters.
       department: Department
       all_departments: All departments
       position: Position

@@ -219,6 +219,43 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(emp_row[:base_salary]).to eq(1000.00)
     end
 
+    it 'filters by a YYYY-MM period' do
+      period = 1.month.ago.beginning_of_month
+      create(:salary, employee: emp1, department: department, amount_cents: 50_000,
+                      paid_on: period, period: period)
+
+      result = described_class.new(period: period.strftime('%Y-%m')).call
+
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+      expect(emp_row[:base_salary]).to eq(500.00)
+    end
+
+    it 'lets the period override the date range' do
+      period = 1.month.ago.beginning_of_month
+      create(:salary, employee: emp1, department: department, amount_cents: 50_000,
+                      paid_on: period, period: period)
+
+      result = described_class.new(
+        period: period.strftime('%Y-%m'),
+        date_from: Date.current.beginning_of_month,
+        date_to: Date.current.end_of_month
+      ).call
+
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+      expect(emp_row[:base_salary]).to eq(500.00)
+    end
+
+    it 'ignores an invalid period and keeps the date range' do
+      result = described_class.new(
+        period: 'not-a-month',
+        date_from: Date.current.beginning_of_month,
+        date_to: Date.current.end_of_month
+      ).call
+
+      emp_row = result[:employees].find { |e| e[:id_code] == '1234567890' }
+      expect(emp_row[:base_salary]).to eq(1000.00)
+    end
+
     it 'returns empty when no employees match' do
       result = described_class.new(brigade: 999999).call
 

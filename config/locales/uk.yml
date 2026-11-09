@@ -543,6 +543,7 @@ uk:
       all_years: Всі роки
       month: Місяць
       all_months: Всі місяці
+      period: Період
       department: Відділ
       all_departments: Всі відділи
       filter: Фільтрувати
@@ -570,6 +571,8 @@ uk:
       title: Детальний звіт по співробітникам
       date_from: З дати
       date_to: По дату
+      period: Період
+      export_period_hint: Необов'язково. Залиште порожнім, щоб експортувати з поточними фільтрами.
       department: Підрозділ
       all_departments: Всі підрозділи
       position: Посада

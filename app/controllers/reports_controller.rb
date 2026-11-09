@@ -19,7 +19,10 @@ class ReportsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.csv { send_csv(Reports::SalarySummaryCsvExporter.new(@result).call, 'summary') }
+      format.csv do
+        send_csv(Reports::SalarySummaryCsvExporter.new(@result).call, 'summary',
+                 period: @result[:period])
+      end
     end
   end
 
@@ -28,25 +31,39 @@ class ReportsController < ApplicationController
 
     respond_to do |format|
       format.html { prepare_detailed_html }
-      format.csv { send_csv(Reports::EmployeeDetailedCsvExporter.new(@result).call, 'detailed') }
+      format.csv do
+        send_csv(Reports::EmployeeDetailedCsvExporter.new(@result).call, 'detailed',
+                 period: selected_period&.date)
+      end
     end
   end
 
   def four_df
+    period = selected_period
     rows = Reports::FourDfQuery.new(
-      year: params.dig(:q, :by_year),
-      month: params.dig(:q, :by_month),
+      year: period&.year || params.dig(:q, :by_year),
+      month: period&.month || params.dig(:q, :by_month),
       department: params.dig(:q, :by_department)
     ).call
-    send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df')
+    send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df', period: period&.date)
   end
 
   private
 
   def filtered_salaries(scope = Salary.ransack(params[:q]).result)
-    scope.by_month(params.dig(:q, :by_month))
-         .by_year(params.dig(:q, :by_year))
-         .by_department(params.dig(:q, :by_department))
+    scope = apply_selected_period(scope)
+    scope.by_department(params.dig(:q, :by_department))
+  end
+
+  def apply_selected_period(scope)
+    return scope.by_month(params.dig(:q, :by_month)).by_year(params.dig(:q, :by_year)) unless selected_period
+
+    scope.by_year(selected_period.year).by_month(selected_period.month)
+  end
+
+  # @return [Reports::Period, nil]
+  def selected_period
+    @selected_period ||= Reports::Period.parse(params[:period])
   end
 
   def prepare_detailed_html
@@ -59,9 +76,10 @@ class ReportsController < ApplicationController
     @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
   end
 
-  def send_csv(content, prefix)
+  def send_csv(content, prefix, period: nil)
+    filename_period = period&.strftime('%Y-%m') || Date.current.to_s
     send_data content,
-              filename: "#{prefix}-#{Date.current}.csv",
+              filename: "#{prefix}-#{filename_period}.csv",
               type: 'text/csv; charset=utf-8',
               disposition: 'attachment'
   end

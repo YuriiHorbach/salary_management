@@ -68,9 +68,7 @@ module Reports
     private
 
     def selected_period
-      Date.strptime(@params[:period].to_s, '%Y-%m').beginning_of_month
-    rescue ArgumentError, TypeError
-      Date.current.beginning_of_month
+      Reports::Period.parse(@params[:period])&.date || Date.current.beginning_of_month
     end
 
     def build_data

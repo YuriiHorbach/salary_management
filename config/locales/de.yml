@@ -227,6 +227,7 @@ de:
       employees: Mitarbeiter
       edit: Bearbeiten
       delete: Löschen
+      mark: Abteilung markieren
     show:
       period: Zeitraum
       position: Position

@@ -565,7 +565,7 @@ uk:
       export_csv: Експорт CSV
       brigade: Бригада
       book: Книга
-      brigade_total: "%{brigade} — Підсумок"
+      brigade_total: "%{brigade} — Всього"
       grand_total: Всього
       empty: Даних для звіту не знайдено.
     detailed:
@@ -593,7 +593,7 @@ uk:
       brigade: Бригада
       book: Книга
       total: Всього
-      brigade_total: "%{brigade} — Підсумок"
+      brigade_total: "%{brigade} — Всього"
     columns:
       id_code: ІПН
       book_code: Код книги

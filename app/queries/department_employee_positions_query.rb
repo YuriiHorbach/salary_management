@@ -12,13 +12,14 @@ class DepartmentEmployeePositionsQuery
   # @param employee_ids [Array<Integer>] employees currently rendered
   # @param period_salaries [Hash{Array(Integer, Integer, nil) => Integer}]
   #   salary amounts keyed by +[employee_id, position_id]+
-  # @param position [Position, Integer, nil] optional position filter
+  # @param position [Position, Integer, Array<Position, Integer>, nil] optional
+  #   position filter; an empty value means all positions
   def initialize(department, employee_ids:, period_salaries:, position: nil)
     @department = department
     @employee_ids = Array(employee_ids)
     @employee_id_set = @employee_ids.to_set
     @period_salaries = period_salaries || {}
-    @position = position
+    @position_ids = normalize_position_ids(position)
   end
 
   # @return [Hash{Integer => Array<Position>}] positions sorted by name
@@ -32,7 +33,7 @@ class DepartmentEmployeePositionsQuery
 
   def assigned_positions_by_employee
     assignments = @department.department_employees.where(employee_id: @employee_ids)
-    assignments = assignments.where(position_id: position_id) if position_id.present?
+    assignments = assignments.where(position_id: @position_ids) if @position_ids.any?
     assignments.includes(:position)
                .group_by(&:employee_id)
                .transform_values { |rows| rows.filter_map(&:position).uniq }
@@ -40,7 +41,7 @@ class DepartmentEmployeePositionsQuery
 
   def merge_salary_positions!(grouped)
     scope = @department.positions.where(id: salary_position_ids.to_a)
-    scope = scope.where(id: position_id) if position_id.present?
+    scope = scope.where(id: @position_ids) if @position_ids.any?
 
     salary_positions = scope.index_by(&:id)
 
@@ -62,7 +63,9 @@ class DepartmentEmployeePositionsQuery
     end.to_set
   end
 
-  def position_id
-    @position.is_a?(Position) ? @position.id : @position
+  # @param position [Position, Integer, Array<Position, Integer>, nil]
+  # @return [Array<Integer>] position ids without blanks
+  def normalize_position_ids(position)
+    Array.wrap(position).compact_blank.map { |value| value.respond_to?(:id) ? value.id : value }
   end
 end

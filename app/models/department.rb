@@ -24,15 +24,28 @@ class Department < ApplicationRecord
   end
 
   # Returns salary records for the given month. When +position+ is present,
-  # only salaries linked to that position (or position id) are returned.
+  # only salaries linked to the selected position(s) are returned. Accepts a
+  # single position/id or an array of either form.
+  #
+  # @param date [Date, String] any date inside the target month
+  # @param position [Position, Integer, Array<Position, Integer>, nil] optional
+  #   position filter; an empty value means all positions
+  # @return [ActiveRecord::Relation<Salary>]
   def period_salaries(date = Date.current, position: nil)
     scope = salaries.where(period: date.to_date.beginning_of_month)
-    return scope if position.blank?
+    position_ids = normalize_position_ids(position)
+    return scope if position_ids.empty?
 
-    scope.where(position_id: position.respond_to?(:id) ? position.id : position)
+    scope.where(position_id: position_ids)
   end
 
-  # Gross salary total for the month, optionally limited to one position.
+  # Gross salary total for the month, optionally limited to the selected
+  # position(s).
+  #
+  # @param date [Date, String] any date inside the target month
+  # @param position [Position, Integer, Array<Position, Integer>, nil] optional
+  #   position filter; an empty value means all positions
+  # @return [Float] total amount in UAH
   def monthly_total(date = Date.current, position: nil)
     period_salaries(date, position: position).sum(:amount_cents) / 100.0
   end
@@ -43,12 +56,21 @@ class Department < ApplicationRecord
   # currently rendered on the department page.
   #
   # @param date [Date, String] any date inside the target month
-  # @param position [Position, Integer, nil] optional position filter
+  # @param position [Position, Integer, Array<Position, Integer>, nil] optional
+  #   position filter; an empty value means all positions
   # @param employee_ids [Array<Integer>, nil] optional employee restriction
   # @return [Hash{Array(Integer, Integer, nil) => Integer}] amounts in cents
   def salary_amounts_by_employee_and_position(date = Date.current, position: nil, employee_ids: nil)
     scope = period_salaries(date, position: position)
     scope = scope.where(employee_id: employee_ids) if employee_ids
     scope.group(:employee_id, :position_id).sum(:amount_cents)
+  end
+
+  private
+
+  # @param position [Position, Integer, Array<Position, Integer>, nil]
+  # @return [Array<Integer>] position ids without blanks
+  def normalize_position_ids(position)
+    Array.wrap(position).compact_blank.map { |value| value.respond_to?(:id) ? value.id : value }
   end
 end

@@ -39,13 +39,13 @@ class ReportsController < ApplicationController
   end
 
   def four_df
-    period = selected_period
     rows = Reports::FourDfQuery.new(
-      year: period&.year || params.dig(:q, :by_year),
-      month: period&.month || params.dig(:q, :by_month),
+      period: selected_period,
+      year: params.dig(:q, :by_year),
+      month: params.dig(:q, :by_month),
       department: params.dig(:q, :by_department)
     ).call
-    send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df', period: period&.date)
+    send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df', period: selected_period&.date)
   end
 
   private

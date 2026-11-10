@@ -90,6 +90,16 @@ RSpec.describe Reports::FourDfQuery do
     expect(march_any_year.map(&:gross_cents)).to eq([155_000])
   end
 
+  it 'filters by a YYYY-MM period and lets it override year and month' do
+    employee = create(:employee, id_code: '3333333333')
+    income(employee, type: 'salary', period: Date.new(2026, 3, 1), gross: 100_000)
+    income(employee, type: 'salary', period: Date.new(2026, 4, 1), gross: 900_000)
+
+    rows = described_class.new(period: '2026-03', year: '2026', month: '4').call
+
+    expect(rows.map(&:gross_cents)).to eq([100_000])
+  end
+
   it 'scopes employees by department like the detailed report' do
     wanted = create(:employee, id_code: '4444444444')
     other = create(:employee, id_code: '5555555555')

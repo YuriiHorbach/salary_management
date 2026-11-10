@@ -62,27 +62,7 @@
 <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
   <p class="mb-3 text-sm text-gray-600"><%= t('reports.detailed.export_period_hint') %></p>
 
-  <%= form_with url: detailed_reports_path(format: :csv), method: :get,
-                class: "flex flex-wrap items-end gap-3",
-                data: { turbo: false } do |form| %>
-    <% ReportsHelper::DETAILED_FILTER_PARAMS.each do |key| %>
-      <% next if key == :period || params[key].blank? %>
-      <%= hidden_field_tag key, params[key] %>
-    <% end %>
-    <% if params.dig(:q, :s).present? %>
-      <%= hidden_field_tag 'q[s]', params.dig(:q, :s) %>
-    <% end %>
-
-    <div>
-      <%= label_tag :period, t('reports.detailed.period'),
-                    class: "block text-sm font-medium text-gray-700 mb-1" %>
-      <%= month_field_tag :period, params[:period],
-                          class: "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
-    </div>
-
-    <%= form.submit t('reports.detailed.export_csv'),
-                    class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded" %>
-  <% end %>
+  <%= render 'detailed_export_form' %>
 </div>
 
 <%= turbo_frame_tag "detailed_report_table" do %>

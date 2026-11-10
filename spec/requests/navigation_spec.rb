@@ -56,6 +56,14 @@ RSpec.describe 'Main navigation menu', type: :request do
       expect(response.body).to include('/reports/four_df')
     end
 
+    it 'adds the current working month to the 4-DF export link' do
+      user.update!(current_working_month: Date.new(2025, 5, 1))
+
+      get root_path
+
+      expect(response.body).to include('/reports/four_df?period=2025-05')
+    end
+
     it 'renders Stimulus dropdown controller on details elements' do
       get root_path
 

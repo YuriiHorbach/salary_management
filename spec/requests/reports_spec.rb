@@ -76,6 +76,17 @@ RSpec.describe 'Reports', type: :request do
       expect(form.at_css('input[name="q[by_department]"]')['value']).to eq('7')
     end
 
+    it 'defaults the 4-DF export period to the current working month' do
+      user.update!(current_working_month: Date.new(2025, 5, 1))
+
+      get reports_path
+
+      form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/four_df.csv"]')
+      input = form.at_css('input[name="period"]')
+
+      expect(input['value']).to eq('2025-05')
+    end
+
     context 'when two departments contain salaries with the same amount' do
       let!(:salary) { nil } # disable the shared salary so the footer is deterministic
       let(:first_department) { create(:department, name: 'Відділ C1 A') }

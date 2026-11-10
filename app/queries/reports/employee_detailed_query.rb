@@ -237,10 +237,17 @@ module Reports
     end
 
     def period_range
+      return selected_period.range if selected_period
+
       from = @params[:date_from].present? ? @params[:date_from].to_date.beginning_of_month : Date.new(1900, 1, 1)
       to = @params[:date_to].present? ? @params[:date_to].to_date.end_of_month : Date.new(2999, 12, 31)
 
       from..to
+    end
+
+    # @return [Reports::Period, nil]
+    def selected_period
+      @selected_period ||= Reports::Period.parse(@params[:period])
     end
 
     COLUMN_KEYS = %i[

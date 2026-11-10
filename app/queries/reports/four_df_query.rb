@@ -9,9 +9,14 @@ module Reports
       gross_cents: 0, income_tax_cents: 0, military_tax_cents: 0, net_cents: 0
     }.freeze
 
-    def initialize(year: nil, month: nil, department: nil)
-      @year = year.presence
-      @month = month.presence
+    # @param period [Reports::Period, String, nil] optional +YYYY-MM+ period
+    # @param year [String, Integer, nil]
+    # @param month [String, Integer, nil]
+    # @param department [String, Integer, nil]
+    def initialize(period: nil, year: nil, month: nil, department: nil)
+      selected_period = Reports::Period.parse(period)
+      @year = selected_period&.year || year.presence
+      @month = selected_period&.month || month.presence
       @department = department.presence
     end
 

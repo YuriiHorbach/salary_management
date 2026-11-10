@@ -56,10 +56,35 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).not_to include('$3000,00', '₴3000,00', '3000,00 ₴')
     end
 
-    it 'renders a link to the 4-DF CSV export keeping the active filters' do
-      get reports_path(q: { by_year: Date.current.year })
+    it 'renders a 4-DF export form with a separate period selector' do
+      get reports_path
 
-      expect(response.body).to include(four_df_reports_path(q: { by_year: Date.current.year }))
+      form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/four_df.csv"]')
+      period_input = form&.at_css('input[name="period"][type="month"]')
+
+      expect(form).to be_present
+      expect(period_input).to be_present
+      expect(form['data-turbo']).to eq('false')
+    end
+
+    it 'keeps the active filters as hidden fields in the 4-DF export form' do
+      get reports_path(q: { by_year: Date.current.year, by_department: 7 })
+
+      form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/four_df.csv"]')
+
+      expect(form.at_css('input[name="q[by_year]"]')['value']).to eq(Date.current.year.to_s)
+      expect(form.at_css('input[name="q[by_department]"]')['value']).to eq('7')
+    end
+
+    it 'defaults the 4-DF export period to the current working month' do
+      user.update!(current_working_month: Date.new(2025, 5, 1))
+
+      get reports_path
+
+      form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/four_df.csv"]')
+      input = form.at_css('input[name="period"]')
+
+      expect(input['value']).to eq('2025-05')
     end
 
     context 'when two departments contain salaries with the same amount' do
@@ -177,13 +202,20 @@ RSpec.describe 'Reports', type: :request do
     end
 
     context 'when requesting CSV' do
-      it 'returns a CSV attachment response' do
+      it 'returns a CSV attachment response named after the report period' do
         get summary_reports_path(format: :csv)
 
         expect(response).to have_http_status(:ok)
         expect(response.media_type).to eq('text/csv')
         expect(response.headers['Content-Disposition']).to include('attachment')
-        expect(response.headers['Content-Disposition']).to include("summary-#{Date.current}.csv")
+        expect(response.headers['Content-Disposition'])
+          .to include("summary-#{Date.current.strftime('%Y-%m')}.csv")
+      end
+
+      it 'names the export file after the selected period' do
+        get summary_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(response.headers['Content-Disposition']).to include('summary-2025-05.csv')
       end
 
       it 'renders a parseable CSV document' do
@@ -213,6 +245,25 @@ RSpec.describe 'Reports', type: :request do
       expect(response.media_type).to eq('text/csv')
       expect(response.headers['Content-Disposition']).to include('attachment')
       expect(response.headers['Content-Disposition']).to include("4df-#{Date.current}.csv")
+    end
+
+    it 'names the export file after the selected period' do
+      get four_df_reports_path(format: :csv, period: '2025-05')
+
+      expect(response.headers['Content-Disposition']).to include('4df-2025-05.csv')
+    end
+
+    it 'scopes the export to the selected period' do
+      salary.update!(period: Date.new(2025, 5, 1), paid_on: Date.new(2025, 5, 1))
+      create(:salary, employee: employee, amount_cents: 400_000,
+                      period: Date.new(2025, 6, 1), paid_on: Date.new(2025, 6, 1))
+
+      get four_df_reports_path(format: :csv, period: '2025-05')
+
+      rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+
+      expect(rows.size).to eq(2)
+      expect(rows.last[1]).to eq('3000,00')
     end
 
     it 'renders the 25 M.E.Doc headers as the first row' do
@@ -369,12 +420,12 @@ RSpec.describe 'Reports', type: :request do
         expect(selector.text).to include('Інженер', 'Менеджер')
       end
 
-      it 'keeps the position filter in the CSV export link' do
+      it 'keeps the position filter in the CSV export form' do
         get detailed_reports_path(position: engineer_position.id)
 
-        href = Nokogiri::HTML(response.body).at_css('a[href*=".csv"]')['href']
+        form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/detailed.csv"]')
 
-        expect(href).to include("position=#{engineer_position.id}")
+        expect(form.at_css('input[name="position"]')['value']).to eq(engineer_position.id.to_s)
       end
 
       it 'filters the CSV export by position' do
@@ -647,36 +698,33 @@ RSpec.describe 'Reports', type: :request do
       end
     end
 
-    describe 'CSV export button' do
+    describe 'CSV export form' do
       let(:brigade) { create(:territory_sign, name: 'Бригада Експорт') }
 
-      it 'renders next to the reset button with the green Tailwind classes' do
+      it 'renders a separate period selector and a green export button' do
         get detailed_reports_path
 
-        doc = Nokogiri::HTML(response.body)
-        link = doc.at_css('a[href*=".csv"]')
-        reset_link = doc.xpath("//a[normalize-space(text())='#{I18n.t('reports.detailed.reset')}']").first
+        form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/detailed.csv"]')
+        period_input = form&.at_css('input[name="period"][type="month"]')
+        submit = form&.at_css('input[type="submit"]')
 
-        expect(link).to be_present
-        expect(reset_link).to be_present
-        expect(link.parent).to eq(reset_link.parent)
-        expect(link.text.strip).to eq(I18n.t('reports.detailed.export_csv'))
-        expect(link['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
-                                         'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
-        expect(link['data-turbo']).to eq('false')
+        expect(form).to be_present
+        expect(form['data-turbo']).to eq('false')
+        expect(period_input).to be_present
+        expect(submit['value']).to eq(I18n.t('reports.detailed.export_csv'))
+        expect(submit['class']).to include('bg-green-600', 'hover:bg-green-700', 'text-white',
+                                           'text-sm', 'font-bold', 'py-2', 'px-4', 'rounded')
       end
 
-      it 'keeps the current filters and drops commit/controller/action from the export link' do
+      it 'keeps the current filters as hidden fields in the export form' do
         get detailed_reports_path, params: { brigade: brigade.id }
 
-        doc = Nokogiri::HTML(response.body)
-        href = doc.at_css('a[href*=".csv"]')['href']
+        form = Nokogiri::HTML(response.body).at_css('form[action*="/reports/detailed.csv"]')
 
-        expect(href).to include('.csv')
-        expect(href).to include("brigade=#{brigade.id}")
-        expect(href).not_to include('commit')
-        expect(href).not_to include('controller')
-        expect(href).not_to include('action')
+        expect(form.at_css('input[name="brigade"]')['value']).to eq(brigade.id.to_s)
+        expect(form.at_css('input[type="hidden"][name="commit"]')).to be_nil
+        expect(form.at_css('input[type="hidden"][name="controller"]')).to be_nil
+        expect(form.at_css('input[type="hidden"][name="action"]')).to be_nil
       end
     end
 
@@ -707,6 +755,26 @@ RSpec.describe 'Reports', type: :request do
         expect(response.media_type).to eq('text/csv')
         expect(response.headers['Content-Disposition']).to include('attachment')
         expect(response.headers['Content-Disposition']).to include("detailed-#{Date.current}.csv")
+      end
+
+      it 'names the export file after the selected period' do
+        get detailed_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(response.headers['Content-Disposition']).to include('detailed-2025-05.csv')
+      end
+
+      it 'filters the CSV rows by the selected period' do
+        employee_one.salaries.first.update!(amount_cents: 100_000,
+                                            period: Date.new(2025, 5, 1),
+                                            paid_on: Date.new(2025, 5, 1))
+
+        get detailed_reports_path(format: :csv), params: { period: '2025-05' }
+
+        rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')[1..]
+        row = rows.find { |csv_row| csv_row.first == '1111111111' }
+
+        expect(row).to be_present
+        expect(row[6]).to eq('1000,00')
       end
 
       it 'renders a parseable CSV document headed by the ID code column' do
@@ -878,12 +946,12 @@ RSpec.describe 'Reports', type: :request do
       expect(ids).to match_array(employees.map { |e| e.id_code.to_s })
     end
 
-    it 'does not pass the page param to the CSV export link' do
+    it 'does not pass the page param to the CSV export form' do
       get detailed_reports_path(page: 2)
 
-      href = parsed_doc.at_css('a[href*=".csv"]')['href']
+      form = parsed_doc.at_css('form[action*="/reports/detailed.csv"]')
 
-      expect(href).not_to include('page=')
+      expect(form.at_css('input[name="page"]')).to be_nil
     end
 
     it 'handles out-of-range pages without raising' do

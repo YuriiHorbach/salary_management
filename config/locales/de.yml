@@ -544,6 +544,7 @@ de:
       all_years: Alle Jahre
       month: Monat
       all_months: Alle Monate
+      period: Zeitraum
       department: Abteilung
       all_departments: Alle Abteilungen
       filter: Filtern
@@ -570,6 +571,8 @@ de:
       title: Detaillierter Mitarbeiterbericht
       date_from: Von Datum
       date_to: Bis Datum
+      period: Zeitraum
+      export_period_hint: Optional. Leer lassen, um mit den aktuellen Filtern zu exportieren.
       department: Abteilung
       all_departments: Alle Abteilungen
       position: Position

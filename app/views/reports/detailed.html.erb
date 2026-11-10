@@ -56,12 +56,14 @@
   <div class="flex flex-col sm:flex-row gap-2">
     <%= f.submit t('reports.detailed.filter'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
     <%= link_to t('reports.detailed.reset'), detailed_reports_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
-    <%= link_to t('reports.detailed.export_csv'),
-        detailed_report_csv_path(params),
-        class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded text-center",
-        data: { turbo: false } %>
   </div>
 <% end %>
+
+<div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+  <p class="mb-3 text-sm text-gray-600"><%= t('reports.detailed.export_period_hint') %></p>
+
+  <%= render 'detailed_export_form' %>
+</div>
 
 <%= turbo_frame_tag "detailed_report_table" do %>
   <%= render 'shared/pagination',

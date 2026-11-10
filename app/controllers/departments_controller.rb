@@ -3,14 +3,14 @@
 # Renders departments and the employees assigned to a department.
 #
 # The +show+ action supports filtering by position: the employee list, salary
-# column and footer total are all scoped to the selected position. Salaries for
-# the selected period are grouped by employee and position so the salary cell can
-# show one line per position, with a separate add link for every position that
-# has no salary yet. The view links each employee to
-# +DepartmentEmployeePositionsController#edit+ to manage assignments.
-# Employees are ordered by last name ascending unless the user requests another
-# sort. Standard columns use Ransack; position and salary use
-# +DepartmentEmployeeSortQuery+ because their values depend on the selected
+# column and footer total are all scoped to the selected position(s). One or
+# several positions can be selected at once. Salaries for the selected period
+# are grouped by employee and position so the salary cell can show one line per
+# position, with a separate add link for every position that has no salary yet.
+# The view links each employee to +DepartmentEmployeePositionsController#edit+
+# to manage assignments. Employees are ordered by last name ascending unless the
+# user requests another sort. Standard columns use Ransack; position and salary
+# use +DepartmentEmployeeSortQuery+ because their values depend on the selected
 # period and position filter.
 class DepartmentsController < ApplicationController
   DEFAULT_EMPLOYEE_SORT = 'last_name asc'
@@ -31,12 +31,13 @@ class DepartmentsController < ApplicationController
     @q = employee_search
     @employees_count = @department.department_employees.distinct.count(:employee_id)
     @positions = @department.positions.order(:position_name).to_a
-    @position = @positions.find { |position| position.id.to_s == params[:position].to_s } if params[:position].present?
+    @selected_positions = selected_positions
+    @position = @selected_positions.one? ? @selected_positions.first : nil
     @period = selected_period
     employees = filtered_employees.to_a
     load_employee_salary_context(employees)
     @employees = sort_employees(employees)
-    @department_total = @department.monthly_total(@period, position: @position)
+    @department_total = @department.monthly_total(@period, position: @selected_positions)
   end
 
   def edit; end
@@ -85,14 +86,14 @@ class DepartmentsController < ApplicationController
     employee_ids = employees.map(&:id)
     @period_salaries = @department.salary_amounts_by_employee_and_position(
       @period,
-      position: @position,
+      position: @selected_positions,
       employee_ids: employee_ids
     )
     @employee_positions = DepartmentEmployeePositionsQuery.new(
       @department,
       employee_ids: employee_ids,
       period_salaries: @period_salaries,
-      position: @position
+      position: @selected_positions
     ).call
   end
 
@@ -149,9 +150,23 @@ class DepartmentsController < ApplicationController
 
   def filtered_employees
     employees = @q.result(distinct: true)
-    return employees unless @position
+    return employees if @selected_positions.empty?
 
-    employee_ids = @department.department_employees.where(position_id: @position.id).select(:employee_id)
+    employee_ids = @department.department_employees
+                              .where(position_id: @selected_positions.map(&:id))
+                              .select(:employee_id)
     employees.where(id: employee_ids)
+  end
+
+  # @return [Array<String>] selected position ids as strings, without blanks
+  def selected_position_ids
+    @selected_position_ids ||= Array(params[:position]).compact_blank.map(&:to_s)
+  end
+
+  # @return [Array<Position>] selected positions that belong to this department
+  def selected_positions
+    @selected_positions ||= @positions.select do |position|
+      selected_position_ids.include?(position.id.to_s)
+    end
   end
 end

@@ -100,6 +100,35 @@ RSpec.describe 'DepartmentEmployeePositions', type: :request do
         expect(create_form.at_css('input[name="return_position"]')['value']).to eq(engineer_position.id.to_s)
       end
 
+      it 'keeps several selected positions in the forms and links' do
+        selected_ids = [manager_position.id.to_s, engineer_position.id.to_s]
+        create(:department_employee, employee: employee, department: department, position: engineer_position)
+
+        get edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                    period: '2025-03', position: selected_ids)
+
+        page = Nokogiri::HTML(response.body)
+        back_link = page.css('a').find { |link| link.text.strip == I18n.t('department_employee_positions.edit.back') }
+        paths = [page.at_css('form[action*="/employees/"]')['action'], back_link['href']]
+
+        paths.each do |path|
+          expect(Rack::Utils.parse_nested_query(URI.parse(path).query)['position']).to match_array(selected_ids)
+        end
+      end
+
+      it 'renders a hidden return_position field for every selected position' do
+        selected_ids = [manager_position.id.to_s, engineer_position.id.to_s]
+
+        get edit_department_employee_positions_path(department_id: department.id, employee_id: employee.id,
+                                                    period: '2025-03', position: selected_ids)
+
+        page = Nokogiri::HTML(response.body)
+        create_form = page.at_css('input[name="position[position_name]"]').ancestors('form').first
+        values = create_form.css('input[name="return_position[]"]').map { |input| input['value'] }
+
+        expect(values).to match_array(selected_ids)
+      end
+
       it 'returns not found when the employee is not a member of the department' do
         outsider = create(:employee)
 

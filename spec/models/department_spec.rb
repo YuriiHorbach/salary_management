@@ -35,6 +35,17 @@ RSpec.describe Department, type: :model do
     it 'accepts a position id as well as a position record' do
       expect(department.period_salaries(period, position: position.id).sum(:amount_cents)).to eq(50_000)
     end
+
+    it 'scopes the salaries to several positions' do
+      other_position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: other_position)
+      create(:salary, employee: employee, department: department, position: other_position,
+                      amount_cents: 70_000, period: period)
+
+      salaries = department.period_salaries(period, position: [position, other_position])
+
+      expect(salaries.sum(:amount_cents)).to eq(120_000)
+    end
   end
 
   describe '#monthly_total' do
@@ -57,6 +68,15 @@ RSpec.describe Department, type: :model do
 
     it 'returns the position total when a position is given' do
       expect(department.monthly_total(period, position: position)).to eq(500.0)
+    end
+
+    it 'returns the total for several positions' do
+      other_position = create(:position, department: department)
+      create(:department_employee, employee: employee, department: department, position: other_position)
+      create(:salary, employee: employee, department: department, position: other_position,
+                      amount_cents: 70_000, period: period)
+
+      expect(department.monthly_total(period, position: [position, other_position])).to eq(1200.0)
     end
   end
 

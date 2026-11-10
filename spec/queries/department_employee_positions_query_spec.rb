@@ -64,6 +64,22 @@ RSpec.describe DepartmentEmployeePositionsQuery do
     expect(result.fetch(employee.id)).to eq([manager])
   end
 
+  it 'limits assignments and salary positions to several selected positions' do
+    third = create(:position, department: department, position_name: 'Third')
+    create(:department_employee, employee: employee, department: department, position: manager)
+    create(:department_employee, employee: employee, department: department, position: engineer)
+
+    result = call(
+      period_salaries: {
+        [employee.id, manager.id] => 100_000,
+        [employee.id, third.id] => 50_000
+      },
+      position: [engineer, manager]
+    )
+
+    expect(result.fetch(employee.id)).to eq([engineer, manager])
+  end
+
   it 'ignores salaries belonging to employees outside the requested ids' do
     other_employee = create(:employee)
 

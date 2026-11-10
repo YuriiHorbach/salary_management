@@ -87,7 +87,9 @@
                   class: "flex flex-col sm:flex-row sm:items-end gap-3" do |form| %>
       <%= hidden_field_tag :employee_id, @employee.id %>
       <% @context_params.each do |key, value| %>
-        <%= hidden_field_tag "return_#{key}", value %>
+        <% Array.wrap(value).each do |item| %>
+          <%= hidden_field_tag "return_#{key}#{'[]' if value.is_a?(Array)}", item %>
+        <% end %>
       <% end %>
 
       <div class="flex flex-col flex-1">

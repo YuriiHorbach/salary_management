@@ -19,6 +19,19 @@ module DepartmentsHelper
     link_to safe_join([label, department_sort_indicator(column)].compact, ' '), url
   end
 
+  # Returns the +position+ query value for the selected positions. A single
+  # selected position is kept scalar so existing single-position URLs keep their
+  # shape; multiple selections become an array.
+  #
+  # @param positions [Array<Position>, Position, nil]
+  # @return [Integer, Array<Integer>, nil]
+  def department_position_filter_param(positions)
+    ids = Array(positions).map { |position| position.respond_to?(:id) ? position.id : position }
+    return if ids.empty?
+
+    ids.one? ? ids.first : ids
+  end
+
   private
 
   def department_sort_indicator(column)

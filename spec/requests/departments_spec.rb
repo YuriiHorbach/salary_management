@@ -333,6 +333,17 @@ RSpec.describe 'Departments', type: :request do
         expect(rendered_last_names).to contain_exactly('Zeta')
       end
 
+      it 'filters employees by several positions' do
+        designer_position = create(:position, department: department, position_name: 'Designer')
+        gamma = create(:employee, id_code: '3000000003', last_name: 'Gamma', first_name: 'Halyna',
+                                  patronic_name: 'Hryhorivna')
+        create(:department_employee, employee: gamma, department: department, position: designer_position)
+
+        get department_path(department, position: [manager_position.id, engineer_position.id])
+
+        expect(rendered_last_names).to contain_exactly('Alpha', 'Zeta')
+      end
+
       it 'ignores a position that belongs to another department' do
         foreign_position = create(:position, department: create(:department), position_name: 'Foreign')
         create(:salary, employee: alpha, department: department, amount_cents: 100_000,
@@ -348,21 +359,47 @@ RSpec.describe 'Departments', type: :request do
         expect(response.body).to include('1500,00')
       end
 
-      it 'renders a position filter with the department positions' do
+      it 'renders a position filter with a checkbox for every department position' do
         get department_path(department)
 
-        selector = Nokogiri::HTML(response.body).at_css('select[name="position"]')
+        checkboxes = Nokogiri::HTML(response.body).css('input[name="position[]"]')
 
-        expect(selector).to be_present
-        expect(selector.text).to include('Manager', 'Engineer')
+        expect(checkboxes.map { |input| input['value'] })
+          .to contain_exactly(manager_position.id.to_s, engineer_position.id.to_s)
+        expect(checkboxes.map { |input| input.parent.text.strip })
+          .to contain_exactly(manager_position.position_name, engineer_position.position_name)
       end
 
-      it 'keeps the selected position in the filter' do
+      it 'renders a reset link that clears selected positions and keeps the period' do
+        get department_path(department, period: '2025-03',
+                                        position: [manager_position.id, engineer_position.id])
+
+        document = Nokogiri::HTML(response.body)
+        form = document.css('form').find { |candidate| candidate.at_css('input[name="period"]') }
+        reset_link = form.css('a').find { |link| link.text.strip == I18n.t('common.reset') }
+
+        expect(reset_link).to be_present
+        query = Rack::Utils.parse_nested_query(URI.parse(reset_link['href']).query)
+        expect(query['period']).to eq('2025-03')
+        expect(query).not_to have_key('position')
+      end
+
+      it 'keeps a single selected position pre-checked in the filter' do
         get department_path(department, position: engineer_position.id)
 
-        selected = Nokogiri::HTML(response.body).at_css('select[name="position"] option[selected]')
+        document = Nokogiri::HTML(response.body)
+        checked = document.css('input[name="position[]"][checked]').map { |input| input['value'] }
 
-        expect(selected['value']).to eq(engineer_position.id.to_s)
+        expect(checked).to eq([engineer_position.id.to_s])
+      end
+
+      it 'keeps several selected positions pre-checked in the filter' do
+        get department_path(department, position: [manager_position.id, engineer_position.id])
+
+        document = Nokogiri::HTML(response.body)
+        checked = document.css('input[name="position[]"][checked]').map { |input| input['value'] }
+
+        expect(checked).to contain_exactly(manager_position.id.to_s, engineer_position.id.to_s)
       end
 
       it 'keeps the position filter and period in the sort links' do
@@ -373,6 +410,35 @@ RSpec.describe 'Departments', type: :request do
         expect(links.map { |link| link['href'] }).to all(
           include("position=#{engineer_position.id}", 'period=2025-03')
         )
+      end
+
+      it 'keeps several selected positions and period in the sort links' do
+        selected_ids = [manager_position.id.to_s, engineer_position.id.to_s]
+        get department_path(department, position: selected_ids, period: '2025-03')
+
+        links = Nokogiri::HTML(response.body).css('thead th a')
+
+        expect(links).to be_present
+        links.each do |link|
+          query = Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
+          expect(query['position']).to match_array(selected_ids)
+          expect(query['period']).to eq('2025-03')
+        end
+      end
+
+      it 'passes every selected position to the edit positions link' do
+        get department_path(department, period: '2025-03',
+                                        position: [manager_position.id, engineer_position.id])
+
+        row = employee_row('Alpha')
+        link = row.at_css(
+          "a[href*='/departments/#{department.id}/employees/#{alpha.id}/positions/edit']"
+        )
+        query = Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
+
+        expect(query['position'])
+          .to contain_exactly(manager_position.id.to_s, engineer_position.id.to_s)
+        expect(query['period']).to eq('2025-03')
       end
 
       it 'does not duplicate an employee who has several positions' do
@@ -510,6 +576,25 @@ RSpec.describe 'Departments', type: :request do
         expect(row.text).not_to include('1500,00')
       end
 
+      it 'shows only the salaries of several selected positions in the employee row' do
+        designer_position = create(:position, department: department, position_name: 'Designer')
+        create(:department_employee, employee: alpha, department: department, position: engineer_position)
+        create(:department_employee, employee: alpha, department: department, position: designer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: designer_position,
+                        amount_cents: 70_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03',
+                                        position: [manager_position.id, engineer_position.id])
+
+        row = employee_row('Alpha')
+        expect(row.text).to include('1000,00', '500,00')
+        expect(row.text).not_to include('700,00')
+      end
+
       it 'shows the department total for the filtered position only' do
         create(:department_employee, employee: alpha, department: department, position: engineer_position)
         create(:salary, employee: alpha, department: department, position: manager_position,
@@ -522,6 +607,24 @@ RSpec.describe 'Departments', type: :request do
         expect(assigns(:department_total)).to eq(500.0)
         expect(response.body).to include('500,00')
         expect(response.body).not_to include('1500,00')
+      end
+
+      it 'shows the department total for several selected positions only' do
+        designer_position = create(:position, department: department, position_name: 'Designer')
+        create(:department_employee, employee: alpha, department: department, position: designer_position)
+        create(:salary, employee: alpha, department: department, position: manager_position,
+                        amount_cents: 100_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: zeta, department: department, position: engineer_position,
+                        amount_cents: 50_000, period: Date.new(2025, 3, 1))
+        create(:salary, employee: alpha, department: department, position: designer_position,
+                        amount_cents: 70_000, period: Date.new(2025, 3, 1))
+
+        get department_path(department, period: '2025-03',
+                                        position: [manager_position.id, engineer_position.id])
+
+        expect(assigns(:department_total)).to eq(1500.0)
+        expect(response.body).to include('1500,00')
+        expect(response.body).not_to include('2200,00')
       end
 
       it 'excludes salaries without a position when a position is selected' do
@@ -583,6 +686,19 @@ RSpec.describe 'Departments', type: :request do
         query = Rack::Utils.parse_query(URI.parse(link['href']).query)
         expect(query['position_id']).to eq(engineer_position.id.to_s)
         expect(query['position']).to eq(engineer_position.id.to_s)
+      end
+
+      it 'passes every selected position to the add salary link' do
+        get department_path(department, period: '2025-03',
+                                        position: [manager_position.id, engineer_position.id])
+
+        row = employee_row('Zeta')
+        link = row.at_css("a[href*='/employees/#{zeta.id}/salaries/new']")
+        query = Rack::Utils.parse_nested_query(URI.parse(link['href']).query)
+
+        expect(query['position_id']).to eq(engineer_position.id.to_s)
+        expect(query['position'])
+          .to contain_exactly(manager_position.id.to_s, engineer_position.id.to_s)
       end
 
       it 'passes the only employee position to the add salary link when no filter is selected' do

@@ -1,6 +1,19 @@
 <%= turbo_frame_tag dom_id(department) do %>
-  <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-    <%= link_to department.name, department_path(department), data: { turbo: false }, class: "hover:underline text-gray-600 font-semibold" %>
+  <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors duration-200"
+       data-controller="department-card"
+       data-department-card-selected-class="bg-green-50 border-green-600">
+    <div class="flex items-start justify-between gap-4">
+      <%= link_to department.name, department_path(department), data: { turbo: false }, class: "hover:underline text-gray-600 font-semibold" %>
+      <label class="inline-flex items-center cursor-pointer" title="<%= t('departments.card.mark') %>">
+        <%= check_box_tag "department_#{department.id}_mark",
+                          '1',
+                          false,
+                          id: "department_#{department.id}_mark",
+                          class: "h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500",
+                          data: { action: "department-card#toggle" } %>
+        <span class="sr-only"><%= t('departments.card.mark') %></span>
+      </label>
+    </div>
     <p class="mt-2 text-sm text-gray-600">
       <%= t('departments.card.employees') %>:
       <span id="department_<%= department.id %>_employee_count" class="font-semibold text-gray-900">

@@ -228,6 +228,7 @@ en:
       employees: Employees
       edit: Edit
       delete: Delete
+      mark: Mark department
     show:
       period: Period
       position: Position

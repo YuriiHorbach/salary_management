@@ -41,6 +41,124 @@ RSpec.describe SickDay, type: :model do
       expect(sick_day.pfu_amount_cents).to eq(0)
       expect(sick_day.enterprise_amount_cents).to eq(0)
     end
+
+    it 'reports an error instead of raising when pfu_amount exceeds the integer range' do
+      sick_day = build(:sick_day, pfu_amount: '111111111111.00')
+
+      expect { sick_day.valid? }.not_to raise_error
+      expect(sick_day).not_to be_valid
+      expect(sick_day.errors[:pfu_amount]).to include(
+        I18n.t('activerecord.errors.models.sick_day.attributes.pfu_amount.amount_too_large')
+      )
+    end
+
+    it 'reports an error instead of raising when enterprise_amount exceeds the integer range' do
+      sick_day = build(:sick_day, enterprise_amount: '111111111111.00')
+
+      expect { sick_day.valid? }.not_to raise_error
+      expect(sick_day).not_to be_valid
+      expect(sick_day.errors[:enterprise_amount]).to include(
+        I18n.t('activerecord.errors.models.sick_day.attributes.enterprise_amount.amount_too_large')
+      )
+    end
+  end
+
+  describe '.current_month_summary' do
+    it 'returns each employee with their current month sick day count and the grand total' do
+      first_employee = create(:employee, last_name: 'Коваленко')
+      second_employee = create(:employee, last_name: 'Бондаренко')
+
+      create_list(:sick_day, 2, employee: first_employee, period: Date.current.beginning_of_month)
+      create(:sick_day, employee: second_employee, period: Date.current.beginning_of_month)
+
+      rows, total = described_class.current_month_summary
+
+      expect(rows.map { |row| [row.employee, row.sick_days_count] }).to contain_exactly(
+        [first_employee, 2],
+        [second_employee, 1]
+      )
+      expect(total).to eq(3)
+    end
+
+    it 'excludes sick days from other months' do
+      current_employee = create(:employee, last_name: 'Коваленко')
+      previous_month_employee = create(:employee, last_name: 'Бондаренко')
+
+      create(:sick_day, employee: current_employee, period: Date.current.beginning_of_month)
+      create(:sick_day, employee: previous_month_employee, period: Date.current.beginning_of_month - 1.month)
+
+      rows, total = described_class.current_month_summary
+
+      expect(rows.map(&:employee)).to contain_exactly(current_employee)
+      expect(total).to eq(1)
+    end
+
+    it 'returns no rows and a zero total when there are no current month sick days' do
+      rows, total = described_class.current_month_summary
+
+      expect(rows).to be_empty
+      expect(total).to eq(0)
+    end
+
+    it 'uses the provided working month instead of the calendar current month' do
+      working_month = Date.current.beginning_of_month - 1.month
+      employee = create(:employee, last_name: 'Коваленко')
+      create(:sick_day, employee: employee, period: working_month)
+
+      rows, total = described_class.current_month_summary(working_month)
+
+      expect(rows.map(&:employee)).to contain_exactly(employee)
+      expect(total).to eq(1)
+    end
+  end
+
+  describe '.report_for_month' do
+    it 'returns per-employee sick day counts for the requested month' do
+      first_employee = create(:employee)
+      second_employee = create(:employee)
+      create_list(:sick_day, 2, employee: first_employee, period: Date.new(2026, 3, 1))
+      create(:sick_day, employee: second_employee, period: Date.new(2026, 3, 1))
+      create(:sick_day, employee: first_employee, period: Date.new(2026, 4, 1))
+
+      counts = described_class.report_for_month('2026-03')
+
+      expect(counts).to eq(first_employee.id => 2, second_employee.id => 1)
+    end
+
+    it 'returns an empty hash for a malformed or blank month' do
+      expect(described_class.report_for_month('not-a-month')).to eq({})
+      expect(described_class.report_for_month(nil)).to eq({})
+    end
+  end
+
+  describe '.report_rows_for_month' do
+    let(:first_employee) { create(:employee) }
+    let(:second_employee) { create(:employee) }
+
+    before do
+      create(:sick_day, employee: first_employee, period: Date.new(2026, 3, 1),
+                        pfu_amount: 30, enterprise_amount: 20)
+      create(:sick_day, employee: first_employee, period: Date.new(2026, 3, 1),
+                        pfu_amount: 70, enterprise_amount: 30)
+      create(:sick_day, employee: second_employee, period: Date.new(2026, 3, 1),
+                        pfu_amount: 10, enterprise_amount: 5)
+    end
+
+    it 'returns per-employee counts and monetary totals for the requested month' do
+      rows = described_class.report_rows_for_month('2026-03')
+
+      expect(rows.find { |row| row.employee_id == first_employee.id }).to have_attributes(
+        sick_days_count: 2, pfu_cents: 10_000, enterprise_cents: 5_000, total_cents: 15_000
+      )
+      expect(rows.find { |row| row.employee_id == second_employee.id }).to have_attributes(
+        sick_days_count: 1, pfu_cents: 1_000, enterprise_cents: 500, total_cents: 1_500
+      )
+    end
+
+    it 'returns an empty array for a malformed or blank month' do
+      expect(described_class.report_rows_for_month('not-a-month')).to eq([])
+      expect(described_class.report_rows_for_month(nil)).to eq([])
+    end
   end
 
   describe 'financial logic' do

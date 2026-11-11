@@ -114,6 +114,39 @@ RSpec.describe 'SickDayEntries', type: :request do
       expect(doc.text).to include(I18n.t('navigation.more'))
     end
 
+    describe 'embedded sick day report' do
+      def report_frame(doc)
+        doc.at_css('turbo-frame#sick_day_report')
+      end
+
+      it 'renders a turbo frame pointing at the report for the working month' do
+        get new_sick_day_entry_path
+
+        frame = report_frame(Nokogiri::HTML(response.body))
+
+        expect(frame).to be_present
+        expect(frame['src']).to include(sick_day_reports_path(month: Date.current.strftime('%Y-%m')))
+      end
+
+      it 'uses the month param for the embedded report' do
+        get new_sick_day_entry_path, params: { month: '2026-03' }
+
+        frame = report_frame(Nokogiri::HTML(response.body))
+
+        expect(frame['src']).to include(sick_day_reports_path(month: '2026-03'))
+      end
+
+      it "uses the user's current working month for the embedded report" do
+        user.update!(current_working_month: Date.new(2025, 4, 1))
+
+        get new_sick_day_entry_path
+
+        frame = report_frame(Nokogiri::HTML(response.body))
+
+        expect(frame['src']).to include(sick_day_reports_path(month: '2025-04'))
+      end
+    end
+
     context 'when a current working month is selected' do
       let(:user) { create(:user, current_working_month: Date.new(2025, 4, 1)) }
 
@@ -136,27 +169,68 @@ RSpec.describe 'SickDayEntries', type: :request do
       {
         sick_day: {
           employee_id: employee.id,
-          period: '2026-10',
+          period: Date.current.strftime('%Y-%m'),
           pfu_amount: '60.00',
           enterprise_amount: '40.00'
         }
       }
     end
 
-    it 'creates a sick day for the selected employee and redirects to their sick days list' do
+    it 'creates a sick day for the selected employee and redirects back to the entry page' do
       expect { post sick_day_entries_path, params: valid_params }.to change(SickDay, :count).by(1)
 
-      expect(response).to redirect_to(employee_sick_days_path(employee))
+      expect(response).to redirect_to(new_sick_day_entry_path(month: Date.current.strftime('%Y-%m')))
 
       expect(SickDay.last).to have_attributes(
         employee: employee,
-        period: Date.new(2026, 10, 1),
+        period: Date.current.beginning_of_month,
         pfu_amount_cents: 6_000,
         enterprise_amount_cents: 4_000,
         income_tax_cents: 1_800,
         military_tax_cents: 500,
         net_amount_cents: 7_700
       )
+    end
+
+    it 'points the embedded report at the created month after redirect' do
+      post sick_day_entries_path, params: valid_params
+      follow_redirect!
+
+      frame = Nokogiri::HTML(response.body).at_css('turbo-frame#sick_day_report')
+
+      expect(frame['src']).to include(sick_day_reports_path(month: Date.current.strftime('%Y-%m')))
+    end
+
+    it 'points the embedded report at a non-working month after redirect' do
+      user.update!(current_working_month: Date.new(2025, 4, 1))
+      params = valid_params.deep_merge(sick_day: { period: '2026-03' })
+
+      post sick_day_entries_path, params: params
+      follow_redirect!
+
+      frame = Nokogiri::HTML(response.body).at_css('turbo-frame#sick_day_report')
+
+      expect(frame['src']).to include(sick_day_reports_path(month: '2026-03'))
+    end
+
+    it 'reports an error instead of crashing when the amount is too large' do
+      expect do
+        post sick_day_entries_path, params: {
+          sick_day: {
+            employee_id: employee.id,
+            period: Date.current.strftime('%Y-%m'),
+            pfu_amount: '111111111111.00'
+          }
+        }
+      end.not_to change(SickDay, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+
+      message = I18n.t('activerecord.errors.models.sick_day.attributes.pfu_amount.amount_too_large').delete_prefix('^')
+      attribute = I18n.t('activerecord.attributes.sick_day.pfu_amount')
+
+      expect(response.body).to include(message)
+      expect(response.body).not_to include("#{attribute} #{message}")
     end
 
     it 'does not create a record without an employee and re-renders with 422' do

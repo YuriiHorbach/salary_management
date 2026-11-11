@@ -17,13 +17,24 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     login_as user, scope: :user
   end
 
+  def expect_report_row(employee, pfu:, total:)
+    within("#sick_day_report_employee_#{employee.id}") do
+      expect(page).to have_text(employee.full_name)
+      expect(page).to have_text(pfu)
+      expect(page).to have_text(total)
+    end
+  end
+
   def submit_sick_day(employee, period:, pfu:, enterprise:)
     if page.has_css?("#sick_day_employee_id_#{employee.id}", visible: :all)
       choose "sick_day_employee_id_#{employee.id}"
     else
       select employee.full_name_with_id_code, from: 'sick_day_employee_id'
     end
-    fill_in 'sick_day[period]', with: period
+    # Chrome/Selenium types month inputs one segment at a time, which can shift the
+    # month when only the value changes. Setting it directly keeps the period exact.
+    period_input = find('input[name="sick_day[period]"]')
+    page.execute_script('arguments[0].value = arguments[1]', period_input, period)
     fill_in 'sick_day[pfu_amount]', with: pfu
     fill_in 'sick_day[enterprise_amount]', with: enterprise
     click_button I18n.t('common.save')
@@ -42,10 +53,35 @@ RSpec.describe 'Standalone sick day entry', :js, type: :system do
     expect(page).to have_text(petrenko.full_name_with_id_code)
     expect(page).not_to have_text(ivanenko.full_name_with_id_code)
 
-    submit_sick_day(petrenko, period: '2026-10', pfu: '60.00', enterprise: '40.00')
+    submit_sick_day(petrenko, period: Date.current.strftime('%Y-%m'), pfu: '60.00', enterprise: '40.00')
 
-    expect(page).to have_current_path(employee_sick_days_path(petrenko), wait: 10)
-    expect(page).to have_text('100,00')
+    expect(page).to have_current_path(new_sick_day_entry_path(month: Date.current.strftime('%Y-%m')), wait: 10)
+
+    expect_report_row(petrenko, pfu: '60,00', total: '100,00')
+  end
+
+  it 'filters the embedded report by month without leaving the entry page' do
+    previous_month = Date.current.beginning_of_month - 1.month
+    create(:sick_day, employee: petrenko, period: previous_month, pfu_amount: 60, enterprise_amount: 40)
+    visit new_sick_day_entry_path
+
+    month_input = find('#sick_day_report input[name="month"]')
+    page.execute_script('arguments[0].value = arguments[1]', month_input, previous_month.strftime('%Y-%m'))
+    click_button I18n.t('sick_day_reports.index.filter')
+
+    expect(page).to have_css("#sick_day_report_employee_#{petrenko.id}")
+    expect(page).to have_current_path(new_sick_day_entry_path)
+  end
+
+  it 'opens the employee sick days page from the embedded report' do
+    create(:sick_day, employee: petrenko, period: Date.current.beginning_of_month)
+    visit new_sick_day_entry_path
+
+    within("#sick_day_report_employee_#{petrenko.id}") do
+      click_link I18n.t('common.edit')
+    end
+
+    expect(page).to have_current_path(employee_sick_days_path(petrenko))
   end
 
   it 'shows the matching employees by a partial id code and allows choosing one' do

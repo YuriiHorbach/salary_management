@@ -38,6 +38,7 @@ uk:
     select_employee: Оберіть працівника
     no_position: Без посади
     no_matches: Працівників за таким запитом не знайдено.
+    loading: Завантаження...
     back_to_list: Назад до списку
     current_working_month: Поточний робочий місяць
     example: "(приклад: 1000,00)"
@@ -58,6 +59,7 @@ uk:
     employees: Працівники
     more: Додатково
     sick_days: Лікарняні
+    sick_day_report: Звіт по лікарняних
     vacations: Відпустки
     historical_import: Імпорт старих даних
     reports: Звіти
@@ -214,6 +216,12 @@ uk:
             position:
               position_other_department: належить іншому підрозділу
               position_not_assigned: не призначена цьому працівнику
+        sick_day:
+          attributes:
+            pfu_amount:
+              amount_too_large: '^Занадто велика сума'
+            enterprise_amount:
+              amount_too_large: '^Занадто велика сума'
   departments:
     index:
       title: Підрозділи
@@ -432,6 +440,10 @@ uk:
       search: Пошук
       reset: Скинути
       found: 'Знайдено:'
+      employees_on_sick_leave_this_month: Працівники на лікарняному цього місяця
+      sick_days_count: Кількість лікарняних
+      total_sick_days: 'Усього лікарняних:'
+      no_sick_days_for_month: За вибраний місяць немає даних.
     form:
       employee: Працівник
       select_employee: Оберіть працівника
@@ -441,6 +453,15 @@ uk:
       enterprise: Лікарняний за рахунок підприємства
       save: Зберегти
       cancel: Скасувати
+  sick_day_reports:
+    index:
+      title: 'Звіт по лікарняних за %{month}'
+      filter: Фільтрувати
+      pfu: ПФУ
+      enterprise: Підприємство
+      sum: Разом
+      total_for: 'РАЗОМ ЗА %{month}:'
+      empty: За вибраний місяць немає даних.
   vacations:
     index:
       title: Відпускні для %{name}

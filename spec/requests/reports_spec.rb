@@ -365,6 +365,93 @@ RSpec.describe 'Reports', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    describe 'month period filter' do
+      def detailed_report_row(id_code)
+        Nokogiri::HTML(response.body).css('table tbody tr').find do |row|
+          row.css('td').first&.text&.strip == id_code.to_s
+        end
+      end
+
+      def detailed_report_base_salary(id_code)
+        detailed_report_row(id_code).css('td')[6].text.strip
+      end
+
+      before do
+        create(:employee_period_income, employee: employee, period: Date.new(2025, 5, 1),
+                                        income_type: 'salary', gross_cents: 100_000)
+        create(:employee_period_income, employee: employee, period: Date.new(2025, 6, 1),
+                                        income_type: 'salary', gross_cents: 200_000)
+      end
+
+      it 'renders a month selector' do
+        get detailed_reports_path
+
+        input = Nokogiri::HTML(response.body)
+                        .at_css('form[action="/reports/detailed"] input[name="period"][type="month"]')
+
+        expect(input).to be_present
+      end
+
+      it 'defaults the month selector and the amounts to the current working month' do
+        user.update!(current_working_month: Date.new(2025, 5, 1))
+
+        get detailed_reports_path
+
+        input = Nokogiri::HTML(response.body)
+                        .at_css('form[action="/reports/detailed"] input[name="period"]')
+
+        expect(input['value']).to eq('2025-05')
+        expect(detailed_report_base_salary(employee.id_code)).to eq('1000,00')
+      end
+
+      it 'uses an explicit period instead of the current working month' do
+        user.update!(current_working_month: Date.new(2025, 5, 1))
+
+        get detailed_reports_path(period: '2025-06')
+
+        input = Nokogiri::HTML(response.body)
+                        .at_css('form[action="/reports/detailed"] input[name="period"]')
+
+        expect(input['value']).to eq('2025-06')
+        expect(detailed_report_base_salary(employee.id_code)).to eq('2000,00')
+      end
+
+      it 'keeps a date range working when no month period is selected' do
+        get detailed_reports_path(date_from: '2025-05-01', date_to: '2025-06-30')
+
+        expect(detailed_report_base_salary(employee.id_code)).to eq('3000,00')
+      end
+
+      it 'prefers an explicit date range over the month filter' do
+        get detailed_reports_path(period: '2025-06', date_from: '2025-05-01', date_to: '2025-06-30')
+
+        month_input = Nokogiri::HTML(response.body)
+                              .at_css('form[action="/reports/detailed"] input[name="period"]')
+
+        expect(month_input['value']).to be_blank
+        expect(detailed_report_base_salary(employee.id_code)).to eq('3000,00')
+      end
+
+      it 'ignores an invalid month value and falls back to the current working month' do
+        user.update!(current_working_month: Date.new(2025, 5, 1))
+
+        get detailed_reports_path(period: 'not-a-month')
+
+        expect(response).to have_http_status(:ok)
+        expect(detailed_report_base_salary(employee.id_code)).to eq('1000,00')
+      end
+
+      it 'keeps the from/to date inputs next to the month filter' do
+        get detailed_reports_path
+
+        form = Nokogiri::HTML(response.body).at_css('form[action="/reports/detailed"]')
+
+        expect(form.at_css('input[name="date_from"][type="date"]')).to be_present
+        expect(form.at_css('input[name="date_to"][type="date"]')).to be_present
+        expect(form.at_css('input[name="period"][type="month"]')).to be_present
+      end
+    end
+
     it 'filters by a multi-word full name' do
       get detailed_reports_path(employee_search: "#{employee.last_name} #{employee.first_name}")
 

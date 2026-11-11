@@ -27,7 +27,8 @@ class ReportsController < ApplicationController
   end
 
   def detailed
-    @result = Reports::EmployeeDetailedQuery.new(params).call
+    @period_value = effective_period&.to_s
+    @result = Reports::EmployeeDetailedQuery.new(detailed_query_params).call
 
     respond_to do |format|
       format.html { prepare_detailed_html }
@@ -49,6 +50,35 @@ class ReportsController < ApplicationController
   end
 
   private
+
+  # Params handed to +Reports::EmployeeDetailedQuery+.
+  #
+  # The effective month is always written explicitly so a stale +period+ from
+  # the request cannot win over an explicit date range.
+  #
+  # @return [ActionController::Parameters]
+  def detailed_query_params
+    params.merge(period: effective_period&.to_s)
+  end
+
+  # Month applied to the detailed report.
+  #
+  # An explicit date range always takes precedence, so the month filter is
+  # disabled whenever either date boundary is present. A valid +period+ is used
+  # when requested; otherwise the report falls back to the user's current
+  # working month. Invalid month values are treated as absent.
+  #
+  # @return [Reports::Period, nil] nil when a date range is active
+  def effective_period
+    return @effective_period if defined?(@effective_period)
+
+    @effective_period =
+      if params[:date_from].present? || params[:date_to].present?
+        nil
+      else
+        Reports::Period.parse(params[:period]) || Reports::Period.from_date(current_working_month)
+      end
+  end
 
   def filtered_salaries(scope = Salary.ransack(params[:q]).result)
     scope = apply_selected_period(scope)

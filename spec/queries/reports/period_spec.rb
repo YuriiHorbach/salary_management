@@ -35,4 +35,17 @@ RSpec.describe Reports::Period do
       expect(period.range).to eq(Date.new(2025, 2, 1)..Date.new(2025, 2, 28))
     end
   end
+
+  describe '.from_date' do
+    it 'builds a period from any date inside the month' do
+      period = described_class.from_date(Date.new(2025, 5, 17))
+
+      expect(period.to_s).to eq('2025-05')
+      expect(period.date).to eq(Date.new(2025, 5, 1))
+    end
+
+    it 'returns nil for a blank date' do
+      expect(described_class.from_date(nil)).to be_nil
+    end
+  end
 end

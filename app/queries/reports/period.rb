@@ -25,6 +25,16 @@ module Reports
       nil
     end
 
+    # Builds a period from any date inside the requested month.
+    #
+    # @param date [Date, Time, nil] any date inside the month
+    # @return [Reports::Period, nil] nil when the date is blank
+    def self.from_date(date)
+      return if date.blank?
+
+      new(date)
+    end
+
     # @param date [Date, Time] any date inside the month
     def initialize(date)
       @date = date.to_date.beginning_of_month

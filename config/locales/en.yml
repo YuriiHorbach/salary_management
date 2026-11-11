@@ -38,6 +38,7 @@ en:
     select_employee: Select an employee
     no_position: No position
     no_matches: No matching employees found.
+    loading: Loading...
     back_to_list: Back to list
     current_working_month: Current working month
     example: "(example: 1000.00)"
@@ -58,6 +59,7 @@ en:
     employees: Employees
     more: More
     sick_days: Sick days
+    sick_day_report: Sick day report
     vacations: Vacations
     historical_import: Historical import
     reports: Reports
@@ -215,6 +217,12 @@ en:
             position:
               position_other_department: belongs to another department
               position_not_assigned: is not assigned to this employee
+        sick_day:
+          attributes:
+            pfu_amount:
+              amount_too_large: '^Amount is too large'
+            enterprise_amount:
+              amount_too_large: '^Amount is too large'
   departments:
     index:
       title: Departments
@@ -433,6 +441,10 @@ en:
       search: Search
       reset: Reset
       found: 'Found:'
+      employees_on_sick_leave_this_month: Employees on Sick Leave this Month
+      sick_days_count: Sick day count
+      total_sick_days: 'Total sick days:'
+      no_sick_days_for_month: There is no data for the selected month.
     form:
       employee: Employee
       select_employee: Select an employee
@@ -442,6 +454,15 @@ en:
       enterprise: Sick leave paid by enterprise
       save: Save
       cancel: Cancel
+  sick_day_reports:
+    index:
+      title: 'Sick day report for %{month}'
+      filter: Filter
+      pfu: PFU
+      enterprise: Enterprise
+      sum: Total
+      total_for: 'TOTAL FOR %{month}:'
+      empty: There is no data for the selected month.
   vacations:
     index:
       title: Vacation pay for %{name}

@@ -38,6 +38,7 @@ de:
     select_employee: Mitarbeiter auswählen
     no_position: Ohne Position
     no_matches: Keine passenden Mitarbeiter gefunden.
+    loading: Wird geladen...
     back_to_list: Zurück zur Liste
     current_working_month: Aktueller Arbeitsmonat
     example: "(Beispiel: 1000,00)"
@@ -58,6 +59,7 @@ de:
     employees: Mitarbeiter
     more: Mehr
     sick_days: Krankheitstage
+    sick_day_report: Krankheitstage-Bericht
     vacations: Urlaub
     historical_import: Historischer Import
     reports: Berichte
@@ -214,6 +216,12 @@ de:
             position:
               position_other_department: gehört zu einer anderen Abteilung
               position_not_assigned: ist diesem Mitarbeiter nicht zugewiesen
+        sick_day:
+          attributes:
+            pfu_amount:
+              amount_too_large: '^Betrag ist zu groß'
+            enterprise_amount:
+              amount_too_large: '^Betrag ist zu groß'
   departments:
     index:
       title: Abteilungen
@@ -432,6 +440,10 @@ de:
       search: Suchen
       reset: Zurücksetzen
       found: 'Gefunden:'
+      employees_on_sick_leave_this_month: Mitarbeiter krankgeschrieben in diesem Monat
+      sick_days_count: Anzahl der Krankheitstage
+      total_sick_days: 'Krankheitstage gesamt:'
+      no_sick_days_for_month: Für den ausgewählten Monat liegen keine Daten vor.
     form:
       employee: Mitarbeiter
       select_employee: Mitarbeiter auswählen
@@ -441,6 +453,15 @@ de:
       enterprise: Krankengeld des Unternehmens
       save: Speichern
       cancel: Abbrechen
+  sick_day_reports:
+    index:
+      title: 'Krankheitstage-Bericht für %{month}'
+      filter: Filtern
+      pfu: PFU
+      enterprise: Unternehmen
+      sum: Gesamt
+      total_for: 'GESAMT FÜR %{month}:'
+      empty: Für den ausgewählten Monat liegen keine Daten vor.
   vacations:
     index:
       title: Urlaubsgeld für %{name}

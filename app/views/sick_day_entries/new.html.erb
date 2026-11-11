@@ -6,6 +6,7 @@
   <%= form_with url: new_sick_day_entry_path, method: :get,
       class: "mb-3 flex flex-wrap gap-4 items-end",
       data: { turbo_frame: "_top" } do |f| %>
+    <%= hidden_field_tag :month, @report_month.strftime('%Y-%m') %>
     <div class="flex flex-col">
       <%= f.label :employee_search, t('sick_day_entries.new.search_label'), class: "text-sm font-medium mb-1" %>
       <%= f.text_field :employee_search, value: @employee_search,
@@ -14,9 +15,15 @@
     </div>
 
     <%= f.submit t('sick_day_entries.new.search'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
-    <%= link_to t('sick_day_entries.new.reset'), new_sick_day_entry_path,
+    <%= link_to t('sick_day_entries.new.reset'), new_sick_day_entry_path(month: @report_month.strftime('%Y-%m')),
         class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
   <% end %>
+
+
+  <%= turbo_frame_tag "sick_day_entry_form" do %>
+    <%= render "form", sick_day: @sick_day, employees: @employees %>
+  <% end %>
+
 
   <% if @employee_search.present? %>
     <p class="mb-4 text-sm text-gray-600">
@@ -31,7 +38,10 @@
     <% end %>
   <% end %>
 
-  <%= turbo_frame_tag "sick_day_entry_form" do %>
-    <%= render "form", sick_day: @sick_day, employees: @employees %>
-  <% end %>
+  <div class="mt-8">
+    <%= turbo_frame_tag "sick_day_report",
+        src: sick_day_reports_path(month: @report_month.strftime('%Y-%m')) do %>
+      <p class="mb-6 text-sm text-gray-500"><%= t('common.loading') %></p>
+    <% end %>
+  </div>
 </div>

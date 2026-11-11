@@ -61,8 +61,9 @@
             </svg>
           </summary>
           <div class="absolute left-0 top-full z-50 mt-1 min-w-56 max-w-[calc(100vw-2rem)] whitespace-nowrap rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-            <%= link_to t('navigation.summary_report'), summary_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.detailed_report'), detailed_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.sick_day_report'), sick_day_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
+            <%= link_to t('navigation.summary_report'), summary_reports_path, class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>
             <%= link_to t('navigation.export_4df'),
                         four_df_reports_path(period: current_working_month.strftime('%Y-%m')),
                         class: 'block px-4 py-2 text-gray-800 hover:bg-gray-100' %>

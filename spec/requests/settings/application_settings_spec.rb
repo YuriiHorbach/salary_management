@@ -5,7 +5,10 @@ require 'rails_helper'
 RSpec.describe 'Application settings', type: :request do
   let(:user) { create(:user) }
 
-  before { sign_in user }
+  before do
+    Rails.cache.clear
+    sign_in user
+  end
 
   describe 'GET /settings/application_setting/edit' do
     it 'shows the supported locales and the current default' do
@@ -45,6 +48,32 @@ RSpec.describe 'Application settings', type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(setting.reload.default_locale).to eq('en')
       expect(response.body).to include(I18n.t('settings.application_settings.edit.errors'))
+    end
+
+    it 'applies the new default even when a locale was explicitly selected' do
+      ApplicationSetting.create!(default_locale: 'en')
+
+      patch settings_application_setting_path(locale: :uk),
+            params: { application_setting: { default_locale: 'de' } }
+
+      expect(response).to redirect_to(edit_settings_application_setting_path)
+      follow_redirect!
+
+      expect(response.body).to include('Standardsprache')
+      expect(ApplicationSetting.current.default_locale).to eq('de')
+    end
+
+    it 'keeps the new default after a page reload' do
+      ApplicationSetting.create!(default_locale: 'en')
+
+      patch settings_application_setting_path,
+            params: { application_setting: { default_locale: 'uk' } }
+      follow_redirect!
+
+      get root_path
+
+      expect(I18n.locale).to eq(:uk)
+      expect(response.body).to include('Головна сторінка')
     end
   end
 

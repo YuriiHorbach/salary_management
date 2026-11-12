@@ -31,6 +31,14 @@ class ApplicationController < ActionController::Base
     current_user&.current_working_month || Date.current.beginning_of_month
   end
 
+  # Forgets a locale explicitly selected from the navigation bar so the
+  # application default applies to the redirect and to subsequent reloads.
+  #
+  # @return [void]
+  def reset_locale_selection
+    @locale_from_param = false
+  end
+
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: %i[id_code first_name patronic_name last_name])
   end

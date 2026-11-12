@@ -5,7 +5,10 @@ require 'rails_helper'
 RSpec.describe 'Application settings', type: :request do
   let(:user) { create(:user) }
 
-  before { sign_in user }
+  before do
+    Rails.cache.clear
+    sign_in user
+  end
 
   describe 'GET /settings/application_setting/edit' do
     it 'shows the supported locales and the current default' do

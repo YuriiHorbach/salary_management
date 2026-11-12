@@ -15,6 +15,11 @@ services:
       start_period: 5s
 
   web:
+    # Keep the container PID file out of the bind-mounted project directory.
+    # A host `tmp/pids/server.pid` (from `bin/dev` or a manual `rails server`)
+    # must never make the containerized Puma think a server is already running.
+    environment:
+      - PIDFILE=/tmp/puma-server.pid
     depends_on:
       db:
         condition: service_healthy

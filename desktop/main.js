@@ -16,8 +16,10 @@ const {
   parseDockerPs,
   parseLsof,
   parseNetstat,
+  parsePidFile,
   parseSs,
   parseTasklist,
+  shouldRemovePidFile,
   waitForApp,
   waitForCondition,
 } = require("./lib")
@@ -33,6 +35,7 @@ const PORTS = [
   { port: 5433, label: "PostgreSQL" },
 ]
 const MAX_PORT_ATTEMPTS = 6
+const PID_FILE = path.join(PROJECT_ROOT, "tmp", "pids", "server.pid")
 
 let mainWindow = null
 let splashWindow = null
@@ -224,6 +227,95 @@ function findPosixProcess(port) {
   }
 
   return null
+}
+
+/**
+ * Returns the executable name for a process, when the platform allows it.
+ *
+ * @param {number} pid process id
+ * @returns {string|null}
+ */
+function posixProcessName(pid) {
+  const result = spawnSync("ps", ["-p", String(pid), "-o", "comm="], {
+    encoding: "utf8",
+    timeout: 5_000,
+  })
+
+  if (result.status !== 0) return null
+  return result.stdout.trim() || null
+}
+
+/**
+ * Checks whether a process is alive and returns its executable name.
+ *
+ * @param {number} pid process id
+ * @returns {{alive: boolean|null, name: string|null}}
+ */
+function processInfo(pid) {
+  if (process.platform === "win32") {
+    const result = spawnSync("tasklist", ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
+      encoding: "utf8",
+      timeout: 10_000,
+      windowsHide: true,
+    })
+    if (result.status !== 0) return { alive: null, name: null }
+
+    const name = parseTasklist(result.stdout)
+    return { alive: Boolean(name), name }
+  }
+
+  try {
+    process.kill(pid, 0)
+  } catch (error) {
+    if (error.code === "ESRCH") return { alive: false, name: null }
+    if (error.code === "EPERM") return { alive: true, name: posixProcessName(pid) }
+    return { alive: null, name: null }
+  }
+
+  return { alive: true, name: posixProcessName(pid) }
+}
+
+/**
+ * Removes the host PID file when it is stale.
+ *
+ * The Rails container writes its PID to `/tmp/puma-server.pid`, so a leftover
+ * host `tmp/pids/server.pid` cannot block startup. This cleanup is best-effort:
+ * a file locked by an editor or WSL is ignored.
+ *
+ * Live Ruby/Puma processes are never killed or hidden automatically.
+ *
+ * @returns {void}
+ */
+function cleanupStalePidFile() {
+  let content
+  try {
+    content = fs.readFileSync(PID_FILE, "utf8")
+  } catch {
+    return
+  }
+
+  const pid = parsePidFile(content)
+  const state = pid ? processInfo(pid) : { alive: null, name: null }
+
+  if (
+    !shouldRemovePidFile({
+      pid,
+      processAlive: state.alive,
+      processName: state.name,
+    })
+  ) {
+    return
+  }
+
+  try {
+    fs.rmSync(PID_FILE, { force: true })
+    setSplashMessage(
+      "Прибираю застарілий server.pid…",
+      state.alive === false ? `процес ${pid} вже не працює` : "PID більше не належить Rails"
+    )
+  } catch {
+    // The container uses its own PIDFILE, so a locked file must not block startup.
+  }
 }
 
 /**
@@ -719,6 +811,9 @@ async function boot() {
   try {
     setSplashMessage("Перевіряю Docker…", "Якщо Docker Desktop не запущений, я спробую його відкрити")
     await ensureDocker()
+
+    setSplashMessage("Перевіряю Rails PID…", "Шукаю застарілий tmp/pids/server.pid")
+    cleanupStalePidFile()
 
     setSplashMessage("Перевіряю порти…", "Rails: 3000, PostgreSQL: 5433")
     await preparePorts(resolveComposeProject())

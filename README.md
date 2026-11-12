@@ -233,6 +233,8 @@ The Electron shell performs a preflight before it opens a window:
 5. Runs `docker compose -f docker-compose.yml -f docker-compose.desktop.yml up -d --wait`, so PostgreSQL reports healthy before Rails runs `db:prepare`. `docker compose up` reuses existing containers and does **not** rebuild the image unless the image is missing; there is no `--build` flag.
 6. Opens the window only after `GET http://127.0.0.1:3000/up` returns `200`. The `/up` endpoint checks a real `SELECT 1`, so Rails and PostgreSQL must both be usable.
 
+The containerized Puma writes its PID to `/tmp/puma-server.pid` (configured in `docker-compose.desktop.yml`), so a leftover host `tmp/pids/server.pid` from `bin/dev` or a manual `rails server` cannot trigger `A server is already running`. The container entrypoint removes a stale container-local PID file under `/tmp` before starting Rails, so a container restart cannot fail on an old PID either. Before launch the Electron shell also performs a best-effort cleanup of the host PID file: it removes it only when it is corrupt, when the recorded process is gone, or when the PID was reused by a non-Rails process. A live Ruby/Puma process is never killed or hidden automatically. If the file is locked by an editor or WSL, startup still continues because the container uses its own PID file.
+
 `docker-compose.desktop.yml` adds the readiness healthchecks used by `--wait`; the regular `docker compose up` workflow is unaffected. The first desktop launch after pulling this change may recreate the `db` and `web` containers to apply the healthchecks — the `salary_management_db_data` volume is preserved.
 
 If a port stays occupied after the owner is gone, Windows may have reserved it (WinNAT/Hyper-V):

@@ -358,6 +358,40 @@ function normalizePath(value, platform = process.platform) {
 }
 
 /**
+ * Parses the contents of `tmp/pids/server.pid`.
+ *
+ * @param {string} content PID file contents
+ * @returns {number|null} PID or null when the file is empty/corrupt
+ */
+function parsePidFile(content) {
+  const match = /^\s*(\d+)\s*$/.exec(String(content || ""))
+  if (!match) return null
+
+  const pid = Number(match[1])
+  return Number.isInteger(pid) && pid > 0 ? pid : null
+}
+
+/**
+ * Decides whether a Rails PID file is stale and can be removed safely.
+ *
+ * A file is stale when it has no valid PID, when the recorded process is gone,
+ * or when the PID was reused by a non-Rails process. A live Ruby/Puma process
+ * is never treated as stale, and unknown process states are left alone.
+ *
+ * @param {{pid: number|null, processAlive: boolean|null, processName: string|null}} state
+ * @returns {boolean} true when the PID file can be removed
+ */
+function shouldRemovePidFile({ pid, processAlive, processName }) {
+  if (!pid) return true
+  if (processAlive === false) return true
+  if (processAlive === true) {
+    if (!processName) return false
+    return !/ruby|puma|rails/i.test(processName)
+  }
+  return false
+}
+
+/**
  * Reads the project name from `docker compose config --format json` output.
  *
  * The full config may contain interpolated environment values, so callers must
@@ -502,10 +536,12 @@ module.exports = {
   parseLabels,
   parseLsof,
   parseNetstat,
+  parsePidFile,
   parseSs,
   parseTasklist,
   probeConnection,
   publishedPortsFromString,
+  shouldRemovePidFile,
   waitForApp,
   waitForCondition,
 }

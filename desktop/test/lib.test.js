@@ -17,9 +17,11 @@ const {
   parseDockerPs,
   parseLsof,
   parseNetstat,
+  parsePidFile,
   parseSs,
   parseTasklist,
   publishedPortsFromString,
+  shouldRemovePidFile,
   waitForApp,
   waitForCondition,
 } = require("../lib")
@@ -164,6 +166,25 @@ test("parseTasklist extracts the executable name and ignores INFO lines", () => 
     "node.exe"
   )
   assert.equal(parseTasklist("INFO: No tasks are running which match the specified criteria."), null)
+})
+
+test("parsePidFile accepts only a positive integer PID", () => {
+  assert.equal(parsePidFile("1234\n"), 1234)
+  assert.equal(parsePidFile("  42  "), 42)
+  assert.equal(parsePidFile(""), null)
+  assert.equal(parsePidFile("not-a-pid"), null)
+  assert.equal(parsePidFile("0"), null)
+})
+
+test("shouldRemovePidFile only removes provably stale files", () => {
+  assert.equal(shouldRemovePidFile({ pid: null, processAlive: null, processName: null }), true)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: false, processName: null }), true)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: true, processName: "node.exe" }), true)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: true, processName: "ruby" }), false)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: true, processName: "puma" }), false)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: true, processName: "rails" }), false)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: true, processName: null }), false)
+  assert.equal(shouldRemovePidFile({ pid: 123, processAlive: null, processName: null }), false)
 })
 
 test("publishedPortsFromString extracts host ports", () => {

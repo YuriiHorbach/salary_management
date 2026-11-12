@@ -4,6 +4,13 @@
 # prepare the database before booting. The build must succeed first because the
 # script runs with `set -e`.
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
+  # Remove a container-local Puma PID file left by a previous start. Only
+  # paths under /tmp are touched, so a bind-mounted host PIDFILE is never
+  # deleted.
+  if [ -n "${PIDFILE:-}" ] && [ "${PIDFILE#/tmp/}" != "${PIDFILE}" ]; then
+    rm -f "${PIDFILE}"
+  fi
+
   ./bin/rails tailwindcss:build
   ./bin/rails db:prepare
 fi

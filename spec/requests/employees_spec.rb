@@ -125,7 +125,7 @@ RSpec.describe 'Employees update', type: :request do
       get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200,40' } }
 
       expect(response).to have_http_status(:ok)
-      found_salaries = assigns(:employee_salaries).values.flatten
+      found_salaries = assigns(:employee_salaries)
       expect(found_salaries).to include(salary_1200_40)
       expect(found_salaries).not_to include(salary_500)
     end
@@ -134,7 +134,7 @@ RSpec.describe 'Employees update', type: :request do
       get employee_path(employee), params: { salary_q: { amount_cents_eq: '500' } }
 
       expect(response).to have_http_status(:ok)
-      found_salaries = assigns(:employee_salaries).values.flatten
+      found_salaries = assigns(:employee_salaries)
       expect(found_salaries).to include(salary_500)
       expect(found_salaries).not_to include(salary_1200_40)
     end
@@ -143,7 +143,7 @@ RSpec.describe 'Employees update', type: :request do
       get employee_path(employee), params: { salary_q: { amount_cents_eq: '1200,40' } }
 
       expect(response).to have_http_status(:ok)
-      found_salaries = assigns(:employee_salaries).values.flatten
+      found_salaries = assigns(:employee_salaries)
       expect(found_salaries).to include(salary_1200_40)
     end
 
@@ -170,6 +170,97 @@ RSpec.describe 'Employees update', type: :request do
       expect(response).to have_http_status(:ok)
       expect(assigns(:salary_amount_uah)).to eq('1200')
       expect(response.body).to include('value="1200"')
+    end
+  end
+
+  describe 'GET /employees/:id salary sorting' do
+    let(:sorting_employee) { create(:employee, children_count: 0) }
+    let(:alpha_department) { create(:department, name: 'Alpha') }
+    let(:zulu_department) { create(:department, name: 'Zulu') }
+
+    before do
+      create(:salary, employee: sorting_employee, department: alpha_department,
+                      amount_cents: 300_000,
+                      paid_on: Date.new(2025, 3, 15), period: Date.new(2025, 3, 1))
+      create(:salary, employee: sorting_employee, department: alpha_department,
+                      amount_cents: 100_000,
+                      paid_on: Date.new(2025, 1, 15), period: Date.new(2025, 1, 1))
+      create(:salary, employee: sorting_employee, department: zulu_department,
+                      amount_cents: 200_000,
+                      paid_on: Date.new(2025, 2, 15), period: Date.new(2025, 2, 1))
+    end
+
+    def assigned_sorts
+      assigns(:salary_q).sorts.map { |sort| "#{sort.name} #{sort.dir}" }
+    end
+
+    it 'defaults to sorting salaries by payment date descending' do
+      get employee_path(sorting_employee)
+
+      expect(assigned_sorts).to eq(['paid_on desc'])
+      expect(assigns(:employee_salaries)).to eq(sorting_employee.salaries.order(paid_on: :desc).to_a)
+    end
+
+    it 'keeps an explicit amount sort' do
+      get employee_path(sorting_employee), params: { salary_q: { s: 'amount_cents asc' } }
+
+      expect(assigned_sorts).to eq(['amount_cents asc'])
+      expect(assigns(:employee_salaries).map(&:amount_cents)).to eq([100_000, 200_000, 300_000])
+    end
+
+    it 'sorts by department name through the association' do
+      get employee_path(sorting_employee), params: { salary_q: { s: 'department_name asc' } }
+
+      expect(assigned_sorts).to eq(['department_name asc'])
+      expect(assigns(:employee_salaries).map { |salary| salary.department.name }).to eq(%w[Alpha Alpha Zulu])
+    end
+  end
+
+  describe 'GET /employees/:id monthly salary summary sorting' do
+    let(:summary_employee) { create(:employee, children_count: 0) }
+    let(:summary_department) { create(:department, name: 'Summary') }
+
+    before do
+      create(:salary, employee: summary_employee, department: summary_department,
+                      amount_cents: 200_000,
+                      paid_on: Date.new(2025, 1, 10), period: Date.new(2025, 1, 1))
+      create(:salary, employee: summary_employee, department: summary_department,
+                      amount_cents: 100_000,
+                      paid_on: Date.new(2025, 2, 10), period: Date.new(2025, 2, 1))
+    end
+
+    it 'defaults to newest month first' do
+      get employee_path(summary_employee)
+
+      expect(assigns(:monthly_totals).keys).to eq(%w[2025-02 2025-01])
+      expect(assigns(:monthly_totals).values).to eq([1000.0, 2000.0])
+    end
+
+    it 'sorts the summary by month ascending' do
+      get employee_path(summary_employee), params: { monthly_sort: 'month_asc' }
+
+      expect(assigns(:monthly_totals).keys).to eq(%w[2025-01 2025-02])
+    end
+
+    it 'sorts the summary by total amount ascending' do
+      get employee_path(summary_employee), params: { monthly_sort: 'amount_asc' }
+
+      expect(assigns(:monthly_totals).keys).to eq(%w[2025-02 2025-01])
+    end
+
+    it 'sorts the summary by total amount descending' do
+      get employee_path(summary_employee), params: { monthly_sort: 'amount_desc' }
+
+      expect(assigns(:monthly_totals).keys).to eq(%w[2025-01 2025-02])
+    end
+
+    it 'renders sortable monthly summary headers' do
+      get employee_path(summary_employee)
+
+      links = Nokogiri::HTML(response.body).css('a').map { |link| link['href'] }
+
+      expect(links).to include(a_string_including('monthly_sort=month_asc'))
+      expect(links).to include(a_string_including('monthly_sort=amount_asc'))
     end
   end
 
@@ -228,7 +319,7 @@ RSpec.describe 'Employees update', type: :request do
       get employee_path(employee)
 
       expect(assigns(:pagy_salaries).last).to eq(2)
-      expect(assigns(:employee_salaries).values.flatten.size).to eq(EmployeesController::SALARIES_PER_PAGE)
+      expect(assigns(:employee_salaries).size).to eq(EmployeesController::SALARIES_PER_PAGE)
     end
 
     it 'paginates the vacation list' do

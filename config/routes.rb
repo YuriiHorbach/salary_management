@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Readiness probe for Docker healthchecks and the Electron desktop shell.
+  get 'up' => 'health#show', as: :rails_health_check
+
   devise_for :users
   # root 'users#index'
   root 'home_pages#index'

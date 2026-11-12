@@ -65,20 +65,14 @@
           <%= sort_link(@salary_q, :amount_cents, t('.amount')) %>
         </th>
         <th class="px-2 py-1">
-          <%= sort_link(@salary_q, :paid_on, t('.paid_on')) %>
+          <%= sort_link(@salary_q, :paid_on, t('.paid_on'), default_order: :desc) %>
         </th>
       </tr>
     </thead>
     <tbody>
       <% if @employee_salaries.any? %>
-        <% @employee_salaries.each do |department, salaries| %>
-          <% salaries.each do |salary| %>
-            <tr class="border-b border-gray-100">
-              <td class="px-2 py-1"><%= department&.name || t('.no_department') %></td>
-              <td class="px-2 py-1"><%= number_to_currency(salary.amount) %></td>
-              <td class="px-2 py-1"><%= l(salary.paid_on.to_date, format: :short) if salary.paid_on %></td>
-            </tr>
-          <% end %>
+        <% @employee_salaries.each do |salary| %>
+          <%= render 'salary_row', salary: salary %>
         <% end %>
       <% else %>
         <tr><td colspan="3" class="p-4 text-center text-gray-500 italic"><%= t('.no_salaries') %></td></tr>
@@ -97,8 +91,8 @@
   <table class="min-w-full text-left text-sm font-light text-surface border mb-8">
     <thead class="bg-gray-200">
       <tr>
-        <th class="px-2 py-1"><%= t('.month') %></th>
-        <th class="px-2 py-1"><%= t('.amount') %></th>
+        <th class="px-2 py-1"><%= monthly_totals_sort_link(@employee, :month, t('.month')) %></th>
+        <th class="px-2 py-1"><%= monthly_totals_sort_link(@employee, :amount, t('.amount')) %></th>
       </tr>
     </thead>
     <tbody>

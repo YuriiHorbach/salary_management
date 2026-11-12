@@ -8,6 +8,14 @@ class EmployeesController < ApplicationController
   ].freeze
   CHECKBOX_FILTER_KEYS = %w[chaes_true contract_true].freeze
   DEFAULT_EMPLOYEE_SORT = 'last_name asc'
+  DEFAULT_SALARY_SORT = 'paid_on desc'
+  MONTHLY_SORT_OPTIONS = {
+    'month_desc' => %i[month desc],
+    'month_asc' => %i[month asc],
+    'amount_desc' => %i[amount desc],
+    'amount_asc' => %i[amount asc]
+  }.freeze
+  DEFAULT_MONTHLY_SORT = 'month_desc'
   EMPLOYEES_PER_PAGE = 15
   SALARIES_PER_PAGE = 15
   VACATIONS_PER_PAGE = 15
@@ -136,7 +144,7 @@ class EmployeesController < ApplicationController
   def sanitized_salary_search_params
     return {} unless params[:salary_q].present?
 
-    permitted = params[:salary_q].permit(:amount_cents_eq, :by_year, :department_id_eq)
+    permitted = params[:salary_q].permit(:amount_cents_eq, :by_year, :department_id_eq, :s)
 
     permitted.to_h.tap do |hash|
       if hash[:amount_cents_eq].present?
@@ -163,6 +171,12 @@ class EmployeesController < ApplicationController
     @monthly_totals = sort_monthly_totals(filter_monthly_totals(totals))
   end
 
+  # @return [String] requested monthly summary sort or the default
+  def monthly_sort
+    requested = params[:monthly_sort].to_s
+    MONTHLY_SORT_OPTIONS.key?(requested) ? requested : DEFAULT_MONTHLY_SORT
+  end
+
   # Keeps only the months requested through the +year+/+month+ filters.
   #
   # @param totals [Hash{String => Float}] monthly totals keyed by +YYYY-MM+
@@ -175,24 +189,27 @@ class EmployeesController < ApplicationController
     totals
   end
 
-  # Orders monthly totals newest month first for rendering.
+  # Orders monthly totals using the requested summary sort.
   #
   # @param totals [Hash{String => Float}] monthly totals keyed by +YYYY-MM+
-  # @return [Hash{String => Float}] totals sorted by month descending
+  # @return [Hash{String => Float}] totals in the selected order
   def sort_monthly_totals(totals)
-    totals.sort.reverse.to_h
+    field, direction = MONTHLY_SORT_OPTIONS.fetch(monthly_sort)
+    sorted = totals.sort_by { |month, total| field == :month ? [month, total] : [total, month] }
+    sorted.reverse! if direction == :desc
+    sorted.to_h
   end
 
-  # Loads the salary search, its paginated page and the rows grouped by
-  # department.
+  # Loads the salary search, its paginated page and the monthly summary scope.
   #
   # @return [ActiveRecord::Relation] searched scope used for monthly totals
   def load_salary_search
     @salary_q = @employee.salaries.ransack(sanitized_salary_search_params, search_key: :salary_q)
+    @salary_q.sorts = [DEFAULT_SALARY_SORT] if @salary_q.sorts.empty?
+
     salary_scope = @salary_q.result
-    @pagy_salaries, salary_records = pagy(:offset, salary_scope.includes(:department),
-                                          limit: SALARIES_PER_PAGE, page_key: 'salaries_page')
-    @employee_salaries = salary_records.group_by(&:department)
+    @pagy_salaries, @employee_salaries = pagy(:offset, salary_scope.includes(:department),
+                                              limit: SALARIES_PER_PAGE, page_key: 'salaries_page')
     salary_scope
   end
 

@@ -119,6 +119,17 @@ RSpec.describe 'VacationEntries', type: :request do
       expect(response.body).to include(I18n.t('navigation.vacations'))
     end
 
+    it 'embeds the monthly vacation report and keeps the selected month' do
+      get new_vacation_entry_path(month: '2026-03')
+
+      doc = Nokogiri::HTML(response.body)
+      frame = doc.at_css('turbo-frame#vacation_report')
+
+      expect(doc.at_css('input[name="month"]')['value']).to eq('2026-03')
+      expect(doc.at_css('input[name="vacation[period]"]')['value']).to eq('2026-03-01')
+      expect(frame['src']).to include(vacation_reports_path(month: '2026-03'))
+    end
+
     context 'when a current working month is selected' do
       let(:user) { create(:user, current_working_month: Date.new(2025, 4, 1)) }
 

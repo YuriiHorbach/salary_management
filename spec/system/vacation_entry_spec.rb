@@ -47,6 +47,30 @@ RSpec.describe 'Standalone vacation entry', :js, type: :system do
     expect(page).to have_text('100,00')
   end
 
+  it 'filters the embedded vacation report by month without leaving the entry page' do
+    previous_month = Date.current.beginning_of_month - 1.month
+    create(:vacation, employee: petrenko, period: previous_month)
+    visit new_vacation_entry_path
+
+    month_input = find('#vacation_report input[name="month"]')
+    page.execute_script('arguments[0].value = arguments[1]', month_input, previous_month.strftime('%Y-%m'))
+    click_button I18n.t('vacation_reports.index.filter')
+
+    expect(page).to have_css("#vacation_report_employee_#{petrenko.id}")
+    expect(page).to have_current_path(new_vacation_entry_path)
+  end
+
+  it 'opens the employee vacations page from the embedded report' do
+    create(:vacation, employee: petrenko, period: Date.current.beginning_of_month)
+    visit new_vacation_entry_path
+
+    within("#vacation_report_employee_#{petrenko.id}") do
+      click_link I18n.t('common.edit')
+    end
+
+    expect(page).to have_current_path(employee_vacations_path(petrenko))
+  end
+
   it 'shows the matching employees by a partial id code and allows choosing one' do
     visit new_vacation_entry_path
 

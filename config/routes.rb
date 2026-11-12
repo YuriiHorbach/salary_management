@@ -28,6 +28,7 @@ Rails.application.routes.draw do
 
   resources :sick_day_entries, only: %i[new create]
   resources :sick_day_reports, only: [:index]
+  resources :vacation_reports, only: [:index]
   resources :vacation_entries, only: %i[new create]
 
   resources :historical_imports, only: %i[new create] do

@@ -60,6 +60,7 @@ de:
     more: Mehr
     sick_days: Krankheitstage
     sick_day_report: Krankheitstage-Bericht
+    vacation_report: Urlaubsbericht
     vacations: Urlaub
     historical_import: Historischer Import
     reports: Berichte
@@ -460,6 +461,16 @@ de:
       pfu: PFU
       enterprise: Unternehmen
       sum: Gesamt
+      total_for: 'GESAMT FÜR %{month}:'
+      empty: Für den ausgewählten Monat liegen keine Daten vor.
+  vacation_reports:
+    index:
+      title: 'Urlaubsbericht für %{month}'
+      filter: Filtern
+      vacation: Urlaubsgeld
+      income_tax: Einkommensteuer
+      military_tax: Militärabgabe
+      net: Auszahlung
       total_for: 'GESAMT FÜR %{month}:'
       empty: Für den ausgewählten Monat liegen keine Daten vor.
   vacations:

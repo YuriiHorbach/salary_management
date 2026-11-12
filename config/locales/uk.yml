@@ -60,6 +60,7 @@ uk:
     more: Додатково
     sick_days: Лікарняні
     sick_day_report: Звіт по лікарняних
+    vacation_report: Звіт по відпускних
     vacations: Відпустки
     historical_import: Імпорт старих даних
     reports: Звіти
@@ -460,6 +461,16 @@ uk:
       pfu: ПФУ
       enterprise: Підприємство
       sum: Разом
+      total_for: 'РАЗОМ ЗА %{month}:'
+      empty: За вибраний місяць немає даних.
+  vacation_reports:
+    index:
+      title: 'Звіт по відпускних за %{month}'
+      filter: Фільтрувати
+      vacation: Відпускні
+      income_tax: ПДФО
+      military_tax: ВЗ
+      net: До виплати
       total_for: 'РАЗОМ ЗА %{month}:'
       empty: За вибраний місяць немає даних.
   vacations:

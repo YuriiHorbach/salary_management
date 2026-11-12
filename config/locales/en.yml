@@ -60,6 +60,7 @@ en:
     more: More
     sick_days: Sick days
     sick_day_report: Sick day report
+    vacation_report: Vacation report
     vacations: Vacations
     historical_import: Historical import
     reports: Reports
@@ -461,6 +462,16 @@ en:
       pfu: PFU
       enterprise: Enterprise
       sum: Total
+      total_for: 'TOTAL FOR %{month}:'
+      empty: There is no data for the selected month.
+  vacation_reports:
+    index:
+      title: 'Vacation report for %{month}'
+      filter: Filter
+      vacation: Vacation pay
+      income_tax: Income tax
+      military_tax: Military levy
+      net: To pay
       total_for: 'TOTAL FOR %{month}:'
       empty: There is no data for the selected month.
   vacations:

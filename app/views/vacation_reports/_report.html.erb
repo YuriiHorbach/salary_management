@@ -1,0 +1,96 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <h1 class="text-2xl font-bold text-gray-900">
+    <%= t('vacation_reports.index.title', month: @month) %>
+  </h1>
+
+  <%= form_with url: vacation_reports_path, method: :get, local: true,
+      data: { turbo_frame: 'vacation_report' }, class: "flex items-end gap-2" do |f| %>
+    <div class="flex flex-col">
+      <%= f.label :month, t('common.month'), class: "mb-1 text-sm font-medium text-gray-700" %>
+      <%= f.month_field :month, value: @month,
+          class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+    </div>
+    <%= f.submit t('vacation_reports.index.filter'),
+        class: "btn btn-primary font-medium py-2 px-4 rounded" %>
+  <% end %>
+</div>
+
+<div class="overflow-hidden rounded-lg border border-gray-200 shadow">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('common.id_code') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('common.employee') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('vacation_reports.index.vacation') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('vacation_reports.index.income_tax') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('vacation_reports.index.military_tax') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('vacation_reports.index.net') %>
+        </th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+          <%= t('common.actions') %>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 bg-white">
+      <% if @report_rows.any? %>
+        <% @report_rows.each do |row| %>
+          <% employee = @employees_by_id[row.employee_id] %>
+          <% next unless employee %>
+          <tr id="vacation_report_employee_<%= employee.id %>">
+            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
+              <%= link_to employee.id_code, employee_path(employee),
+                  class: "text-indigo-600 hover:text-indigo-900",
+                  data: { turbo_frame: '_top' } %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700"><%= employee.full_name %></td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+              <%= format_money(row.vacation_cents) %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+              <%= format_money(row.income_tax_cents) %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+              <%= format_money(row.military_tax_cents) %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+              <%= format_money(row.net_cents) %>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+              <%= link_to t('common.edit'), employee_vacations_path(employee),
+                  class: "btn btn-primary btn-xs", data: { turbo_frame: '_top' } %>
+            </td>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+            <%= t('vacation_reports.index.empty') %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+    <tfoot class="bg-gray-50 font-semibold">
+      <tr id="vacation_report_total">
+        <td colspan="2" class="px-6 py-3 text-left text-sm text-gray-900">
+          <%= t('vacation_reports.index.total_for', month: @month) %>
+        </td>
+        <td class="px-6 py-3 text-right text-sm text-gray-900"><%= format_money(@total_vacation_cents) %></td>
+        <td class="px-6 py-3 text-right text-sm text-gray-900"><%= format_money(@total_income_tax_cents) %></td>
+        <td class="px-6 py-3 text-right text-sm text-gray-900"><%= format_money(@total_military_tax_cents) %></td>
+        <td class="px-6 py-3 text-right text-sm text-gray-900"><%= format_money(@total_net_cents) %></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

@@ -133,6 +133,14 @@ bin/restore-db backups/salary-management-dump.sql --yes --migrate
 
 Tests must run against an isolated database. From the host, never point tests at the system PostgreSQL on port `5432`.
 
+### System Tests (Capybara / Chrome)
+Since containerized environments (like Docker) may lack a graphical browser, system tests should be handled strategically:
+- **Do not delete them:** Keep them as a vital part of your regression suite.
+- **Where to run them:** Execute them on your local host or in CI pipelines where Chrome and ChromeDriver are installed.
+- **Quick local feedback loop:** For faster iterations during development, temporarily exclude system specs:
+  ```bash
+  bundle exec rspec --exclude-pattern "spec/system/**/*_spec.rb"
+
 **Developer environment** — Docker is recommended:
 
 ```bash

@@ -15,7 +15,10 @@ const DOCKER_PATHS = {
     "/Applications/Docker.app/Contents/Resources/bin",
   ],
   linux: ["/usr/local/bin", "/usr/bin", "/snap/bin"],
-  win32: ["C:\\Program Files\\Docker\\Docker\\resources\\bin"],
+  win32: [
+    "C:\\Program Files\\Docker\\Docker\\resources\\bin",
+    "%LOCALAPPDATA%\\Programs\\Docker\\Docker\\resources\\bin",
+  ],
 }
 
 const ELECTRON_BINARY = {

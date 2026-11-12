@@ -45,7 +45,7 @@ docker compose up --build
 - Application: <http://localhost:3000>
 - PostgreSQL: `127.0.0.1:5433` (bound to localhost only)
 
-The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db` **and** `DB_PORT=5432` in `docker-compose.yml` (PostgreSQL listens on `5432` inside the compose network; `5433` is only the host mapping `127.0.0.1:5433:5432`), so no `.env` change is needed for Docker — the compose environment takes precedence over `.env` values. The `db` service also has a `pg_isready` healthcheck and `web` waits for `condition: service_healthy`, which prevents `db:prepare` from racing a still-starting PostgreSQL.
+The `web` container runs `db:prepare` automatically on first startup. Compose sets `DB_HOST=db` **and** `DB_PORT=5432` in `docker-compose.yml` (PostgreSQL listens on `5432` inside the compose network; `5433` is only the host mapping `127.0.0.1:5433:5432`), so no `.env` change is needed for Docker — the compose environment takes precedence over `.env` values. The base compose file keeps a plain `depends_on: db` (`service_started`). The Electron desktop shell additionally loads `docker-compose.desktop.yml`, which adds `pg_isready` and `/up` healthchecks and makes `web` wait for `condition: service_healthy`, so `db:prepare` cannot race a still-starting PostgreSQL on slower machines such as Windows.
 
 ```bash
 docker compose down            # stop, keep data
@@ -218,9 +218,30 @@ cd desktop
 npm install
 npm run shortcut          # create a desktop shortcut
 npm run shortcut:remove   # remove it
+npm run check             # syntax-check the Electron shell
+npm test                  # unit tests for the startup helpers
 ```
 
 The script creates `.command` on macOS, `.cmd` on Windows, and `.desktop` on Linux.
+
+The Electron shell performs a preflight before it opens a window:
+
+1. Verifies that the Docker CLI exists and the daemon responds. If Docker Desktop is installed but not running, the shell starts it and waits up to two minutes.
+2. Checks that host ports `3000` (Rails) and `5433` (PostgreSQL) are free.
+3. Stops containers that belong to this project but were created under an older compose project name. This is a one-time cleanup after a folder rename or a `COMPOSE_PROJECT_NAME` change; on normal launches, containers from the current Compose project are left running.
+4. Shows the owning process/PID or container name for any other port conflict and asks the user to free the port. **Unknown processes are never killed automatically** — they may belong to another application or to Windows itself.
+5. Runs `docker compose -f docker-compose.yml -f docker-compose.desktop.yml up -d --wait`, so PostgreSQL reports healthy before Rails runs `db:prepare`. `docker compose up` reuses existing containers and does **not** rebuild the image unless the image is missing; there is no `--build` flag.
+6. Opens the window only after `GET http://127.0.0.1:3000/up` returns `200`. The `/up` endpoint checks a real `SELECT 1`, so Rails and PostgreSQL must both be usable.
+
+`docker-compose.desktop.yml` adds the readiness healthchecks used by `--wait`; the regular `docker compose up` workflow is unaffected. The first desktop launch after pulling this change may recreate the `db` and `web` containers to apply the healthchecks — the `salary_management_db_data` volume is preserved.
+
+If a port stays occupied after the owner is gone, Windows may have reserved it (WinNAT/Hyper-V):
+
+```bat
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+Startup failures write `docker compose ps` and the last 80 lines of `web`/`db` logs to the Electron logs directory (the error dialog shows the exact file path).
 
 ## Domain notes
 

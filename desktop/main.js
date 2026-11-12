@@ -5,53 +5,425 @@ const { spawn, spawnSync } = require("node:child_process")
 const fs = require("node:fs")
 const path = require("node:path")
 
-const { isAppUrl, waitForApp } = require("./lib")
+const {
+  classifyPortOwner,
+  composeProjectFromConfig,
+  defaultComposeProjectName,
+  dockerDesktopCandidates,
+  fileExists,
+  isAppUrl,
+  isPortFree,
+  parseDockerPs,
+  parseLsof,
+  parseNetstat,
+  parseSs,
+  parseTasklist,
+  waitForApp,
+  waitForCondition,
+} = require("./lib")
 
 const PROJECT_ROOT = path.resolve(__dirname, "..")
-const APP_URL = "http://localhost:3000"
+const APP_URL = "http://127.0.0.1:3000"
+const HEALTH_URL = `${APP_URL}/up`
 const DATABASE_NAME = "salary_management_development"
+
+const COMPOSE_ARGS = ["-f", "docker-compose.yml", "-f", "docker-compose.desktop.yml"]
+const PORTS = [
+  { port: 3000, label: "Rails" },
+  { port: 5433, label: "PostgreSQL" },
+]
+const MAX_PORT_ATTEMPTS = 6
 
 let mainWindow = null
 let splashWindow = null
 
+/**
+ * Runs the Docker CLI synchronously from the project root.
+ *
+ * @param {string[]} args docker arguments
+ * @param {object} [options] spawnSync overrides
+ * @returns {import("node:child_process").SpawnSyncReturns<string>}
+ */
 function docker(args, options = {}) {
   return spawnSync("docker", args, {
     cwd: PROJECT_ROOT,
     encoding: "utf8",
     timeout: 20_000,
+    windowsHide: true,
     ...options,
   })
 }
 
+/**
+ * Checks whether the Docker daemon is reachable.
+ *
+ * @returns {boolean}
+ */
 function isDockerRunning() {
-  return docker(["info"]).status === 0
+  const result = docker(["info"], { timeout: 15_000 })
+  return !result.error && result.status === 0
 }
 
-function composeUp() {
+/**
+ * Starts Docker Desktop when the daemon is not running yet.
+ *
+ * @returns {boolean} true when a start command was launched
+ */
+function startDockerDesktop() {
+  for (const candidate of dockerDesktopCandidates(process.platform, process.env)) {
+    if (process.platform === "win32" && !fileExists(candidate.command)) continue
+
+    try {
+      const child = spawn(candidate.command, candidate.args, {
+        detached: true,
+        stdio: "ignore",
+        windowsHide: true,
+      })
+      child.on("error", () => {})
+      child.unref()
+      return true
+    } catch {
+      // Try the next known installation path.
+    }
+  }
+
+  return false
+}
+
+/**
+ * Verifies the Docker CLI and waits for the daemon, starting Docker Desktop if needed.
+ *
+ * @returns {Promise<void>}
+ */
+async function ensureDocker() {
+  const version = docker(["--version"], { timeout: 10_000 })
+
+  if (version.error && version.error.code === "ENOENT") {
+    throw new Error(
+      "Не знайдено Docker CLI. Встанови Docker Desktop і запусти застосунок знову."
+    )
+  }
+
+  if (version.error || version.status !== 0) {
+    const output = [version.stderr, version.stdout].filter(Boolean).join(" ").trim()
+    throw new Error(`Docker CLI не відповідає${output ? `: ${output}` : "."}`)
+  }
+
+  if (isDockerRunning()) return
+
+  setSplashMessage("Запускаю Docker Desktop…", "Це може зайняти до двох хвилин")
+
+  if (!startDockerDesktop()) {
+    throw new Error(
+      "Docker Desktop не запущено. Відкрий його вручну, дочекайся повного старту і спробуй знову."
+    )
+  }
+
+  await waitForCondition(isDockerRunning, {
+    timeout: 120_000,
+    interval: 2_000,
+    message:
+      "Docker Desktop не став доступним за 2 хвилини. Перевір, чи він запускається без помилок.",
+  })
+}
+
+/**
+ * Resolves the Compose project name used by the desktop shell.
+ *
+ * The raw config output may contain interpolated environment values, so only
+ * the project name is kept.
+ *
+ * @returns {string}
+ */
+function resolveComposeProject() {
+  const fallback = process.env.COMPOSE_PROJECT_NAME || defaultComposeProjectName(PROJECT_ROOT)
+  const result = docker(["compose", ...COMPOSE_ARGS, "config", "--format", "json"], { timeout: 20_000 })
+
+  if (result.status !== 0) return fallback
+  return composeProjectFromConfig(result.stdout, fallback)
+}
+
+/**
+ * Lists running Docker containers with their compose labels.
+ *
+ * @returns {Array<object>}
+ */
+function listDockerContainers() {
+  const result = docker(["ps", "--format", "{{json .}}"], { timeout: 15_000 })
+  if (result.status !== 0) return []
+  return parseDockerPs(result.stdout)
+}
+
+/**
+ * Finds the host process listening on a port.
+ *
+ * @param {number} port port number
+ * @returns {{pid: number, name: string}|null}
+ */
+function findHostProcess(port) {
+  return process.platform === "win32" ? findWindowsProcess(port) : findPosixProcess(port)
+}
+
+/**
+ * Finds a Windows process that owns a listening TCP port.
+ *
+ * @param {number} port port number
+ * @returns {{pid: number, name: string}|null}
+ */
+function findWindowsProcess(port) {
+  const netstat = spawnSync("netstat", ["-ano", "-p", "tcp"], {
+    encoding: "utf8",
+    timeout: 15_000,
+    windowsHide: true,
+  })
+  if (netstat.status !== 0) return null
+
+  const entries = parseNetstat(netstat.stdout).filter((item) => item.port === port)
+  // Prefer the listening socket over established connections that happen to
+  // reuse the same local port number.
+  const entry =
+    entries.find((item) => /^(0\.0\.0\.0|\[::\]):0$/.test(item.remoteAddress)) || entries[0]
+  if (!entry) return null
+
+  const tasklist = spawnSync("tasklist", ["/FI", `PID eq ${entry.pid}`, "/FO", "CSV", "/NH"], {
+    encoding: "utf8",
+    timeout: 10_000,
+    windowsHide: true,
+  })
+
+  return { pid: entry.pid, name: parseTasklist(tasklist.stdout) || "unknown" }
+}
+
+/**
+ * Finds a macOS/Linux process that owns a listening TCP port.
+ *
+ * @param {number} port port number
+ * @returns {{pid: number, name: string}|null}
+ */
+function findPosixProcess(port) {
+  const lsof = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-Fpc"], {
+    encoding: "utf8",
+    timeout: 10_000,
+  })
+
+  if (lsof.status === 0) {
+    const owners = parseLsof(lsof.stdout)
+    if (owners.length > 0) {
+      return { pid: owners[0].pid, name: owners[0].name || "unknown" }
+    }
+  }
+
+  const ss = spawnSync("ss", ["-lptnH", `sport = :${port}`], {
+    encoding: "utf8",
+    timeout: 10_000,
+  })
+
+  if (ss.status === 0) {
+    const owner = parseSs(ss.stdout)
+    if (owner) return owner
+  }
+
+  return null
+}
+
+/**
+ * Determines who owns an occupied port.
+ *
+ * @param {number} port port number
+ * @param {string} label human-readable service label
+ * @param {Array<object>} containers running Docker containers
+ * @param {string} currentProject current compose project name
+ * @returns {Promise<object>}
+ */
+async function inspectPort(port, label, containers, currentProject) {
+  if (await isPortFree(port)) return { port, label, type: "free" }
+
+  const published = containers.filter((container) => container.publishedPorts.includes(port))
+  const processOwner = published.length > 0 ? null : findHostProcess(port)
+
+  return classifyPortOwner({
+    port,
+    label,
+    dockerContainers: published,
+    processOwner,
+    projectRoot: PROJECT_ROOT,
+    currentProject,
+  })
+}
+
+/**
+ * Describes a blocked port for the user-facing dialog.
+ *
+ * @param {object} item classified port owner
+ * @returns {string}
+ */
+function describeBlocker(item) {
+  if (item.type === "process") {
+    return `Порт ${item.port} (${item.label}) зайнятий процесом «${item.process.name}» (PID ${item.process.pid}).`
+  }
+
+  if (item.type === "own-container") {
+    return `Порт ${item.port} (${item.label}) зайнятий контейнером «${item.container.name}».`
+  }
+
+  if (item.type === "stale-container" || item.type === "foreign-container") {
+    return `Порт ${item.port} (${item.label}) зайнятий Docker-контейнером «${item.container.name}» (проєкт «${item.container.project || "—"}», ID ${item.container.id}).`
+  }
+
+  return `Порт ${item.port} (${item.label}) зайнятий невідомим процесом. Можливо, Windows зарезервував цей порт. Перевір: netsh interface ipv4 show excludedportrange protocol=tcp.`
+}
+
+/**
+ * Shows a dialog for ports owned by external processes and asks whether to retry.
+ *
+ * Unknown processes are never killed automatically: they may belong to another
+ * application or to Windows itself.
+ *
+ * @param {Array<object>} blockers occupied ports
+ * @returns {Promise<boolean>} true when the user wants to retry
+ */
+async function showPortConflict(blockers) {
+  const detail = blockers.map(describeBlocker).join("\n")
+  const { response } = await dialog.showMessageBox({
+    type: "warning",
+    title: "Порти зайняті",
+    message: "Деякі порти вже використовуються",
+    detail: `${detail}\n\nЗвільни ці порти вручну (закрий процес або зупини контейнер) і натисни «Перевірити ще раз».`,
+    buttons: ["Перевірити ще раз", "Скасувати"],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true,
+  })
+
+  return response === 0
+}
+
+/**
+ * Frees ports held by our own stale containers and asks the user about foreign owners.
+ *
+ * Containers whose labels match the current Compose project are left running:
+ * `docker compose up` reuses them and does not rebuild the image.
+ *
+ * @param {string} currentProject current Compose project name
+ * @returns {Promise<void>}
+ */
+async function preparePorts(currentProject) {
+  for (let attempt = 0; attempt < MAX_PORT_ATTEMPTS; attempt += 1) {
+    const containers = listDockerContainers()
+    const results = []
+
+    for (const item of PORTS) {
+      results.push(await inspectPort(item.port, item.label, containers, currentProject))
+    }
+
+    const blocking = results.filter((result) => result.type !== "free")
+    if (blocking.length === 0) return
+
+    const stale = blocking.filter((result) => result.type === "stale-container")
+    if (stale.length > 0) {
+      setSplashMessage("Зупиняю старі контейнери…", stale.map((item) => item.container.name).join(", "))
+
+      for (const item of stale) {
+        const stopped = docker(["stop", item.container.id], { timeout: 30_000 })
+        if (stopped.status !== 0) {
+          const output = [stopped.stderr, stopped.stdout].filter(Boolean).join(" ").trim()
+          throw new Error(
+            `Не вдалося зупинити старий контейнер «${item.container.name}»${output ? `: ${output}` : "."}`
+          )
+        }
+      }
+
+      continue
+    }
+
+    const external = blocking.filter((result) => result.type !== "own-container")
+    if (external.length === 0) return
+
+    const retry = await showPortConflict(external)
+    if (!retry) {
+      throw new Error(`Запуск скасовано. ${external.map(describeBlocker).join(" ")}`)
+    }
+  }
+
+  throw new Error(
+    "Порти 3000 або 5433 залишаються зайнятими після кількох спроб. Звільни їх вручну і запусти застосунок знову."
+  )
+}
+
+/**
+ * Runs `docker compose up` and optionally waits for container health.
+ *
+ * @param {{wait?: boolean}} [options]
+ * @returns {Promise<void>}
+ */
+function composeUp({ wait = true } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn("docker", ["compose", "up", "-d"], {
+    const args = ["compose", ...COMPOSE_ARGS, "up", "-d", "--remove-orphans"]
+
+    if (wait) {
+      args.push("--wait", "--wait-timeout", "300")
+    }
+
+    const child = spawn("docker", args, {
       cwd: PROJECT_ROOT,
       stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
     })
 
     let output = ""
-    child.stdout.on("data", (chunk) => (output += chunk))
-    child.stderr.on("data", (chunk) => (output += chunk))
+    const append = (chunk) => {
+      output += chunk
+      if (output.length > 50_000) output = output.slice(-50_000)
+    }
+
+    child.stdout.on("data", append)
+    child.stderr.on("data", append)
     child.on("error", reject)
     child.on("close", (code) => {
       if (code === 0) {
         resolve()
-      } else {
-        reject(new Error(output.trim() || `docker compose up завершився з кодом ${code}`))
+        return
       }
+
+      if (wait && /unknown flag: --wait(?:-timeout)?/i.test(output)) {
+        composeUp({ wait: false }).then(resolve).catch(reject)
+        return
+      }
+
+      const error = new Error(
+        "Docker Compose не зміг запустити контейнери. Перевір, чи вільні порти 3000 і 5433, та логи."
+      )
+      error.details = output.trim()
+      reject(error)
     })
   })
 }
 
+/**
+ * Stops compose services without blocking application quit.
+ *
+ * @returns {void}
+ */
 function composeStop() {
-  docker(["compose", "stop"], { timeout: 60_000 })
+  try {
+    const child = spawn("docker", ["compose", ...COMPOSE_ARGS, "stop"], {
+      cwd: PROJECT_ROOT,
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+    })
+    child.on("error", () => {})
+    child.unref()
+  } catch {
+    // The app must quit even when Docker is unavailable.
+  }
 }
 
+/**
+ * Creates the frameless splash window shown while Docker and Rails start.
+ *
+ * @returns {void}
+ */
 function createSplashWindow() {
   splashWindow = new BrowserWindow({
     width: 420,
@@ -77,7 +449,7 @@ function createSplashWindow() {
         color: #e2e8f0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
-      .box { text-align: center; }
+      .box { text-align: center; padding: 0 24px; }
       .spinner {
         width: 42px;
         height: 42px;
@@ -95,8 +467,8 @@ function createSplashWindow() {
   <body>
     <div class="box">
       <div class="spinner"></div>
-      <p>Запускаю Salary Management…</p>
-      <small>Піднімаю Docker-контейнери</small>
+      <p id="message">Підготовка до запуску…</p>
+      <small id="detail">Перевіряю Docker і порти</small>
     </div>
   </body>
 </html>`
@@ -104,10 +476,125 @@ function createSplashWindow() {
   splashWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
 }
 
+/**
+ * Updates the splash status text.
+ *
+ * @param {string} message main status line
+ * @param {string} [detail] secondary status line
+ * @returns {void}
+ */
+function setSplashMessage(message, detail = "") {
+  if (!splashWindow || splashWindow.isDestroyed()) return
+
+  const script = `(() => {
+    const messageNode = document.getElementById("message")
+    const detailNode = document.getElementById("detail")
+    if (messageNode) messageNode.textContent = ${JSON.stringify(message)}
+    if (detailNode) detailNode.textContent = ${JSON.stringify(detail)}
+  })()`
+
+  splashWindow.webContents.executeJavaScript(script).catch(() => {})
+}
+
+/**
+ * Destroys the splash window if it still exists.
+ *
+ * @returns {void}
+ */
+function destroySplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) splashWindow.destroy()
+  splashWindow = null
+}
+
+/**
+ * Runs a Docker command and returns its output for the diagnostics log.
+ *
+ * @param {string[]} args docker arguments
+ * @param {number} timeout timeout in milliseconds
+ * @returns {string}
+ */
+function runDockerText(args, timeout) {
+  const result = docker(args, { timeout })
+  if (result.error) return `error: ${result.error.message}`
+
+  const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim()
+  return output || "(порожньо)"
+}
+
+/**
+ * Writes startup diagnostics to the Electron logs directory.
+ *
+ * @param {Error} error startup error
+ * @returns {string} path to the log file or a human-readable fallback message
+ */
+function writeDiagnostics(error) {
+  try {
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)
+    const directory = app.getPath("logs")
+    const file = path.join(directory, `startup-${stamp}.log`)
+
+    fs.mkdirSync(directory, { recursive: true })
+
+    const sections = [
+      `[${new Date().toISOString()}] ${error.name || "Error"}: ${error.message}`,
+      error.stack || "",
+      error.details ? `\n--- command output ---\n${error.details}` : "",
+      "",
+      "=== docker compose ps ===",
+      runDockerText(["compose", ...COMPOSE_ARGS, "ps"], 15_000),
+      "",
+      "=== docker compose logs --tail=80 web db ===",
+      runDockerText(
+        ["compose", ...COMPOSE_ARGS, "logs", "--no-color", "--tail", "80", "web", "db"],
+        30_000
+      ),
+      "",
+    ]
+
+    fs.writeFileSync(file, sections.join("\n"), "utf8")
+    return file
+  } catch (writeError) {
+    return `не вдалося записати лог: ${writeError.message}`
+  }
+}
+
+/**
+ * Shows a startup error and points the user to the diagnostics log.
+ *
+ * @param {Error} error startup error
+ * @returns {void}
+ */
+function showStartupError(error) {
+  const logPath = writeDiagnostics(error)
+  const choice = dialog.showMessageBoxSync({
+    type: "error",
+    title: "Не вдалося запустити застосунок",
+    message: error.message || "Невідома помилка",
+    detail: `Діагностику збережено:\n${logPath}`,
+    buttons: ["Закрити", "Показати лог"],
+    defaultId: 0,
+    cancelId: 0,
+    noLink: true,
+  })
+
+  if (choice === 1) shell.showItemInFolder(logPath)
+}
+
+/**
+ * Opens an external URL in the system browser.
+ *
+ * @param {string} url external URL
+ * @returns {void}
+ */
 function openExternal(url) {
   shell.openExternal(url)
 }
 
+/**
+ * Creates the main application window after Rails is ready.
+ *
+ * @returns {void}
+ */
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -125,11 +612,7 @@ function createMainWindow() {
   })
 
   mainWindow.once("ready-to-show", () => {
-    if (splashWindow) {
-      splashWindow.destroy()
-      splashWindow = null
-    }
-
+    destroySplash()
     mainWindow.show()
   })
 
@@ -149,6 +632,10 @@ function createMainWindow() {
     }
   })
 
+  mainWindow.webContents.on("did-fail-load", (_event, _code, description) => {
+    dialog.showErrorBox("Не вдалося завантажити застосунок", description)
+  })
+
   mainWindow.on("closed", () => {
     mainWindow = null
   })
@@ -156,6 +643,11 @@ function createMainWindow() {
   mainWindow.loadURL(APP_URL)
 }
 
+/**
+ * Backs up the development database through Docker Compose.
+ *
+ * @returns {void}
+ */
 function backupDatabase() {
   const backupDir = path.join(app.getPath("documents"), "SalaryManagement", "backups")
   fs.mkdirSync(backupDir, { recursive: true })
@@ -165,7 +657,7 @@ function backupDatabase() {
 
   const child = spawn(
     "docker",
-    ["compose", "exec", "-T", "db", "pg_dump", "-U", "postgres", "-d", DATABASE_NAME],
+    ["compose", ...COMPOSE_ARGS, "exec", "-T", "db", "pg_dump", "-U", "postgres", "-d", DATABASE_NAME],
     { cwd: PROJECT_ROOT }
   )
 
@@ -193,6 +685,11 @@ function backupDatabase() {
   })
 }
 
+/**
+ * Builds the application menu.
+ *
+ * @returns {void}
+ */
 function buildMenu() {
   const template = [
     ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
@@ -211,29 +708,31 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
+/**
+ * Runs the full startup sequence: Docker, ports, containers, Rails health.
+ *
+ * @returns {Promise<void>}
+ */
 async function boot() {
-  if (!isDockerRunning()) {
-    dialog.showErrorBox(
-      "Docker не запущено",
-      "Запусти Docker Desktop (macOS/Windows) або Docker Engine (Linux) і відкрий застосунок знову."
-    )
-    app.quit()
-    return
-  }
-
   createSplashWindow()
 
   try {
+    setSplashMessage("Перевіряю Docker…", "Якщо Docker Desktop не запущений, я спробую його відкрити")
+    await ensureDocker()
+
+    setSplashMessage("Перевіряю порти…", "Rails: 3000, PostgreSQL: 5433")
+    await preparePorts(resolveComposeProject())
+
+    setSplashMessage("Запускаю контейнери…", "Перший запуск може тривати кілька хвилин")
     await composeUp()
-    await waitForApp(APP_URL)
+
+    setSplashMessage("Чекаю на Rails…", "Перевіряю готовність застосунку та бази даних")
+    await waitForApp(HEALTH_URL, { timeout: 180_000 })
+
     createMainWindow()
   } catch (error) {
-    if (splashWindow) {
-      splashWindow.destroy()
-      splashWindow = null
-    }
-
-    dialog.showErrorBox("Не вдалося запустити застосунок", error.message)
+    destroySplash()
+    showStartupError(error)
     app.quit()
   }
 }

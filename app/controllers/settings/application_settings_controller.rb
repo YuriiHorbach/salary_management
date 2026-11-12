@@ -13,6 +13,10 @@ module Settings
 
     def update
       if @application_setting.update(application_setting_params)
+        # Drop an explicit navbar selection so the freshly saved default is used
+        # on the redirect and survives a page reload.
+        reset_locale_selection
+
         redirect_to edit_settings_application_setting_path,
                     notice: t('flash.settings.application_settings.updated',
                               locale: confirmation_locale)

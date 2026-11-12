@@ -9,7 +9,14 @@ RSpec.describe ApplicationSetting, type: :model do
   describe '.current' do
     it 'creates the singleton row once and reuses it' do
       expect { described_class.current }.to change(described_class, :count).by(1)
-      expect(described_class.current).to eq(described_class.first)
+      expect(described_class.current).to eq(described_class.order(:id).first)
+    end
+
+    it 'reuses the lowest-id row when several rows exist' do
+      first_row = described_class.create!(default_locale: 'uk')
+      described_class.create!(default_locale: 'de')
+
+      expect(described_class.current).to eq(first_row)
     end
   end
 
@@ -18,9 +25,21 @@ RSpec.describe ApplicationSetting, type: :model do
       expect(described_class.default_locale).to eq('en')
     end
 
+    it 'does not create a settings row' do
+      expect { described_class.default_locale }.not_to change(described_class, :count)
+    end
+
     it 'returns the persisted default locale' do
       described_class.create!(default_locale: 'uk')
 
+      expect(described_class.default_locale).to eq('uk')
+    end
+
+    it 'reads the same singleton row as .current when several rows exist' do
+      described_class.create!(default_locale: 'uk')
+      described_class.create!(default_locale: 'de')
+
+      expect(described_class.default_locale).to eq(described_class.current.default_locale)
       expect(described_class.default_locale).to eq('uk')
     end
   end

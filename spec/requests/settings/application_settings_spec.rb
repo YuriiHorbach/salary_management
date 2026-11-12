@@ -46,6 +46,32 @@ RSpec.describe 'Application settings', type: :request do
       expect(setting.reload.default_locale).to eq('en')
       expect(response.body).to include(I18n.t('settings.application_settings.edit.errors'))
     end
+
+    it 'applies the new default even when a locale was explicitly selected' do
+      ApplicationSetting.create!(default_locale: 'en')
+
+      patch settings_application_setting_path(locale: :uk),
+            params: { application_setting: { default_locale: 'de' } }
+
+      expect(response).to redirect_to(edit_settings_application_setting_path)
+      follow_redirect!
+
+      expect(response.body).to include('Standardsprache')
+      expect(ApplicationSetting.current.default_locale).to eq('de')
+    end
+
+    it 'keeps the new default after a page reload' do
+      ApplicationSetting.create!(default_locale: 'en')
+
+      patch settings_application_setting_path,
+            params: { application_setting: { default_locale: 'uk' } }
+      follow_redirect!
+
+      get root_path
+
+      expect(I18n.locale).to eq(:uk)
+      expect(response.body).to include('Головна сторінка')
+    end
   end
 
   describe 'settings dashboard' do

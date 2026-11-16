@@ -1,0 +1,71 @@
+<% content_for :title, t('reports.earnings.title') %>
+
+<% columns = @result[:columns] %>
+<% column_count = 3 + columns.size %>
+
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <h1 class="text-2xl font-bold"><%= t('reports.earnings.title') %></h1>
+
+  <%= form_with url: earnings_reports_path, method: :get, class: "flex flex-wrap items-end gap-3" do |form| %>
+    <div>
+      <%= form.label :period, t('reports.earnings.period'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.month_field :period, value: @period_value,
+          class: "border border-gray-300 rounded-md px-3 py-2 text-sm bg-white text-gray-900" %>
+    </div>
+    <%= form.submit t('reports.earnings.show'), class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded" %>
+  <% end %>
+
+  <%= link_to t('reports.earnings.export_csv'),
+      earnings_reports_path(format: :csv, period: @period_value),
+      class: "bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded",
+      data: { turbo: false } %>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="min-w-full border-collapse border border-gray-300">
+    <thead class="bg-gray-100 font-bold">
+      <tr>
+        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap"><%= t('reports.earnings.id_code') %></th>
+        <th class="border border-gray-300 px-3 py-2 text-left text-sm whitespace-nowrap"><%= t('reports.earnings.full_name') %></th>
+        <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap"><%= t('reports.earnings.total_salary') %></th>
+        <% columns.each do |column| %>
+          <th class="border border-gray-300 px-3 py-2 text-right text-sm whitespace-nowrap">
+            <span class="block"><%= column[:department_name] %></span>
+            <% if column[:position_name].present? %>
+              <span class="block text-xs font-normal text-gray-600"><%= column[:position_name] %></span>
+            <% end %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y divide-gray-200">
+      <% if @result[:rows].any? %>
+        <% @result[:rows].each do |row| %>
+          <tr class="bg-white">
+            <td class="border border-gray-300 px-3 py-2 text-sm"><%= row[:id_code] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-sm font-medium"><%= row[:full_name] %></td>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm font-semibold"><%= number_with_precision(row[:total_salary], precision: 2) %></td>
+            <% columns.each do |column| %>
+              <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= number_with_precision(row[:earnings][column[:key]] || 0.0, precision: 2) %></td>
+            <% end %>
+          </tr>
+        <% end %>
+
+        <tr class="bg-gray-200 font-bold">
+          <td class="border border-gray-300 px-3 py-2 text-sm" colspan="2"><%= t('reports.earnings.total') %></td>
+          <td class="border border-gray-300 px-3 py-2 text-right text-sm"><%= number_with_precision(@result[:totals][:salary], precision: 2) %></td>
+          <% columns.each do %>
+            <td class="border border-gray-300 px-3 py-2 text-right text-sm"></td>
+          <% end %>
+        </tr>
+      <% else %>
+        <tr>
+          <td colspan="<%= column_count %>" class="px-6 py-4 text-center text-sm text-gray-500">
+            <%= t('reports.earnings.empty') %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

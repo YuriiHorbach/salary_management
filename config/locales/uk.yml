@@ -66,6 +66,7 @@ uk:
     reports: Звіти
     summary_report: Зведений звіт
     detailed_report: Детальний звіт
+    employee_earnings_report: Доходи по підрозділах
     export_4df: Експорт 4-ДФ
     settings: Налаштування
     system_settings: Налаштування системи
@@ -697,6 +698,18 @@ uk:
       salary_gross_vacation: Зарплата + відпускні (брутто)
       salary_vacation_income_tax: ПДФО із зп + відпускних
       salary_vacation_military_tax: ВЗ із зп + відпускних
+    earnings:
+      title: Доходи по підрозділах
+      period: Період
+      show: Показати
+      export_csv: Експорт CSV
+      id_code: Ід_код
+      full_name: ПІБ
+      department_position: Підрозділ / Посада
+      salary: Зарплата
+      total_salary: Зарплата
+      total: Всього
+      empty: Даних за вибраний період не знайдено.
   historical_imports:
     new:
       title: Імпорт старих даних

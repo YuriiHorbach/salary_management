@@ -66,6 +66,7 @@ en:
     reports: Reports
     summary_report: Salary summary
     detailed_report: Detailed report
+    employee_earnings_report: Income by departments
     export_4df: Export 4-DF
     settings: Settings
     system_settings: System settings
@@ -699,6 +700,18 @@ en:
       salary_gross_vacation: Salary + vacation (gross)
       salary_vacation_income_tax: Income tax on salary + vacation
       salary_vacation_military_tax: Military levy on salary + vacation
+    earnings:
+      title: Income by departments
+      period: Period
+      show: Show
+      export_csv: Export CSV
+      id_code: ID code
+      full_name: Full name
+      department_position: Department / Position
+      salary: Salary
+      total_salary: Salary
+      total: Total
+      empty: No data for the selected period.
   historical_imports:
     new:
       title: Historical import

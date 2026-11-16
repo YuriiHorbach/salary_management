@@ -1048,6 +1048,177 @@ RSpec.describe 'Reports', type: :request do
     end
   end
 
+  describe 'GET /reports/earnings' do
+    let!(:salary) { nil } # disable the shared salary so the rows are deterministic
+    let(:farm) { create(:department, name: 'Ферма') }
+    let(:autopark) { create(:department, name: 'Автопарк') }
+    let(:milkmaid) { create(:position, department: farm, position_name: 'доярка') }
+    let(:mechanic) { create(:position, department: farm, position_name: 'механік') }
+    let(:driver) { create(:position, department: autopark, position_name: 'водій') }
+    let(:petrenko) do
+      create(:employee, id_code: '1234567890', last_name: 'Петренко',
+                        first_name: 'Іван', patronic_name: 'Іванович')
+    end
+    let(:ivanenko) do
+      create(:employee, id_code: '0987654321', last_name: 'Іваненко',
+                        first_name: 'Марія', patronic_name: 'Петрівна')
+    end
+    let(:report_period) { Date.new(2025, 5, 1) }
+
+    def create_period_salary(employee, department, position, amount_cents)
+      create(:department_employee, employee: employee, department: department, position: position) if position
+      create(:salary, employee: employee, department: department, position: position,
+                      amount_cents: amount_cents, period: report_period, paid_on: report_period)
+    end
+
+    before do
+      create_period_salary(petrenko, farm, milkmaid, 100_000)
+      create_period_salary(petrenko, farm, mechanic, 50_000)
+      create_period_salary(ivanenko, autopark, driver, 25_000)
+    end
+
+    def earnings_headers
+      Nokogiri::HTML(response.body).css('table thead th').map { |th| th.text.squish }
+    end
+
+    def earnings_rows(id_code)
+      Nokogiri::HTML(response.body).css('table tbody tr').select do |row|
+        row.css('td').first&.text&.strip == id_code
+      end
+    end
+
+    def earnings_row_cells(id_code)
+      earnings_rows(id_code).first.css('td').map { |cell| cell.text.squish }
+    end
+
+    it 'returns a successful response' do
+      get earnings_reports_path(period: '2025-05')
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'renders the fixed headers followed by dynamic department-position columns' do
+      get earnings_reports_path(period: '2025-05')
+
+      expect(earnings_headers).to eq(
+        [
+          I18n.t('reports.earnings.id_code'),
+          I18n.t('reports.earnings.full_name'),
+          I18n.t('reports.earnings.total_salary'),
+          'Автопарк водій',
+          'Ферма доярка',
+          'Ферма механік'
+        ]
+      )
+    end
+
+    it 'renders one row per employee with the total and per-column amounts' do
+      get earnings_reports_path(period: '2025-05')
+
+      expect(earnings_row_cells('1234567890')).to eq(
+        ['1234567890', 'Петренко Іван Іванович', '1500,00', '0,00', '1000,00', '500,00']
+      )
+      expect(earnings_row_cells('0987654321')).to eq(
+        ['0987654321', 'Іваненко Марія Петрівна', '250,00', '250,00', '0,00', '0,00']
+      )
+    end
+
+    it 'stacks the department and position in the column header' do
+      get earnings_reports_path(period: '2025-05')
+
+      header = Nokogiri::HTML(response.body)
+                       .css('table thead th')
+                       .find { |th| th.text.squish == 'Ферма доярка' }
+
+      expect(header.css('span').map { |span| span.text.strip }).to eq(%w[Ферма доярка])
+    end
+
+    it 'adds a department-only column for salaries without a position' do
+      employee = create(:employee, id_code: '1111111111', last_name: 'Без', first_name: 'Посади')
+      create(:salary, employee: employee, department: farm, amount_cents: 40_000,
+                      period: report_period, paid_on: report_period)
+
+      get earnings_reports_path(period: '2025-05')
+
+      headers = earnings_headers
+      department_index = headers.index('Ферма')
+      cells = earnings_row_cells('1111111111')
+
+      expect(department_index).to be_present
+      expect(cells[2]).to eq('400,00')
+      expect(cells[department_index]).to eq('400,00')
+    end
+
+    it 'defaults the period filter to the current working month' do
+      user.update!(current_working_month: report_period)
+
+      get earnings_reports_path
+
+      input = Nokogiri::HTML(response.body).at_css('input[name="period"][type="month"]')
+
+      expect(input['value']).to eq('2025-05')
+      expect(earnings_rows('1234567890')).to be_present
+    end
+
+    it 'links to the CSV export with the selected period' do
+      get earnings_reports_path(period: '2025-05')
+
+      link = Nokogiri::HTML(response.body).at_css('a[href*="/reports/earnings.csv"]')
+
+      expect(link).to be_present
+      expect(link.text.strip).to eq(I18n.t('reports.earnings.export_csv'))
+      expect(link['href']).to include('period=2025-05')
+      expect(link['data-turbo']).to eq('false')
+    end
+
+    context 'when requesting CSV' do
+      def parsed_csv
+        CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+      end
+
+      it 'returns a CSV attachment named after the report period' do
+        get earnings_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include('earnings-2025-05.csv')
+      end
+
+      it 'renders the fixed headers followed by dynamic department-position columns' do
+        get earnings_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(parsed_csv.first).to eq(
+          [
+            I18n.t('reports.earnings.id_code'),
+            I18n.t('reports.earnings.full_name'),
+            I18n.t('reports.earnings.total_salary'),
+            'Автопарк водій',
+            'Ферма доярка',
+            'Ферма механік'
+          ]
+        )
+      end
+
+      it 'renders one row per employee with the total and per-column amounts' do
+        get earnings_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(parsed_csv.find { |row| row.first == '1234567890' })
+          .to eq(['1234567890', 'Петренко Іван Іванович', '1500,00', '0,00', '1000,00', '500,00'])
+        expect(parsed_csv.find { |row| row.first == '0987654321' })
+          .to eq(['0987654321', 'Іваненко Марія Петрівна', '250,00', '250,00', '0,00', '0,00'])
+      end
+
+      it 'renders a grand totals row' do
+        get earnings_reports_path(format: :csv), params: { period: '2025-05' }
+
+        expect(parsed_csv.last).to eq(
+          [I18n.t('reports.earnings.total'), '', '1750,00', '', '', '']
+        )
+      end
+    end
+  end
+
   describe 'CSV export without authentication' do
     before { sign_out user }
 
@@ -1060,6 +1231,13 @@ RSpec.describe 'Reports', type: :request do
 
     it 'does not return the detailed data' do
       get detailed_reports_path(format: :csv)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.headers['Content-Disposition']).to be_nil
+    end
+
+    it 'does not return the earnings data' do
+      get earnings_reports_path(format: :csv)
 
       expect(response).to have_http_status(:unauthorized)
       expect(response.headers['Content-Disposition']).to be_nil

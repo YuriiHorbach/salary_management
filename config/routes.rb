@@ -42,6 +42,7 @@ Rails.application.routes.draw do
     get :summary, on: :collection
     get :detailed, on: :collection
     get :four_df, on: :collection
+    get :earnings, on: :collection
   end
 
   patch '/reports/page_number', to: 'reports/page_numbers#update', as: :reports_page_number

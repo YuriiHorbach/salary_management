@@ -49,6 +49,19 @@ class ReportsController < ApplicationController
     send_csv(Reports::FourDfCsvExporter.new(rows).call, '4df', period: selected_period&.date)
   end
 
+  def earnings
+    @period_value = earnings_period.to_s
+    @result = Reports::EmployeeEarningsQuery.new(period: @period_value).call
+
+    respond_to do |format|
+      format.html
+      format.csv do
+        send_csv(Reports::EmployeeEarningsCsvExporter.new(@result).call, 'earnings',
+                 period: @result[:period])
+      end
+    end
+  end
+
   private
 
   # Params handed to +Reports::EmployeeDetailedQuery+.
@@ -94,6 +107,16 @@ class ReportsController < ApplicationController
   # @return [Reports::Period, nil]
   def selected_period
     @selected_period ||= Reports::Period.parse(params[:period])
+  end
+
+  # Month applied to the employee earnings report.
+  #
+  # A valid +period+ parameter is honoured; anything else falls back to the
+  # user's current working month so the report always has a defined scope.
+  #
+  # @return [Reports::Period]
+  def earnings_period
+    Reports::Period.parse(params[:period]) || Reports::Period.from_date(current_working_month)
   end
 
   def prepare_detailed_html

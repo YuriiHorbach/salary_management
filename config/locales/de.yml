@@ -66,6 +66,7 @@ de:
     reports: Berichte
     summary_report: Gehaltsübersicht
     detailed_report: Detaillierter Bericht
+    employee_earnings_report: Einkommen nach Abteilungen
     settings: Einstellungen
     system_settings: Systemeinstellungen
     brigades: Brigaden
@@ -696,6 +697,18 @@ de:
       salary_gross_vacation: Gehalt + Urlaub (brutto)
       salary_vacation_income_tax: Einkommensteuer auf Gehalt + Urlaub
       salary_vacation_military_tax: Militärabgabe auf Gehalt + Urlaub
+    earnings:
+      title: Einkommen nach Abteilungen
+      period: Zeitraum
+      show: Anzeigen
+      export_csv: CSV exportieren
+      id_code: ID-Code
+      full_name: Vollständiger Name
+      department_position: Abteilung / Position
+      salary: Gehalt
+      total_salary: Gehalt
+      total: Gesamt
+      empty: Keine Daten für den ausgewählten Zeitraum.
   historical_imports:
     new:
       title: Historischer Import

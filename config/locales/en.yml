@@ -680,6 +680,7 @@ en:
       total_tax: Total tax
       total_military: Total military levy
       net_pay: Net pay
+      tax_benefit: Tax benefit
     summary_columns:
       salary_amount: Salary
       salary_income_tax: Income tax on salary

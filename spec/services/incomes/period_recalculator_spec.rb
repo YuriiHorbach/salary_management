@@ -29,7 +29,27 @@ RSpec.describe Incomes::PeriodRecalculator, type: :service do
       expect(aggregate.income_tax_cents).to eq(expected[:income_tax_cents])
       expect(aggregate.military_tax_cents).to eq(expected[:military_tax_cents])
       expect(aggregate.net_amount_cents).to eq(expected[:net_amount_cents])
+      expect(aggregate.tax_benefit).to eq(expected[:psp_kind].to_s)
       expect(aggregate.tax_settings_digest).to be_present
+    end
+
+    it 'stores the applied benefit type as a historical snapshot' do
+      employee.update!(children_count: 2)
+      create(:salary, employee: employee, department: department, period: period, paid_on: period,
+                      amount_cents: 200_000)
+
+      described_class.call(employee: employee, period: period, income_type: 'salary')
+
+      expect(aggregate_for('salary').tax_benefit).to eq('children')
+    end
+
+    it 'clears the stored benefit when the income exceeds the threshold' do
+      create(:salary, employee: employee, department: department, period: period, paid_on: period,
+                      amount_cents: 500_000)
+
+      described_class.call(employee: employee, period: period, income_type: 'salary')
+
+      expect(aggregate_for('salary').tax_benefit).to be_nil
     end
 
     it 'does not mix salaries from another period' do

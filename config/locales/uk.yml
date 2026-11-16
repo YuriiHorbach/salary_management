@@ -678,6 +678,7 @@ uk:
       total_tax: Загальний податок
       total_military: Загальний вз
       net_pay: Чиста виплата
+      tax_benefit: Податкова пільга
     summary_columns:
       salary_amount: Зарплата
       salary_income_tax: ПДФО із зарплати

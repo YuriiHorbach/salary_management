@@ -10,7 +10,7 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       vacation_amount vacation_income_tax vacation_military_tax
       sick_total sick_pdfo sick_military
       gross_vacation gross_vacation_income_tax gross_vacation_military_tax
-      total_income total_tax total_military net_pay
+      total_income total_tax total_military net_pay tax_benefit
     ]
   end
 
@@ -21,7 +21,8 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       'відпускні', 'відп податок', 'відп вз',
       'лікарняні', 'лік податок', 'лік вз',
       'Брутто зп+відп', 'ПДФО із зп+відп', 'ВЗ із зп+відп',
-      'Загальний дохід', 'Загальний податок', 'Загальний вз', 'Чиста виплата'
+      'Загальний дохід', 'Загальний податок', 'Загальний вз', 'Чиста виплата',
+      'Податкова пільга'
     ]
   end
 
@@ -263,6 +264,83 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(result[:totals][:base_salary]).to eq(0.0)
     end
 
+    describe 'tax benefit column' do
+      def row_for(employee)
+        described_class.new.call[:employees].find { |row| row[:employee_id] == employee.id }
+      end
+
+      it 'shows 04 for the children benefit' do
+        child_employee = create(:employee, id_code: '5555555555', children_count: 2)
+        create(:salary, employee: child_employee, department: department,
+                        amount_cents: 200_000, paid_on: Date.current)
+
+        expect(row_for(child_employee)[:tax_benefit]).to eq('04')
+      end
+
+      it 'shows 02 for the disability benefit' do
+        disabled_employee = create(:employee, id_code: '4444444444', disability_group: 1)
+        create(:salary, employee: disabled_employee, department: department,
+                        amount_cents: 100_000, paid_on: Date.current)
+
+        expect(row_for(disabled_employee)[:tax_benefit]).to eq('02')
+      end
+
+      it 'shows 02 for a Chernobyl liquidation participant' do
+        chaes_employee = create(:employee, id_code: '3333333333', chaes: true)
+        create(:salary, employee: chaes_employee, department: department,
+                        amount_cents: 100_000, paid_on: Date.current)
+
+        expect(row_for(chaes_employee)[:tax_benefit]).to eq('02')
+      end
+
+      it 'shows 02 for a single parent' do
+        employee = create(:employee, id_code: '2222222222')
+        create(:employee_period_income, employee: employee, income_type: 'salary',
+                                        gross_cents: 200_000, tax_benefit: 'single_parent')
+
+        expect(row_for(employee)[:tax_benefit]).to eq('02')
+      end
+
+      it 'shows 02 for a person supporting a disabled child' do
+        employee = create(:employee, id_code: '2222222223')
+        create(:employee_period_income, employee: employee, income_type: 'salary',
+                                        gross_cents: 200_000, tax_benefit: 'disabled_children')
+
+        expect(row_for(employee)[:tax_benefit]).to eq('02')
+      end
+
+      it 'shows 03 for a UBD benefit' do
+        employee = create(:employee, id_code: '2222222224')
+        create(:employee_period_income, employee: employee, income_type: 'salary',
+                                        gross_cents: 200_000, tax_benefit: 'ubd')
+
+        expect(row_for(employee)[:tax_benefit]).to eq('03')
+      end
+
+      it 'shows 01 for the base benefit' do
+        row = described_class.new.call[:employees].find { |employee| employee[:id_code] == '1234567890' }
+
+        expect(row[:tax_benefit]).to eq('01')
+      end
+
+      it 'keeps the historical code after the employee profile changes' do
+        child_employee = create(:employee, id_code: '5555555555', children_count: 2)
+        create(:salary, employee: child_employee, department: department,
+                        amount_cents: 200_000, paid_on: Date.current)
+        child_employee.update!(children_count: 0)
+
+        expect(row_for(child_employee)[:tax_benefit]).to eq('04')
+      end
+
+      it 'is blank when no benefit was applied' do
+        high_income_employee = create(:employee, id_code: '6666666666')
+        create(:salary, employee: high_income_employee, department: department,
+                        amount_cents: 500_000, paid_on: Date.current)
+
+        expect(row_for(high_income_employee)[:tax_benefit]).to eq('')
+      end
+    end
+
     describe 'sorting' do
       it 'sorts by last name ascending by default' do
         result = described_class.new.call
@@ -376,8 +454,9 @@ RSpec.describe Reports::EmployeeDetailedQuery do
       expect(row_keys).to include(:vacation_net)
     end
 
-    it 'lists the six text columns in TEXT_COLUMNS' do
-      expect(described_class::TEXT_COLUMNS).to eq(%i[id_code book_code page_number brigade department full_name])
+    it 'lists the text columns in TEXT_COLUMNS' do
+      expect(described_class::TEXT_COLUMNS)
+        .to eq(%i[id_code book_code page_number brigade department full_name tax_benefit])
     end
 
     it 'has a totals key for every numeric column so the totals row never drops one' do

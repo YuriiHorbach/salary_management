@@ -678,6 +678,7 @@ de:
       total_tax: Gesamtsteuer
       total_military: Gesamte Militärabgabe
       net_pay: Nettoauszahlung
+      tax_benefit: Steuervergünstigung
     summary_columns:
       salary_amount: Gehalt
       salary_income_tax: Einkommensteuer auf Gehalt

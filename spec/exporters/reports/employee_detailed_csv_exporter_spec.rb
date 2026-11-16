@@ -16,7 +16,7 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       vacation_military_tax: 15.0, vacation_net: 231.0, sick_total: 300.0, sick_pdfo: 54.0,
       sick_military: 15.0, gross_vacation: 1300.0, gross_vacation_income_tax: 0.0,
       gross_vacation_military_tax: 65.0, total_income: 1600.0, total_tax: 54.0,
-      total_military: 80.0, net_pay: 1466.0
+      total_military: 80.0, net_pay: 1466.0, tax_benefit: '04'
     }
   end
 
@@ -59,18 +59,26 @@ RSpec.describe Reports::EmployeeDetailedCsvExporter do
       expect(row[5]).to eq('Іван "Тест"; П.')
       expect(row[6]).to eq('1000,00')
       expect(row[22]).to eq('1466,00')
+      expect(row[23]).to eq('04')
     end
 
-    it 'renders the totals row as a label, empty text cells and money totals' do
+    it 'renders the totals row as a label, empty text cells, money totals and a blank benefit cell' do
       row = parse(described_class.new(result).call).last
 
       expect(row.first).to eq(I18n.t('reports.detailed.total'))
       expect(row[1..5]).to eq(['', '', '', '', ''])
-      expect(row[6..]).to eq(
+      expect(row[6..22]).to eq(
         ['2500,00', '450,00', '125,00', '1925,00', '750,00', '135,00', '37,50',
          '300,00', '54,00', '15,00', '3250,00', '0,00', '162,50', '3550,00',
          '54,00', '177,50', '3665,50']
       )
+      expect(row.last).to eq('')
+    end
+
+    it 'renders a blank last cell when no tax benefit was applied' do
+      without_benefit = { employees: [employee.merge(tax_benefit: '')], totals: totals }
+
+      expect(parse(described_class.new(without_benefit).call)[1].last).to eq('')
     end
 
     it 'prefixes formula-like text with an apostrophe' do

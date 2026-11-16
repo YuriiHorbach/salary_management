@@ -108,10 +108,18 @@
             </tr>
           <% end %>
 
+          <% column_keys = Reports::EmployeeDetailedQuery::COLUMN_LABELS.keys %>
+          <% text_columns = Reports::EmployeeDetailedQuery::TEXT_COLUMNS %>
+          <% leading_text_keys = column_keys.take_while { |key| text_columns.include?(key) } %>
+          <% trailing_text_keys = column_keys.select { |key| text_columns.include?(key) } - leading_text_keys %>
+          <% numeric_keys = column_keys - text_columns %>
           <tr class="bg-gray-100 font-bold">
-            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= Reports::EmployeeDetailedQuery::TEXT_COLUMNS.size %>"><%= t('reports.detailed.total') %></td>
-            <% (Reports::EmployeeDetailedQuery::COLUMN_LABELS.keys - Reports::EmployeeDetailedQuery::TEXT_COLUMNS).each do |key| %>
+            <td class="border border-gray-300 px-3 py-2 text-sm" colspan="<%= leading_text_keys.size %>"><%= t('reports.detailed.total') %></td>
+            <% numeric_keys.each do |key| %>
               <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"><%= number_with_precision(@result[:totals][key], precision: 2) %></td>
+            <% end %>
+            <% trailing_text_keys.each do |key| %>
+              <td class="<%= detailed_report_cell_class(key, emphasize: false) %>"></td>
             <% end %>
           </tr>
         <% else %>

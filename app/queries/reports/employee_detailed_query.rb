@@ -25,10 +25,22 @@ module Reports
       total_income: 'Загальний дохід',
       total_tax: 'Загальний податок',
       total_military: 'Загальний вз',
-      net_pay: 'Чиста виплата'
+      net_pay: 'Чиста виплата',
+      tax_benefit: 'Податкова пільга'
     }.freeze
 
-    TEXT_COLUMNS = %i[id_code book_code page_number brigade department full_name].freeze
+    TEXT_COLUMNS = %i[id_code book_code page_number brigade department full_name tax_benefit].freeze
+
+    # Tax benefit codes used in the detailed report (OZN_PILG semantics).
+    # A missing benefit keeps the cell blank.
+    TAX_BENEFIT_CODES = {
+      'base' => '01',
+      'disability' => '02',
+      'single_parent' => '02',
+      'disabled_children' => '02',
+      'ubd' => '03',
+      'children' => '04'
+    }.freeze
 
     def initialize(params = {})
       @params = params || {}
@@ -86,7 +98,9 @@ module Reports
       vacation = incomes.fetch('vacation', zero_income)
       sick = incomes.fetch('sick_day', zero_income)
 
-      identity_columns(employee).merge(income_columns(salary, vacation, sick, employee))
+      identity_columns(employee)
+        .merge(income_columns(salary, vacation, sick, employee))
+        .merge(tax_benefit: tax_benefit_label(salary[:tax_benefit]))
     end
 
     def identity_columns(employee)
@@ -202,13 +216,27 @@ module Reports
 
     def period_incomes
       @period_incomes ||= EmployeePeriodIncome.where(employee_id: employee_ids, period: period_range)
+                                              .order(:period)
                                               .group_by(&:employee_id)
                                               .transform_values do |rows|
                                                 rows.group_by(&:income_type).transform_values do |typed_rows|
-                                                  typed_rows.map { |row| income_hash(row) }
-                                                           .reduce(zero_income) { |total, row| sum_hashes(total, row) }
+                                                  sum_incomes(typed_rows)
                                                 end
                                               end
+    end
+
+    # Sums numeric aggregates and keeps the latest stored benefit snapshot.
+    # Date-range reports may span several months, so the most recent non-nil
+    # benefit is the one shown for the row.
+    def sum_incomes(typed_rows)
+      summed = typed_rows.map { |row| income_hash(row) }
+                         .reduce(zero_income) { |total, row| sum_hashes(total, row) }
+
+      summed.merge(tax_benefit: typed_rows.filter_map(&:tax_benefit).last)
+    end
+
+    def tax_benefit_label(kind)
+      TAX_BENEFIT_CODES.fetch(kind.to_s, '')
     end
 
     def sum_hashes(total, row)

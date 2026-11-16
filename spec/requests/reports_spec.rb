@@ -8,7 +8,7 @@ FULLY_POPULATED_ROW = [
   '1000,00', '0,00', '50,00', '950,00',
   '300,00', '54,00', '15,00',
   '300,00', '54,00', '15,00',
-  '1300,00', '0,00', '65,00', '1600,00', '54,00', '80,00', '1466,00'
+  '1300,00', '0,00', '65,00', '1600,00', '54,00', '80,00', '1466,00', '01'
 ].freeze
 
 RSpec.shared_context 'with a fully populated employee' do
@@ -342,6 +342,20 @@ RSpec.describe 'Reports', type: :request do
       expect(response.body).to include('detailed_report_table')
     end
 
+    it 'renders a blank tax benefit cell when no benefit was applied' do
+      high_income_employee = create(:employee, id_code: '7777777777')
+      create(:salary, employee: high_income_employee, amount_cents: 500_000)
+
+      get detailed_reports_path
+
+      row = Nokogiri::HTML(response.body).css('table tbody tr').find do |tr|
+        tr.css('td').first&.text&.strip == '7777777777'
+      end
+
+      expect(row).to be_present
+      expect(row.css('td').last.text.strip).to eq('')
+    end
+
     it 'links the employee ID code to their salary page' do
       get detailed_reports_path
 
@@ -562,14 +576,15 @@ RSpec.describe 'Reports', type: :request do
       expect(headers[2]).to eq(I18n.t('reports.detailed_columns.page_number'))
     end
 
-    it 'labels the gross salary+vacation and the last net pay columns' do
+    it 'labels the gross salary+vacation and places the tax benefit last' do
       get detailed_reports_path
 
       doc = Nokogiri::HTML(response.body)
       headers = doc.css('table thead tr').first.css('th').map { |th| th.text.strip }
 
       expect(headers).to include(I18n.t('reports.detailed_columns.gross_vacation'))
-      expect(headers.last).to eq(I18n.t('reports.detailed_columns.net_pay'))
+      expect(headers[-2]).to eq(I18n.t('reports.detailed_columns.net_pay'))
+      expect(headers.last).to eq(I18n.t('reports.detailed_columns.tax_benefit'))
     end
 
     it 'renders the header cells with the exact labels, order and alignment classes' do
@@ -593,7 +608,7 @@ RSpec.describe 'Reports', type: :request do
       cells = doc.css('table tbody tr').first.css('td')
 
       expect(cells.size).to eq(1)
-      expect(cells.first['colspan']).to eq('23')
+      expect(cells.first['colspan']).to eq(Reports::EmployeeDetailedQuery::COLUMN_LABELS.size.to_s)
     end
 
     describe 'sorting' do
@@ -771,17 +786,32 @@ RSpec.describe 'Reports', type: :request do
 
         expect(cells[5]['class']).to include('font-medium')
         expect(cells[5]['class']).not_to include('text-right')
-        expect(cells[6..].pluck('class')).to all(include('text-right'))
+        expect(cells[6..22].pluck('class')).to all(include('text-right'))
         expect(cells[22]['class']).to include('text-right', 'font-semibold')
+        expect(cells[23]['class']).not_to include('text-right')
       end
 
-      it 'renders the totals row with a spanning label and the numeric totals' do
+      it 'renders the tax benefit code as the last cell' do
+        child_employee = create(:employee, id_code: '5555555555', children_count: 2)
+        create(:salary, employee: child_employee, amount_cents: 200_000)
+
+        get detailed_reports_path
+
+        row = Nokogiri::HTML(response.body).css('table tbody tr').find do |tr|
+          tr.css('td').first&.text&.strip == '5555555555'
+        end
+
+        expect(row.css('td').last.text.strip).to eq('04')
+      end
+
+      it 'renders the totals row with a spanning label, numeric totals and a blank benefit cell' do
         cells = rows.last.css('td')
 
-        expect(cells.size).to eq(18)
+        expect(cells.size).to eq(19)
         expect(cells.first['colspan']).to eq('6')
         expect(cells.first.text.strip).to eq(I18n.t('reports.detailed.total'))
-        expect(cells[1..].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[6..])
+        expect(cells[1..17].map { |td| td.text.strip }).to eq(FULLY_POPULATED_ROW[6..22])
+        expect(cells.last.text.strip).to eq('')
       end
     end
 
@@ -820,7 +850,7 @@ RSpec.describe 'Reports', type: :request do
       let(:brigade_two) { create(:territory_sign, name: 'Бригада Два') }
       let(:employee_one) do
         create(:employee, id_code: '1111111111', first_name: 'Перший', last_name: 'Працівник',
-                          territory_sign: brigade_one)
+                          territory_sign: brigade_one, children_count: 2)
       end
       let(:employee_two) do
         create(:employee, id_code: '2222222222', first_name: 'Другий', last_name: 'Працівник',
@@ -869,6 +899,15 @@ RSpec.describe 'Reports', type: :request do
 
         expect(csv_rows).to be_an(Array)
         expect(csv_rows.first.first).to eq(I18n.t('reports.detailed_columns.id_code'))
+      end
+
+      it 'appends the stored tax benefit as the last column' do
+        get detailed_reports_path(format: :csv)
+
+        expect(csv_rows.first.last).to eq(I18n.t('reports.detailed_columns.tax_benefit'))
+
+        row = csv_rows.find { |csv_row| csv_row.first == employee_one.id_code }
+        expect(row.last).to eq('04')
       end
 
       it 'includes both employees from different brigades' do

@@ -255,6 +255,7 @@ RSpec.describe HistoricalDataImporter do
       expect(aggregate.income_tax_cents).to eq(expected[:income_tax_cents])
       expect(aggregate.military_tax_cents).to eq(expected[:military_tax_cents])
       expect(aggregate.net_amount_cents).to eq(expected[:net_amount_cents])
+      expect(aggregate.tax_benefit).to eq(expected[:psp_kind].to_s)
     end
 
     it 'keeps the imported taxes on the record while recalculating the aggregate' do

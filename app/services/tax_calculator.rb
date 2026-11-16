@@ -34,12 +34,12 @@ class TaxCalculator
 
     if @simple || @contract
       income_tax_cents = (gross_cents * @income_rate).round
-      return build_result(income_tax_cents, military_tax_cents, gross_cents, '')
+      return build_result(income_tax_cents, military_tax_cents, gross_cents)
     end
 
-    income_tax_cents, psp_sign = calculate_income_tax(gross_cents)
+    income_tax_cents, winner = calculate_income_tax(gross_cents)
 
-    build_result(income_tax_cents, military_tax_cents, gross_cents, psp_sign)
+    build_result(income_tax_cents, military_tax_cents, gross_cents, winner)
   end
 
   private
@@ -47,9 +47,9 @@ class TaxCalculator
   def calculate_income_tax(gross_cents)
     winner = psp_candidates.max_by { |candidate| [candidate[:psp], candidate[:threshold]] }
 
-    return [(gross_cents * @income_rate).round, ''] if gross_cents > winner[:threshold]
+    return [(gross_cents * @income_rate).round, nil] if gross_cents > winner[:threshold]
 
-    [[((gross_cents - winner[:psp]) * @income_rate).round, 0].max, winner[:sign] || '']
+    [[((gross_cents - winner[:psp]) * @income_rate).round, 0].max, winner]
   end
 
   def psp_candidates
@@ -57,7 +57,7 @@ class TaxCalculator
     base_threshold_cents = to_cents(@gran_dohid_uah)
 
     [
-      { psp: base_psp_cents, threshold: base_threshold_cents, sign: '' },
+      { psp: base_psp_cents, threshold: base_threshold_cents, sign: '', kind: :base },
       disability_candidate(base_psp_cents, base_threshold_cents),
       children_candidate(base_psp_cents, base_threshold_cents),
       single_parent_candidate(base_psp_cents, base_threshold_cents),
@@ -72,7 +72,8 @@ class TaxCalculator
     {
       psp: (base_psp_cents * multiplier).round,
       threshold: base_threshold_cents,
-      sign: @ubd ? '' : '2' # УБД has no code defined for the report
+      sign: @ubd ? '' : '2', # УБД has no code defined for the report
+      kind: @ubd ? :ubd : :disability
     }
   end
 
@@ -89,7 +90,8 @@ class TaxCalculator
     {
       psp: base_psp_cents * @children_count,
       threshold: base_threshold_cents * @children_count,
-      sign: '4'
+      sign: '4',
+      kind: :children
     }
   end
 
@@ -99,7 +101,8 @@ class TaxCalculator
     {
       psp: (base_psp_cents * 1.5 * @children_count).round,
       threshold: base_threshold_cents * @children_count,
-      sign: '' # no code defined for the report
+      sign: '', # no code defined for the report
+      kind: :single_parent
     }
   end
 
@@ -109,7 +112,8 @@ class TaxCalculator
     {
       psp: (base_psp_cents * 1.5 * @children_disabled_count).round,
       threshold: base_threshold_cents * @children_disabled_count,
-      sign: '' # no code defined for the report
+      sign: '', # no code defined for the report
+      kind: :disabled_children
     }
   end
 
@@ -138,12 +142,13 @@ class TaxCalculator
     !value.nil? && value != false
   end
 
-  def build_result(income_tax_cents, military_tax_cents, gross_cents, psp_sign)
+  def build_result(income_tax_cents, military_tax_cents, gross_cents, winner = nil)
     {
       income_tax_cents: income_tax_cents.to_i,
       military_tax_cents: military_tax_cents.to_i,
       net_amount_cents: (gross_cents - income_tax_cents - military_tax_cents).to_i,
-      psp_sign: psp_sign
+      psp_sign: winner&.fetch(:sign, '') || '',
+      psp_kind: winner&.fetch(:kind, nil)
     }
   end
 
@@ -156,6 +161,6 @@ class TaxCalculator
   end
 
   def zero_result
-    { income_tax_cents: 0, military_tax_cents: 0, net_amount_cents: 0, psp_sign: '' }
+    { income_tax_cents: 0, military_tax_cents: 0, net_amount_cents: 0, psp_sign: '', psp_kind: nil }
   end
 end

@@ -214,5 +214,54 @@ RSpec.describe TaxCalculator, type: :service do
         expect(described_class.call(amount_cents: 0)[:psp_sign]).to eq('')
       end
     end
+
+    describe 'psp_kind (type of the benefit actually applied)' do
+      it 'is :base for the ordinary benefit below the threshold' do
+        expect(described_class.call(amount_cents: 200_000)[:psp_kind]).to eq(:base)
+      end
+
+      it 'is :disability for a disability benefit' do
+        expect(described_class.call(amount_cents: 100_000, disability_group: 1)[:psp_kind])
+          .to eq(:disability)
+      end
+
+      it 'is :disability for a Chernobyl liquidator' do
+        expect(described_class.call(amount_cents: 300_000, chaes: true)[:psp_kind]).to eq(:disability)
+      end
+
+      it 'is :ubd for a UBD benefit' do
+        expect(described_class.call(amount_cents: 400_000, ubd: true)[:psp_kind]).to eq(:ubd)
+      end
+
+      it 'is :children when the children benefit wins' do
+        expect(described_class.call(amount_cents: 200_000, children_count: 2)[:psp_kind]).to eq(:children)
+      end
+
+      it 'is :single_parent for the single-parent benefit' do
+        expect(described_class.call(amount_cents: 200_000, single_parent: true, children_count: 1)[:psp_kind])
+          .to eq(:single_parent)
+      end
+
+      it 'is :disabled_children for the disabled-child benefit' do
+        expect(described_class.call(amount_cents: 400_000, children_disabled_count: 1)[:psp_kind])
+          .to eq(:disabled_children)
+      end
+
+      it 'reports the winning benefit when several are eligible' do
+        res = described_class.call(amount_cents: 200_000, disability_group: 1, children_count: 2)
+
+        expect(res[:psp_kind]).to eq(:children)
+      end
+
+      it 'is nil when the income exceeds the threshold' do
+        expect(described_class.call(amount_cents: 500_000, disability_group: 1)[:psp_kind]).to be_nil
+      end
+
+      it 'is nil for contract, simple and non-positive calculations' do
+        expect(described_class.call(amount_cents: 100_000, contract: true)[:psp_kind]).to be_nil
+        expect(described_class.call(amount_cents: 100_000, simple: true)[:psp_kind]).to be_nil
+        expect(described_class.call(amount_cents: 0)[:psp_kind]).to be_nil
+      end
+    end
   end
 end

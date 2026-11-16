@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_27_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_27_120000) do
     t.string "tax_settings_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "tax_benefit"
     t.index ["employee_id", "period", "income_type"], name: "index_employee_period_incomes_unique", unique: true
     t.index ["employee_id"], name: "index_employee_period_incomes_on_employee_id"
     t.index ["period"], name: "index_employee_period_incomes_on_period"

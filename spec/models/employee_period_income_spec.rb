@@ -26,6 +26,19 @@ RSpec.describe EmployeePeriodIncome, type: :model do
 
       expect(record).not_to be_valid
     end
+
+    it 'accepts a known tax benefit snapshot' do
+      record = described_class.new(attributes.merge(tax_benefit: 'children'))
+
+      expect(record).to be_valid
+    end
+
+    it 'rejects an unknown tax benefit snapshot' do
+      record = described_class.new(attributes.merge(tax_benefit: 'unknown'))
+
+      expect(record).not_to be_valid
+      expect(record.errors[:tax_benefit]).to be_present
+    end
   end
 
   it 'is removed together with its employee' do

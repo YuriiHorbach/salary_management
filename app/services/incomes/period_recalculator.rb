@@ -51,6 +51,7 @@ module Incomes
         income_tax_cents: result[:income_tax_cents],
         military_tax_cents: result[:military_tax_cents],
         net_amount_cents: result[:net_amount_cents],
+        tax_benefit: result[:psp_kind]&.to_s,
         tax_settings_digest: tax_settings_digest
       )
 

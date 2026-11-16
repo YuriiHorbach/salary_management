@@ -30,16 +30,17 @@ module Reports
       end
     end
 
+    # One cell per column so trailing text columns stay aligned with the header.
     def totals_row
-      [I18n.t('reports.detailed.total'), *Array.new(EmployeeDetailedQuery::TEXT_COLUMNS.size - 1, ''), *money_totals]
-    end
-
-    def money_totals
-      money_keys.map { |key| csv_money(@totals[key]) }
-    end
-
-    def money_keys
-      EmployeeDetailedQuery::COLUMN_LABELS.keys - EmployeeDetailedQuery::TEXT_COLUMNS
+      EmployeeDetailedQuery::COLUMN_LABELS.each_key.with_index.map do |key, index|
+        if index.zero?
+          I18n.t('reports.detailed.total')
+        elsif text_column?(key)
+          ''
+        else
+          csv_money(@totals[key])
+        end
+      end
     end
 
     def text_column?(key)

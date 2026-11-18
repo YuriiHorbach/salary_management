@@ -208,6 +208,47 @@ RSpec.describe Reports::EmployeeDetailedQuery do
         .to contain_exactly('1234567890')
     end
 
+    describe 'benefit filter' do
+      it 'filters employees by the stored benefit code' do
+        child_employee = create(:employee, id_code: '5555555555', children_count: 2)
+        create(:salary, employee: child_employee, department: department,
+                        amount_cents: 200_000, paid_on: Date.current)
+
+        result = described_class.new(benefit: '04').call
+
+        expect(result[:employees].map { |employee| employee[:id_code] })
+          .to contain_exactly('5555555555')
+      end
+
+      it 'groups all benefit kinds that share the same report code' do
+        disabled_employee = create(:employee, id_code: '4444444444', disability_group: 1)
+        create(:salary, employee: disabled_employee, department: department,
+                        amount_cents: 100_000, paid_on: Date.current)
+
+        result = described_class.new(benefit: '02').call
+
+        expect(result[:employees].map { |employee| employee[:id_code] })
+          .to contain_exactly('4444444444')
+      end
+
+      it 'filters employees without an applied benefit' do
+        high_income_employee = create(:employee, id_code: '6666666666')
+        create(:salary, employee: high_income_employee, department: department,
+                        amount_cents: 500_000, paid_on: Date.current)
+
+        result = described_class.new(benefit: 'none').call
+
+        expect(result[:employees].map { |employee| employee[:id_code] })
+          .to contain_exactly('6666666666')
+      end
+
+      it 'ignores an unknown benefit code' do
+        result = described_class.new(benefit: 'unknown').call
+
+        expect(result[:employees].size).to eq(2)
+      end
+    end
+
     it 'filters by date range' do
       old_salary = create(:salary, employee: emp1, department: department,
         amount_cents: 50_000, income_tax_cents: 9_000, military_tax_cents: 2_500, net_amount_cents: 38_500,

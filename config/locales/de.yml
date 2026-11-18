@@ -572,6 +572,13 @@ de:
       position_name: Positionsname
       add: Position hinzufügen
   reports:
+    filters:
+      benefits:
+        basic: "01 — Grund"
+        increased: "02 — Erhöht (150%)"
+        ubd: "03 — UBD"
+        children: "04 — Für Kinder"
+        none: Keine Vergünstigung
     index:
       title: Gehaltsübersicht nach Abteilung
       year: Jahr
@@ -615,6 +622,8 @@ de:
       all_brigades: Alle Brigaden
       book: Buch
       all_books: Alle Bücher
+      benefit: Steuervergünstigung
+      all_benefits: Alle Vergünstigungen
       employee_search: Mitarbeiter (Name / Steuer-ID)
       employee_placeholder: Name oder Steuer-ID
       filter: Filtern
@@ -701,6 +710,22 @@ de:
     earnings:
       title: Einkommen nach Abteilungen
       period: Zeitraum
+      date_from: Von Datum
+      date_to: Bis Datum
+      department: Abteilung
+      all_departments: Alle Abteilungen
+      position: Position
+      all_positions: Alle Positionen
+      brigade: Brigade
+      all_brigades: Alle Brigaden
+      book: Buch
+      all_books: Alle Bücher
+      benefit: Steuervergünstigung
+      all_benefits: Alle Vergünstigungen
+      employee_search: Mitarbeiter (Name / Steuer-ID)
+      employee_placeholder: Name oder Steuer-ID
+      filter: Filtern
+      reset: Zurücksetzen
       show: Anzeigen
       export_csv: CSV exportieren
       id_code: ID-Code

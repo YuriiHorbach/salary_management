@@ -2,67 +2,16 @@
 
 <h1 class="text-2xl font-bold mb-6"><%= t('reports.detailed.title') %></h1>
 
-<%= form_with url: detailed_reports_path, method: :get, class: "flex flex-wrap gap-4 items-end mb-6", data: { turbo_frame: "detailed_report_table" } do |f| %>
-  <%= hidden_field_tag 'q[s]', params.dig(:q, :s) if params.dig(:q, :s).present? %>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :date_from, t('reports.detailed.date_from'), class: "text-sm font-medium" %>
-    <%= f.date_field :date_from, value: params[:date_from], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :date_to, t('reports.detailed.date_to'), class: "text-sm font-medium" %>
-    <%= f.date_field :date_to, value: params[:date_to], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :period, t('reports.detailed.period'), class: "text-sm font-medium" %>
-    <%= f.month_field :period, value: @period_value, class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :department, t('reports.detailed.department'), class: "text-sm font-medium" %>
-    <%= f.select :department,
-        options_from_collection_for_select(@departments, 'id', 'name', params[:department]),
-        { include_blank: t('reports.detailed.all_departments') },
-        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :position, t('reports.detailed.position'), class: "text-sm font-medium" %>
-    <%= f.select :position,
-        options_from_collection_for_select(@positions, 'id', 'position_name', params[:position]),
-        { include_blank: t('reports.detailed.all_positions') },
-        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :brigade, t('reports.detailed.brigade'), class: "text-sm font-medium" %>
-    <%= f.select :brigade,
-        options_from_collection_for_select(@brigades, 'id', 'name', params[:brigade]),
-        { include_blank: t('reports.detailed.all_brigades') },
-        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :account_book, t('reports.detailed.book'), class: "text-sm font-medium" %>
-    <%= f.select :account_book,
-        options_for_select(@account_book_codes, params[:account_book]),
-        { include_blank: t('reports.detailed.all_books') },
-        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.label :employee_search, t('reports.detailed.employee_search'), class: "text-sm font-medium" %>
-    <%= f.text_field :employee_search, value: params[:employee_search], placeholder: t('reports.detailed.employee_placeholder'),
-        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
-  </div>
-
-  <div class="flex flex-col sm:flex-row gap-2">
-    <%= f.submit t('reports.detailed.filter'), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
-    <%= link_to t('reports.detailed.reset'), detailed_reports_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
-  </div>
-<% end %>
+<%= render 'shared/report_filters',
+      url: detailed_reports_path,
+      scope: 'reports.detailed',
+      period_value: @period_value,
+      departments: @departments,
+      positions: @positions,
+      brigades: @brigades,
+      account_book_codes: @account_book_codes,
+      reset_path: detailed_reports_path,
+      turbo_frame: 'detailed_report_table' %>
 
 <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
   <p class="mb-3 text-sm text-gray-600"><%= t('reports.detailed.export_period_hint') %></p>

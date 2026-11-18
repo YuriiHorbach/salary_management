@@ -571,6 +571,13 @@ uk:
       position_name: Назва посади
       add: Додати посаду
   reports:
+    filters:
+      benefits:
+        basic: "01 — Звичайна"
+        increased: "02 — Підвищена (150%)"
+        ubd: "03 — УБД"
+        children: "04 — На дітей"
+        none: Без пільги
     index:
       title: Зведений звіт по зарплатах (по відділах)
       year: Рік
@@ -615,6 +622,8 @@ uk:
       all_brigades: Всі бригади
       book: Книга
       all_books: Всі книги
+      benefit: Податкова пільга
+      all_benefits: Всі пільги
       employee_search: Співробітник (ПІБ / ІПН)
       employee_placeholder: ПІБ або ІПН
       filter: Фільтрувати
@@ -701,6 +710,22 @@ uk:
     earnings:
       title: Доходи по підрозділах
       period: Період
+      date_from: З дати
+      date_to: По дату
+      department: Підрозділ
+      all_departments: Всі підрозділи
+      position: Посада
+      all_positions: Всі посади
+      brigade: Бригада
+      all_brigades: Всі бригади
+      book: Книга
+      all_books: Всі книги
+      benefit: Податкова пільга
+      all_benefits: Всі пільги
+      employee_search: Співробітник (ПІБ / ІПН)
+      employee_placeholder: ПІБ або ІПН
+      filter: Фільтрувати
+      reset: Скинути
       show: Показати
       export_csv: Експорт CSV
       id_code: Ід_код

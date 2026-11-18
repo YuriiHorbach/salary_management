@@ -2,6 +2,8 @@
 
 module Reports
   class EmployeeDetailedQuery
+    include BenefitFiltering
+
     COLUMN_LABELS = {
       id_code: 'ІПН',
       book_code: 'Код книги',
@@ -202,7 +204,7 @@ module Reports
         scope = scope.search_by_text(@params[:employee_search])
       end
 
-      scope
+      filter_by_benefit(scope, @params[:benefit], period_range)
     end
 
     def filter_by_position(scope)

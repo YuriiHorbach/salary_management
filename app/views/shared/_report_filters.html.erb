@@ -1,0 +1,87 @@
+<%#
+  Shared report filter form used by the detailed and earnings reports.
+
+  Locals:
+    url                - form action path
+    scope              - I18n scope with the filter labels
+    period_value       - value for the month input
+    departments        - departments collection for the department select
+    positions          - positions collection for the position select
+    brigades           - territory signs collection for the brigade select
+    account_book_codes - account book codes for the book select
+    reset_path         - path restored by the reset link
+    turbo_frame        - optional Turbo Frame id refreshed by the form
+%>
+<% turbo_frame = local_assigns[:turbo_frame] %>
+
+<%= form_with url: url, method: :get, class: "flex flex-wrap gap-4 items-end mb-6",
+              data: (turbo_frame ? { turbo_frame: turbo_frame } : {}) do |f| %>
+  <%= hidden_field_tag 'q[s]', params.dig(:q, :s) if params.dig(:q, :s).present? %>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :date_from, t("#{scope}.date_from"), class: "text-sm font-medium" %>
+    <%= f.date_field :date_from, value: params[:date_from], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :date_to, t("#{scope}.date_to"), class: "text-sm font-medium" %>
+    <%= f.date_field :date_to, value: params[:date_to], class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :period, t("#{scope}.period"), class: "text-sm font-medium" %>
+    <%= f.month_field :period, value: period_value, class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :department, t("#{scope}.department"), class: "text-sm font-medium" %>
+    <%= f.select :department,
+        options_from_collection_for_select(departments, 'id', 'name', params[:department]),
+        { include_blank: t("#{scope}.all_departments") },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :position, t("#{scope}.position"), class: "text-sm font-medium" %>
+    <%= f.select :position,
+        options_from_collection_for_select(positions, 'id', 'position_name', params[:position]),
+        { include_blank: t("#{scope}.all_positions") },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :brigade, t("#{scope}.brigade"), class: "text-sm font-medium" %>
+    <%= f.select :brigade,
+        options_from_collection_for_select(brigades, 'id', 'name', params[:brigade]),
+        { include_blank: t("#{scope}.all_brigades") },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :account_book, t("#{scope}.book"), class: "text-sm font-medium" %>
+    <%= f.select :account_book,
+        options_for_select(account_book_codes, params[:account_book]),
+        { include_blank: t("#{scope}.all_books") },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :benefit, t("#{scope}.benefit"), class: "text-sm font-medium" %>
+    <%= f.select :benefit,
+        options_for_select(benefit_filter_options, params[:benefit]),
+        { include_blank: t("#{scope}.all_benefits") },
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.label :employee_search, t("#{scope}.employee_search"), class: "text-sm font-medium" %>
+    <%= f.text_field :employee_search, value: params[:employee_search],
+        placeholder: t("#{scope}.employee_placeholder"),
+        class: "border border-gray-300 rounded-md px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <%= f.submit t("#{scope}.filter"), class: "btn btn-primary font-medium py-2 px-4 rounded hover:bg-blue-600" %>
+    <%= link_to t("#{scope}.reset"), reset_path, class: "btn btn-secondary font-medium py-2 px-4 rounded" %>
+  </div>
+<% end %>

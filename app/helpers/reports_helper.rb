@@ -4,9 +4,27 @@ module ReportsHelper
   START_YEAR = 2000
   PAGE_NUMBER_OPTIONS = (1..100)
 
-  DETAILED_FILTER_PARAMS = %i[
-    period date_from date_to department brigade account_book employee_search position
+  # Filter params shared by the report pages (detailed, earnings).
+  REPORT_FILTER_PARAMS = %i[
+    period date_from date_to department brigade account_book employee_search position benefit
   ].freeze
+
+  # Kept as an alias for the detailed report export form.
+  DETAILED_FILTER_PARAMS = REPORT_FILTER_PARAMS
+
+  # Tax benefit filter values mapped to their localized option labels.
+  BENEFIT_FILTER_OPTIONS = [
+    ['01', 'reports.filters.benefits.basic'],
+    ['02', 'reports.filters.benefits.increased'],
+    ['03', 'reports.filters.benefits.ubd'],
+    ['04', 'reports.filters.benefits.children'],
+    ['none', 'reports.filters.benefits.none']
+  ].freeze
+
+  # @return [Array<Array(String, String)>] localized benefit filter options
+  def benefit_filter_options
+    BENEFIT_FILTER_OPTIONS.map { |value, key| [t(key), value] }
+  end
 
   def year_options
     (START_YEAR..Time.now.year).to_a.reverse

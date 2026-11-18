@@ -9,15 +9,18 @@ module Reports
   # column. Salaries without a department are grouped under
   # +UNASSIGNED_DEPARTMENT+ so the grand total always matches the salary rows.
   class EmployeeEarningsQuery
+    include BenefitFiltering
+
     UNASSIGNED_DEPARTMENT = 'Без підрозділу'
 
     attr_reader :period
 
-    # @param params [Hash, ActionController::Parameters] optional +period+
-    #   (+YYYY-MM+) used to scope the report
+    # @param params [Hash, ActionController::Parameters] report filters:
+    #   +period+ (+YYYY-MM+), +date_from+, +date_to+, +department+,
+    #   +position+, +brigade+, +account_book+ and +employee_search+
     def initialize(params = {})
       @params = params || {}
-      @period = selected_period
+      @period = report_period
     end
 
     # @return [Hash] +:period+, +:columns+, +:rows+ and +:totals+
@@ -32,26 +35,96 @@ module Reports
 
     private
 
-    def selected_period
-      Reports::Period.parse(@params[:period])&.date || Date.current.beginning_of_month
-    end
-
     # Salary amounts in cents grouped by employee identity, department and
     # position name.
     #
     # @return [Hash{Array => Integer}]
     def grouped_sums
-      @grouped_sums ||= Salary.where(period: period)
-                              .joins(:employee)
-                              .left_joins(:department, :position)
-                              .group('employees.id',
-                                     'employees.id_code',
-                                     'employees.last_name',
-                                     'employees.first_name',
-                                     'employees.patronic_name',
-                                     'departments.name',
-                                     'positions.position_name')
-                              .sum('salaries.amount_cents')
+      @grouped_sums ||= filtered_salaries
+                        .group('employees.id',
+                               'employees.id_code',
+                               'employees.last_name',
+                               'employees.first_name',
+                               'employees.patronic_name',
+                               'departments.name',
+                               'positions.position_name')
+                        .sum('salaries.amount_cents')
+    end
+
+    # Applies the report filters to the salary rows, so both the pivot rows and
+    # the dynamic department/position columns reflect the active filters.
+    #
+    # @return [ActiveRecord::Relation<Salary>]
+    def filtered_salaries
+      scope = Salary.where(period: period_range)
+                    .joins(:employee)
+                    .left_joins(:department, :position)
+
+      scope = scope.where(departments: { id: param(:department) }) if param(:department).present?
+      scope = scope.where(positions: { id: param(:position) }) if param(:position).present?
+      scope = scope.where(employees: { territory_sign_id: param(:brigade) }) if param(:brigade).present?
+      scope = filter_by_account_book(scope)
+      scope = filter_by_employee_search(scope)
+
+      filter_by_benefit(scope, param(:benefit), period_range, column: :employee_id)
+    end
+
+    def filter_by_account_book(scope)
+      code = param(:account_book)
+      return scope if code.blank?
+
+      employee_ids = Employee.joins(:account_book).where(account_books: { code: code }).select(:id)
+      scope.where(employee_id: employee_ids)
+    end
+
+    def filter_by_employee_search(scope)
+      term = param(:employee_search)
+      return scope if term.blank?
+
+      scope.where(employee_id: Employee.search_by_text(term).select(:id))
+    end
+
+    # @return [Date] the first day shown by the report and used in CSV filenames
+    def report_period
+      selected_period&.date ||
+        date_param(:date_from)&.beginning_of_month ||
+        date_param(:date_to)&.beginning_of_month ||
+        Date.current.beginning_of_month
+    end
+
+    # @return [Range<Date>] months that contain the selected salaries
+    def period_range
+      return selected_period.range if selected_period
+      return Date.current.all_month unless date_range?
+
+      from = date_param(:date_from)&.beginning_of_month || Date.new(1900, 1, 1)
+      to = date_param(:date_to)&.end_of_month || Date.new(2999, 12, 31)
+
+      from..to
+    end
+
+    def date_range?
+      param(:date_from).present? || param(:date_to).present?
+    end
+
+    # @return [Reports::Period, nil]
+    def selected_period
+      @selected_period ||= Reports::Period.parse(param(:period))
+    end
+
+    # @return [Date, nil] parsed date, or nil for a blank or malformed value
+    def date_param(key)
+      value = param(key)
+      return if value.blank?
+
+      value.to_date
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    # Supports both symbol keys (services, specs) and string keys (request params).
+    def param(key)
+      @params[key] || @params[key.to_s]
     end
 
     # @return [Array<Hash>] one dynamic column per department/position pair

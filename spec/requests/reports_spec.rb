@@ -379,6 +379,20 @@ RSpec.describe 'Reports', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    it 'filters by the applied tax benefit code' do
+      child = create(:employee, id_code: '5555555555', children_count: 2)
+      create(:salary, employee: child, amount_cents: 200_000)
+
+      get detailed_reports_path(benefit: '04')
+
+      ids = Nokogiri::HTML(response.body)
+                    .css('table tbody tr')
+                    .select { |row| row.css('td').size == Reports::EmployeeDetailedQuery::COLUMN_LABELS.size }
+                    .map { |row| row.css('td').first.text.strip }
+
+      expect(ids).to contain_exactly('5555555555')
+    end
+
     describe 'month period filter' do
       def detailed_report_row(id_code)
         Nokogiri::HTML(response.body).css('table tbody tr').find do |row|
@@ -1210,6 +1224,133 @@ RSpec.describe 'Reports', type: :request do
       expect(link['data-turbo']).to eq('false')
     end
 
+    describe 'filters' do
+      def earnings_form
+        Nokogiri::HTML(response.body).at_css('form[action="/reports/earnings"]')
+      end
+
+      it 'renders the shared report filter controls' do
+        get earnings_reports_path(period: '2025-05')
+
+        form = earnings_form
+
+        expect(form.at_css('input[name="date_from"][type="date"]')).to be_present
+        expect(form.at_css('input[name="date_to"][type="date"]')).to be_present
+        expect(form.at_css('input[name="period"][type="month"]')).to be_present
+        expect(form.at_css('select[name="department"]')).to be_present
+        expect(form.at_css('select[name="position"]')).to be_present
+        expect(form.at_css('select[name="brigade"]')).to be_present
+        expect(form.at_css('select[name="account_book"]')).to be_present
+        expect(form.at_css('select[name="benefit"]')).to be_present
+        expect(form.at_css('input[name="employee_search"]')).to be_present
+      end
+
+      it 'filters rows and columns by department' do
+        get earnings_reports_path(period: '2025-05', department: farm.id)
+
+        expect(earnings_rows('1234567890')).to be_present
+        expect(earnings_rows('0987654321')).to be_empty
+        expect(earnings_headers).to eq(
+          [
+            I18n.t('reports.earnings.id_code'),
+            I18n.t('reports.earnings.full_name'),
+            I18n.t('reports.earnings.total_salary'),
+            'Ферма доярка',
+            'Ферма механік'
+          ]
+        )
+      end
+
+      it 'filters rows by position' do
+        get earnings_reports_path(period: '2025-05', position: milkmaid.id)
+
+        expect(earnings_row_cells('1234567890')).to eq(
+          ['1234567890', 'Петренко Іван Іванович', '1000,00', '1000,00']
+        )
+        expect(earnings_rows('0987654321')).to be_empty
+      end
+
+      it 'filters rows by brigade' do
+        petrenko.update!(territory_sign: create(:territory_sign, name: 'Бригада 1'))
+
+        get earnings_reports_path(period: '2025-05', brigade: petrenko.territory_sign_id)
+
+        expect(earnings_rows('1234567890')).to be_present
+        expect(earnings_rows('0987654321')).to be_empty
+      end
+
+      it 'filters rows by account book' do
+        create(:account_book, employee: petrenko, code: 'Б55')
+
+        get earnings_reports_path(period: '2025-05', account_book: 'Б55')
+
+        expect(earnings_rows('1234567890')).to be_present
+        expect(earnings_rows('0987654321')).to be_empty
+      end
+
+      it 'filters rows by employee search' do
+        get earnings_reports_path(period: '2025-05', employee_search: 'Іваненко')
+
+        expect(earnings_rows('1234567890')).to be_empty
+        expect(earnings_rows('0987654321')).to be_present
+      end
+
+      it 'filters rows by the applied tax benefit code' do
+        child = create(:employee, id_code: '5555555555', last_name: 'Дитина',
+                                  first_name: 'Іван', children_count: 2)
+        create_period_salary(child, farm, milkmaid, 200_000)
+
+        get earnings_reports_path(period: '2025-05', benefit: '04')
+
+        expect(earnings_rows('5555555555')).to be_present
+        expect(earnings_rows('1234567890')).to be_empty
+        expect(earnings_rows('0987654321')).to be_empty
+      end
+
+      it 'filters employees without an applied benefit' do
+        high_income = create(:employee, id_code: '6666666666', last_name: 'Безпільговий',
+                                        first_name: 'Петро')
+        create_period_salary(high_income, farm, mechanic, 500_000)
+
+        get earnings_reports_path(period: '2025-05', benefit: 'none')
+
+        expect(earnings_rows('6666666666')).to be_present
+        expect(earnings_rows('1234567890')).to be_empty
+        expect(earnings_rows('0987654321')).to be_empty
+      end
+
+      it 'uses a date range instead of the month filter' do
+        get earnings_reports_path(date_from: '2025-05-01', date_to: '2025-05-31')
+
+        month_input = earnings_form.at_css('input[name="period"]')
+
+        expect(month_input['value']).to be_blank
+        expect(earnings_rows('1234567890')).to be_present
+      end
+
+      it 'keeps the active filters in the CSV export link' do
+        get earnings_reports_path(period: '2025-05', department: farm.id,
+                                  employee_search: 'Петренко', benefit: '01')
+
+        link = Nokogiri::HTML(response.body).at_css('a[href*="/reports/earnings.csv"]')
+
+        expect(link['href']).to include('period=2025-05')
+        expect(link['href']).to include("department=#{farm.id}")
+        expect(link['href']).to include('employee_search=')
+        expect(link['href']).to include('benefit=01')
+      end
+
+      it 'keeps a date range in the CSV export link without a month period' do
+        get earnings_reports_path(date_from: '2025-05-01', date_to: '2025-05-31')
+
+        link = Nokogiri::HTML(response.body).at_css('a[href*="/reports/earnings.csv"]')
+
+        expect(link['href']).to include('date_from=2025-05-01')
+        expect(link['href']).to include('date_to=2025-05-31')
+        expect(link['href']).not_to include('period=')
+      end
+    end
+
     context 'when requesting CSV' do
       def parsed_csv
         CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
@@ -1254,6 +1395,40 @@ RSpec.describe 'Reports', type: :request do
         expect(parsed_csv.last).to eq(
           [I18n.t('reports.earnings.total'), '', '1750,00', '', '', '']
         )
+      end
+
+      it 'applies the report filters to the exported rows and columns' do
+        get earnings_reports_path(format: :csv), params: { period: '2025-05', department: farm.id }
+
+        expect(parsed_csv.first).to eq(
+          [
+            I18n.t('reports.earnings.id_code'),
+            I18n.t('reports.earnings.full_name'),
+            I18n.t('reports.earnings.total_salary'),
+            'Ферма доярка',
+            'Ферма механік'
+          ]
+        )
+        expect(parsed_csv.map(&:first)).to include('1234567890')
+        expect(parsed_csv.map(&:first)).not_to include('0987654321')
+      end
+
+      it 'exports the selected date range instead of the month period' do
+        get earnings_reports_path(format: :csv),
+            params: { date_from: '2025-05-01', date_to: '2025-05-31' }
+
+        expect(parsed_csv.map(&:first)).to include('1234567890', '0987654321')
+      end
+
+      it 'exports only employees matching the benefit filter' do
+        child = create(:employee, id_code: '5555555555', last_name: 'Дитина',
+                                  first_name: 'Іван', children_count: 2)
+        create_period_salary(child, farm, milkmaid, 200_000)
+
+        get earnings_reports_path(format: :csv), params: { period: '2025-05', benefit: '04' }
+
+        expect(parsed_csv.map(&:first)).to include('5555555555')
+        expect(parsed_csv.map(&:first)).not_to include('1234567890', '0987654321')
       end
     end
   end

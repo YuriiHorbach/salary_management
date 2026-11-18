@@ -130,5 +130,111 @@ RSpec.describe Reports::EmployeeEarningsQuery do
       expect(described_class.new(period: 'not-a-month').call[:period])
         .to eq(Date.current.beginning_of_month)
     end
+
+    describe 'filters' do
+      let(:petrenko) do
+        create(:employee, id_code: '1234567890', last_name: 'Петренко',
+                          first_name: 'Іван', patronic_name: 'Іванович')
+      end
+      let(:ivanenko) do
+        create(:employee, id_code: '0987654321', last_name: 'Іваненко',
+                          first_name: 'Марія', patronic_name: 'Петрівна')
+      end
+
+      before do
+        create_salary(employee: petrenko, department: farm, position: milkmaid, amount_cents: 100_000)
+        create_salary(employee: petrenko, department: farm, position: mechanic, amount_cents: 50_000)
+        create_salary(employee: ivanenko, department: autopark, position: driver, amount_cents: 25_000)
+      end
+
+      it 'filters salaries and columns by department' do
+        result = described_class.new(period: '2025-05', department: farm.id).call
+
+        expect(result[:columns].map { |column| column[:label] })
+          .to eq(['Ферма доярка', 'Ферма механік'])
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['1234567890'])
+        expect(result[:rows].first[:total_salary]).to eq(1500.0)
+        expect(result[:totals][:salary]).to eq(1500.0)
+      end
+
+      it 'filters salaries and columns by position' do
+        result = described_class.new(period: '2025-05', position: milkmaid.id).call
+
+        expect(result[:columns].map { |column| column[:label] }).to eq(['Ферма доярка'])
+        expect(result[:rows].first[:total_salary]).to eq(1000.0)
+      end
+
+      it 'filters by brigade' do
+        brigade = create(:territory_sign, name: 'Бригада 1')
+        petrenko.update!(territory_sign: brigade)
+
+        result = described_class.new(period: '2025-05', brigade: brigade.id).call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['1234567890'])
+      end
+
+      it 'filters by account book code' do
+        create(:account_book, employee: petrenko, code: 'Б77')
+
+        result = described_class.new(period: '2025-05', account_book: 'Б77').call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['1234567890'])
+      end
+
+      it 'filters by employee search' do
+        result = described_class.new(period: '2025-05', employee_search: 'Іваненко').call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['0987654321'])
+      end
+
+      it 'filters employees by the applied tax benefit code' do
+        child = create(:employee, id_code: '5555555555', children_count: 2)
+        create_salary(employee: child, department: farm, position: milkmaid, amount_cents: 200_000)
+
+        result = described_class.new(period: '2025-05', benefit: '04').call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['5555555555'])
+      end
+
+      it 'filters employees without an applied benefit' do
+        high_income = create(:employee, id_code: '6666666666')
+        create_salary(employee: high_income, department: farm, position: mechanic, amount_cents: 500_000)
+
+        result = described_class.new(period: '2025-05', benefit: 'none').call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['6666666666'])
+      end
+
+      it 'accepts string keys from request params' do
+        result = described_class.new('period' => '2025-05', 'department' => farm.id.to_s).call
+
+        expect(result[:rows].map { |row| row[:id_code] }).to eq(['1234567890'])
+      end
+
+      it 'filters salaries by a date range' do
+        create(:salary, employee: ivanenko, department: autopark, position: driver,
+                        amount_cents: 200_000, period: Date.new(2025, 6, 1),
+                        paid_on: Date.new(2025, 6, 1))
+
+        result = described_class.new(date_from: '2025-05-01', date_to: '2025-05-31').call
+
+        expect(result[:period]).to eq(Date.new(2025, 5, 1))
+        expect(result[:rows].to_h { |row| [row[:id_code], row[:total_salary]] })
+          .to eq('1234567890' => 1500.0, '0987654321' => 250.0)
+      end
+
+      it 'lets an explicit period override the date range' do
+        create(:salary, employee: ivanenko, department: autopark, position: driver,
+                        amount_cents: 200_000, period: Date.new(2025, 6, 1),
+                        paid_on: Date.new(2025, 6, 1))
+
+        result = described_class.new(
+          period: '2025-06', date_from: '2025-05-01', date_to: '2025-05-31'
+        ).call
+
+        expect(result[:rows].to_h { |row| [row[:id_code], row[:total_salary]] })
+          .to eq('0987654321' => 2000.0)
+      end
+    end
   end
 end

@@ -50,11 +50,11 @@ class ReportsController < ApplicationController
   end
 
   def earnings
-    @period_value = earnings_period.to_s
-    @result = Reports::EmployeeEarningsQuery.new(period: @period_value).call
+    @period_value = effective_period&.to_s
+    @result = Reports::EmployeeEarningsQuery.new(earnings_query_params).call
 
     respond_to do |format|
-      format.html
+      format.html { prepare_earnings_html }
       format.csv do
         send_csv(Reports::EmployeeEarningsCsvExporter.new(@result).call, 'earnings',
                  period: @result[:period])
@@ -109,24 +109,44 @@ class ReportsController < ApplicationController
     @selected_period ||= Reports::Period.parse(params[:period])
   end
 
-  # Month applied to the employee earnings report.
+  # Params handed to +Reports::EmployeeEarningsQuery+.
   #
-  # A valid +period+ parameter is honoured; anything else falls back to the
-  # user's current working month so the report always has a defined scope.
+  # The effective month is written explicitly so the query and the CSV export
+  # agree on the same scope. When a date range is active the period is nil and
+  # the query uses the range instead.
   #
-  # @return [Reports::Period]
-  def earnings_period
-    Reports::Period.parse(params[:period]) || Reports::Period.from_date(current_working_month)
+  # @return [Hash]
+  def earnings_query_params
+    params.permit(*ReportsHelper::REPORT_FILTER_PARAMS).to_h
+          .symbolize_keys
+          .merge(period: effective_period&.to_s)
+  end
+
+  # Filter params kept in the CSV export link.
+  #
+  # @return [Hash]
+  def earnings_export_params
+    earnings_query_params.compact
   end
 
   def prepare_detailed_html
     @q = Employee.ransack(params[:q])
+    prepare_report_filters
+    @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
+  end
+
+  def prepare_earnings_html
+    prepare_report_filters
+    @export_params = earnings_export_params
+  end
+
+  # Collections used by the shared report filter form.
+  def prepare_report_filters
     @departments = Department.all
     @positions = Position.order(:position_name)
     @positions = @positions.where(department_id: params[:department]) if params[:department].present?
     @brigades = TerritorySign.all.order(:name)
     @account_book_codes = AccountBook.available_codes
-    @pagy, @employees = pagy(:offset, @result[:employees], limit: DETAILED_REPORT_PER_PAGE)
   end
 
   def send_csv(content, prefix, period: nil)

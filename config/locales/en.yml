@@ -573,6 +573,13 @@ en:
       position_name: Position name
       add: Add position
   reports:
+    filters:
+      benefits:
+        basic: "01 — Basic"
+        increased: "02 — Increased (150%)"
+        ubd: "03 — UBD"
+        children: "04 — For children"
+        none: No benefit
     index:
       title: Salary summary by department
       year: Year
@@ -617,6 +624,8 @@ en:
       all_brigades: All brigades
       book: Book
       all_books: All books
+      benefit: Tax benefit
+      all_benefits: All benefits
       employee_search: Employee (name / ID code)
       employee_placeholder: Name or ID code
       filter: Filter
@@ -703,6 +712,22 @@ en:
     earnings:
       title: Income by departments
       period: Period
+      date_from: From date
+      date_to: To date
+      department: Department
+      all_departments: All departments
+      position: Position
+      all_positions: All positions
+      brigade: Brigade
+      all_brigades: All brigades
+      book: Book
+      all_books: All books
+      benefit: Tax benefit
+      all_benefits: All benefits
+      employee_search: Employee (name / ID code)
+      employee_placeholder: Name or ID code
+      filter: Filter
+      reset: Reset
       show: Show
       export_csv: Export CSV
       id_code: ID code
